@@ -1,0 +1,492 @@
+DockWalk iOS Repo Prompt — WMS Mobile Foundation
+Repo: /users/kyle/desktop/skyview/skyview-ios-dockwalk
+
+Recommended agent/model:
+- Implementation: Cursor — Claude Sonnet 4.5
+- Debug/build verification: Cursor — GPT-5.5 Thinking or Claude Opus 4.5
+
+Prompt title:
+DockWalk WMS MVP Foundation — iOS Client
+
+Mission:
+You are building the starting architecture for the DockWalk iOS repo.
+
+DockWalk is an iOS-first Warehouse Management System for real dock workers, receivers, pickers, loaders, supervisors, small-to-mid-sized warehouses, and 3PLs that are priced out of heavyweight warehouse software.
+
+This iOS repo owns:
+- DockWalk iOS app
+- SwiftUI navigation
+- scanner-first WMS screens
+- local/offline/sync scaffolding
+- design system
+- future camera evidence UX
+- future PaymentManager seam
+- App Store-ready product polish
+
+This iOS repo does NOT own:
+- DockWalk API implementation
+- Supabase migrations
+- Railway deployment
+- WMS web/admin implementation
+- SiteWalk code
+
+Founder context:
+Kyle worked in 3rd-party logistics for roughly 12 years before this. Treat DockWalk as a product shaped by real warehouse and dock experience. The first iOS client should feel sophisticated, beautifully simple, and built for long dock shifts.
+
+Hard boundaries:
+1. Core WMS comes first:
+   - Today
+   - Receive
+   - Ship
+   - Inventory
+   - More/Settings
+   - scanner-first placeholders
+   - inbound receiving placeholders
+   - outbound shipping placeholders
+   - inventory lookup placeholders
+2. Do not start advanced AI yet.
+   - Camera/inspection is a placeholder only in this pass.
+3. Do not start live payments yet.
+   - PaymentManager may be stubbed later, but do not implement POS SDKs now.
+4. Do not import SiteWalk code.
+5. Do not reference or depend on SkyViewCameraSpike.
+6. Do not build under the service repo.
+7. Build an iOS foundation that can run and be inspected before full API integration exists.
+
+Important repo boundary:
+- API/service/data repo:
+  /users/kyle/desktop/skyview/skyview-dockwalk
+- iOS app repo:
+  /users/kyle/desktop/skyview/skyview-ios-dockwalk
+
+Do not collapse these into a monorepo.
+
+Target iOS repo structure:
+skyview-ios-dockwalk/
+  apps/
+    ios/
+      dockwalk/
+        DockWalk/
+          App/
+          DesignSystem/
+          Core/
+          Networking/
+          Persistence/
+          Scanner/
+          Inbound/
+          Outbound/
+          Inventory/
+          Tasks/
+          Exceptions/
+          Inspections/
+          Settings/
+          Debug/
+        DockWalkTests/
+        DockWalkUITests/
+        DockWalk.xcodeproj
+  docs/
+  README.md
+
+Part 1 — Preflight
+
+Run:
+
+cd /users/kyle/desktop/skyview/skyview-ios-dockwalk
+
+pwd
+git status --short || true
+find . -maxdepth 5 -name "*.xcodeproj" -o -name "Package.swift" -o -name "*.swift"
+find . -maxdepth 5 -type f | sort | sed -n '1,240p'
+find . -maxdepth 5 -type d | sort | sed -n '1,240p'
+
+Report:
+- whether this folder is a git repo
+- whether it is empty
+- whether an Xcode project exists
+- whether a Package.swift exists
+- whether Swift files already exist
+- whether an app target/scheme exists
+
+Do not stop if the repo is empty. This task is specifically to create the foundation.
+
+Part 2 — Xcode project handling
+
+If an Xcode project exists:
+- Preserve it.
+- Add new Swift files under the existing app target if possible.
+- Do not rename the project unless necessary.
+- Discover the correct scheme with xcodebuild -list.
+
+If no Xcode project exists:
+- Scaffold a minimal SwiftUI iOS app under:
+  apps/ios/dockwalk/
+- App/product name:
+  DockWalk
+- Bundle identifier placeholder:
+  io.skyprairie.dockwalk
+
+If creating a full Xcode project from Cursor is too risky:
+- Create the full Swift source folder structure and all Swift files.
+- Create docs/manual-xcode-setup.md with exact steps to create the Xcode project manually and add files.
+- Still create syntactically valid SwiftUI files.
+
+Do not use:
+- SkyViewCameraSpike
+- SiteWalk scheme names
+- SiteWalk app target names
+- SiteWalk folder paths
+
+Part 3 — Create iOS folder structure
+
+Create:
+
+apps/ios/dockwalk/DockWalk/App/
+apps/ios/dockwalk/DockWalk/DesignSystem/
+apps/ios/dockwalk/DockWalk/Core/
+apps/ios/dockwalk/DockWalk/Networking/
+apps/ios/dockwalk/DockWalk/Persistence/
+apps/ios/dockwalk/DockWalk/Scanner/
+apps/ios/dockwalk/DockWalk/Inbound/
+apps/ios/dockwalk/DockWalk/Outbound/
+apps/ios/dockwalk/DockWalk/Inventory/
+apps/ios/dockwalk/DockWalk/Tasks/
+apps/ios/dockwalk/DockWalk/Exceptions/
+apps/ios/dockwalk/DockWalk/Inspections/
+apps/ios/dockwalk/DockWalk/Settings/
+apps/ios/dockwalk/DockWalk/Debug/
+apps/ios/dockwalk/DockWalkTests/
+apps/ios/dockwalk/DockWalkUITests/
+docs/
+
+Part 4 — Create Swift files
+
+Create:
+
+apps/ios/dockwalk/DockWalk/App/DockWalkApp.swift
+apps/ios/dockwalk/DockWalk/App/MainTabView.swift
+apps/ios/dockwalk/DockWalk/App/TodayView.swift
+
+apps/ios/dockwalk/DockWalk/DesignSystem/DockWalkTheme.swift
+apps/ios/dockwalk/DockWalk/DesignSystem/PrimaryActionButton.swift
+apps/ios/dockwalk/DockWalk/DesignSystem/StatusChip.swift
+apps/ios/dockwalk/DockWalk/DesignSystem/SectionCard.swift
+
+apps/ios/dockwalk/DockWalk/Core/AppEnvironment.swift
+apps/ios/dockwalk/DockWalk/Core/FeatureFlags.swift
+apps/ios/dockwalk/DockWalk/Core/DockWalkModels.swift
+
+apps/ios/dockwalk/DockWalk/Networking/APIClient.swift
+apps/ios/dockwalk/DockWalk/Networking/APIEndpoint.swift
+
+apps/ios/dockwalk/DockWalk/Persistence/OfflineSyncStore.swift
+apps/ios/dockwalk/DockWalk/Persistence/SyncStatus.swift
+
+apps/ios/dockwalk/DockWalk/Scanner/ScannerPlaceholderView.swift
+apps/ios/dockwalk/DockWalk/Scanner/ScanResult.swift
+
+apps/ios/dockwalk/DockWalk/Inbound/AppointmentsView.swift
+apps/ios/dockwalk/DockWalk/Inbound/AppointmentsViewModel.swift
+apps/ios/dockwalk/DockWalk/Inbound/ReceivingView.swift
+apps/ios/dockwalk/DockWalk/Inbound/ReceivingViewModel.swift
+apps/ios/dockwalk/DockWalk/Inbound/InboundModels.swift
+
+apps/ios/dockwalk/DockWalk/Outbound/ShippingHomeView.swift
+apps/ios/dockwalk/DockWalk/Outbound/OutboundViewModel.swift
+apps/ios/dockwalk/DockWalk/Outbound/OutboundModels.swift
+
+apps/ios/dockwalk/DockWalk/Inventory/InventoryHomeView.swift
+apps/ios/dockwalk/DockWalk/Inventory/InventoryViewModel.swift
+apps/ios/dockwalk/DockWalk/Inventory/InventoryModels.swift
+
+apps/ios/dockwalk/DockWalk/Tasks/TasksHomeView.swift
+apps/ios/dockwalk/DockWalk/Exceptions/ExceptionsHomeView.swift
+apps/ios/dockwalk/DockWalk/Inspections/InspectionStubView.swift
+apps/ios/dockwalk/DockWalk/Settings/SettingsView.swift
+apps/ios/dockwalk/DockWalk/Debug/DebugPanelView.swift
+
+Part 5 — App navigation requirements
+
+MainTabView must have these tabs:
+
+1. Today
+2. Receive
+3. Ship
+4. Inventory
+5. More
+
+Tab behavior:
+- Today shows TodayView.
+- Receive shows AppointmentsView.
+- Ship shows ShippingHomeView.
+- Inventory shows InventoryHomeView.
+- More shows SettingsView.
+
+Do not include AI or payments as main tabs.
+
+Part 6 — First SwiftUI UX requirements
+
+The app should visibly look like DockWalk even with stub data.
+
+Use:
+- clean SwiftUI navigation
+- large warehouse-friendly buttons
+- readable status chips
+- light-first practical UI
+- minimal chrome
+- calm field-instrument feel
+- placeholder data
+- obvious scan actions
+- offline/sync status placeholder
+
+TodayView should show:
+- greeting/status header
+- today’s receiving appointments count
+- outbound work count
+- inventory/cycle count placeholder
+- sync status card
+- quick actions:
+  - Start Receiving
+  - Scan Item
+  - Ship Order
+
+AppointmentsView should show:
+- list of fake/stub appointments
+- carrier
+- dock
+- scheduled time
+- status chip
+- button to open ReceivingView
+
+ReceivingView should show:
+- appointment/shipment summary
+- large Scan button
+- Start Receiving button
+- Add Exception button
+- placeholder received line list
+- clear note that scanner/API is stubbed in this phase
+
+ShippingHomeView should show:
+- outbound work placeholder
+- staged orders placeholder
+- Scan Load button
+- Closeout placeholder
+
+InventoryHomeView should show:
+- search field or search placeholder
+- Scan Item button
+- sample item/location cards
+- cycle count placeholder
+
+ScannerPlaceholderView should:
+- not use live AVFoundation yet
+- show a fake scanner frame
+- include a button like "Simulate Scan"
+- return or display a mock scan result
+
+InspectionStubView should:
+- show that camera evidence/AI inspection is intentionally stubbed
+- avoid real camera or AI logic
+
+SettingsView should show:
+- facility placeholder
+- API base URL placeholder
+- feature flags status
+- debug panel link
+
+Part 7 — Feature flags
+
+Create FeatureFlags.swift with:
+
+- aiInspectionEnabled = false
+- paymentsEnabled = false
+- liveScannerEnabled = false
+- offlineSyncEnabled = true
+- debugPanelEnabled = true
+
+Use these flags in the UI where relevant.
+
+Do not hide the WMS core behind feature flags.
+
+Part 8 — App environment and API client
+
+Create AppEnvironment.swift with:
+- apiBaseURL placeholder defaulting to http://localhost:8790
+- facilityId placeholder
+- orgId placeholder
+- user role placeholder
+
+Create APIClient.swift:
+- use async/await
+- define simple get/post helpers
+- do not require a token yet
+- safe stub/fallback behavior if API is unavailable
+- no secrets
+
+Add simple endpoint constants for:
+- /health
+- /api/appointments
+- /api/inbound/shipments
+- /api/inventory/items
+- /api/outbound/orders
+
+Do not wire full live networking into every screen yet. ViewModels can use stub data.
+
+Part 9 — Offline/sync placeholder
+
+Create OfflineSyncStore.swift:
+- enum or model for queued actions
+- in-memory placeholder list
+- simple add/clear methods
+- no Core Data/SwiftData decision yet unless already present
+
+Create SyncStatus.swift:
+- online
+- offline
+- syncing
+- pending(count)
+- failed
+
+Use a visible sync status chip somewhere in TodayView or SettingsView.
+
+Part 10 — README and docs
+
+Create/update:
+
+README.md
+docs/IOS_FOUNDATION.md
+docs/APP_STORE_MVP_NOTES.md
+docs/MANUAL_XCODE_SETUP.md if needed
+
+README.md must say:
+- this repo is the DockWalk iOS client
+- service/API repo is sibling ../skyview-dockwalk
+- DockWalk is an iOS-first WMS
+- WMS core comes before AI/payments
+- first target screens are Today, Receive, Ship, Inventory, More
+- do not confuse DockWalk with SiteWalk
+- how to open/build the project
+
+IOS_FOUNDATION.md must describe:
+- folder structure
+- module responsibilities
+- current stub state
+- planned next phase
+
+APP_STORE_MVP_NOTES.md must describe:
+- App Store goal
+- simple WMS positioning
+- scanner-first worker UX
+- what is intentionally not implemented yet
+
+MANUAL_XCODE_SETUP.md if needed must include:
+- create iOS App project in Xcode
+- product name DockWalk
+- interface SwiftUI
+- language Swift
+- bundle id io.skyprairie.dockwalk
+- add existing Swift source folders
+- run generic iOS build
+
+Part 11 — Tests
+
+If an Xcode project exists:
+- Add a minimal test file if test target exists.
+- At minimum test basic model initialization or ViewModel stub data.
+
+If no Xcode project exists:
+- Create placeholder test files under DockWalkTests and document manual setup.
+
+Part 12 — Build validation
+
+If Xcode project exists, run:
+
+cd /users/kyle/desktop/skyview/skyview-ios-dockwalk
+find . -name "*.xcodeproj" -maxdepth 6
+xcodebuild -list -project apps/ios/dockwalk/DockWalk.xcodeproj
+
+Then build with the actual DockWalk scheme:
+
+xcodebuild -project apps/ios/dockwalk/DockWalk.xcodeproj \
+  -scheme DockWalk \
+  -destination 'generic/platform=iOS' \
+  build CODE_SIGNING_ALLOWED=NO
+
+If path/scheme differs, discover the actual project/scheme and use it.
+
+If build fails:
+- fix until it succeeds if the project exists and files are in target
+- if failure is due to project not existing or file target membership that cannot be safely edited, document exact next manual step
+
+Do not run or mention SkyViewCameraSpike.
+
+Part 13 — Git discipline
+
+Run:
+
+cd /users/kyle/desktop/skyview/skyview-ios-dockwalk
+git status --short
+
+If everything passes and no secrets are present:
+
+git add .
+git commit -m "Build DockWalk iOS WMS foundation"
+
+Push if branch tracks remote and auth works.
+
+If not committing or pushing, state exactly why.
+
+Acceptance criteria:
+- iOS folder structure exists.
+- MainTabView exists.
+- Today / Receive / Ship / Inventory / More tabs exist.
+- AppointmentsView exists.
+- ReceivingView exists with visible Scan button.
+- Outbound and Inventory placeholder screens exist.
+- FeatureFlags exists with AI/payments disabled by default.
+- APIClient exists with localhost:8790 placeholder.
+- OfflineSyncStore exists.
+- ScannerPlaceholderView exists.
+- README and iOS docs exist.
+- iOS build is attempted if Xcode project exists.
+- If no Xcode project exists and one cannot be safely created, manual setup docs exist.
+
+Must not happen:
+- Do not implement live payments.
+- Do not implement Gemini / AI logic.
+- Do not import SiteWalk code.
+- Do not use the SiteWalk scheme.
+- Do not reference SkyViewCameraSpike.
+- Do not create API/migration files in this repo.
+- Do not commit secrets.
+- Do not leave Swift files syntactically broken if they are added to a buildable target.
+- Do not create one giant unstructured Swift file.
+
+Final response required from agent:
+
+## Repo touched
+
+## Preflight findings
+
+## Files/folders created
+
+## iOS validation
+- project found:
+- scheme used:
+- xcodebuild result:
+
+## Screens created
+
+## ViewModels/models created
+
+## What is stubbed
+
+## What was intentionally avoided
+
+## Git status
+
+## Commit/push status
+
+## Next recommended prompt
+
+Next recommended prompt:
+DockWalk Phase 1A — Appointments + Inbound Receiving UI Data Flow

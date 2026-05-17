@@ -1,0 +1,38 @@
+name: DockWalk
+options:
+  bundleIdPrefix: io.skyprairie
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+targets:
+  DockWalk:
+    type: application
+    platform: iOS
+    sources:
+      - path: DockWalk
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.skyprairie.dockwalk
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: DockWalk/Resources/Info.plist
+    scheme:
+      testTargets:
+        - DockWalkTests
+  DockWalkTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: DockWalkTests
+    dependencies:
+      - target: DockWalk
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.skyprairie.dockwalk.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/DockWalk.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DockWalk"
