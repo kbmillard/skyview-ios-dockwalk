@@ -45,10 +45,11 @@ See [`docs/MANUAL_XCODE_SETUP.md`](docs/MANUAL_XCODE_SETUP.md) if you need to re
 
 ## Docs
 
+- [**`docs/SERVICE_HANDOFF.md`**](docs/SERVICE_HANDOFF.md) — links to service **ARCHITECT_RECAP** + API contract; iOS-only status table  
 - [`docs/IOS_FOUNDATION.md`](docs/IOS_FOUNDATION.md) — folder layout and stub state  
 - [`docs/APP_STORE_MVP_NOTES.md`](docs/APP_STORE_MVP_NOTES.md) — App Store positioning  
 - [`docs/MANUAL_XCODE_SETUP.md`](docs/MANUAL_XCODE_SETUP.md) — manual Xcode steps  
 
-## Local API placeholder
+## Local API
 
-Default API base URL: `http://localhost:8790` (DockWalk API in `skyview-dockwalk`). ViewModels use **stub data** until Phase 1A wires live responses.
+Default base URL: `http://localhost:8790` (`AppEnvironment`). Phase 1A lists call the DockWalk API when it is running with Supabase configured; empty lists usually mean API stub mode or no seed data on **egas** (see service handoff).
