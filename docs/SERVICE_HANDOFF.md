@@ -1,21 +1,38 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-17 (iOS agent — read-only audit / activity list)
+**Last updated:** 2026-05-17 (iOS agent — Phase 1C backend on Railway noted; iOS putaway/sync not started)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
-**API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
+**API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md) · [sync-contract.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/sync-contract.md)  
 **Umbrella:** [DOCKWALK.md](https://github.com/kbmillard/SkyView/blob/main/docs/products/DOCKWALK.md)
 
 ---
 
-## API base URLs
+## API base URLs (QA)
 
 | Target | URL |
 |--------|-----|
-| **Railway production (iOS QA default)** | **https://dockwalk-api-production.up.railway.app** |
+| **Railway production (iOS default)** | **https://dockwalk-api-production.up.railway.app** |
 | Local (Simulator) | `http://localhost:8790` |
 
-**More → API connection** — presets, Save & Test.
+**No local API terminal required for QA** — point **More → API connection** at Railway, Save & Test.
+
+Dev org: `00000000-0000-4000-8000-000000000001` · facility: `00000000-0000-4000-8000-000000000010`
+
+---
+
+## Backend Phase 1C on Railway (service — live)
+
+**Service commit:** `017eb54` on `skyview-dockwalk` `main`  
+**Verified:** `railway up --service dockwalk-api`, `scripts/railway-smoke.sh` all passed
+
+| Check | Result |
+|-------|--------|
+| `POST /api/sync/events` | **200** (was 501 pre-deploy) |
+| Sync batch idempotent replay | OK |
+| `GET /api/tasks?task_type=putaway&org_id=…` | **2** dev putaway tasks (smoke) |
+
+**iOS does not implement these yet** — next PR targets below.
 
 ---
 
@@ -25,68 +42,38 @@
 |------|--------|
 | **Receive workflow** | Appointments → shipments → lines → **Receive 1** / custom quantities |
 | **Receiving POST** | `POST /api/inbound/receiving-events` — `source: device`, `event_type: receive_scan` |
-| **Offline queue + replay** | Receiving events only; manual Debug + runtime auto-replay toggle (default OFF) |
-| **Activity / audit (read-only)** | **More → Activity → Audit events** — `GET /api/audit/events?org_id=&limit=&offset=` |
-| **Auth / mobile session** | **Not implemented** — waiting on service contract |
+| **Offline queue + replay** | Per-event queue; auto-replay toggle in **More → Sync** (default OFF); Debug manual replay |
+| **Activity / audit** | **More → Activity → Audit events** (read-only) |
+| **Putaway tasks** | **Not wired** — API ready: `GET /api/tasks?task_type=putaway` |
+| **Batch sync replay** | **Not wired** — API ready: `POST /api/sync/events` (optional upgrade from per-event replay) |
+| **Auth / mobile session** | **Not implemented** — waiting on service |
 | **Scanner / AI / payments / direct Supabase** | **OFF** |
 
 ---
 
-## Latest delivery (read-only audit / activity list)
+## Latest iOS delivery (audit / activity — `8e9a5c0`)
 
-**What changed**
+Read-only **`GET /api/audit/events`** · **More → Activity** · **View activity** after receive · **31 tests** at that commit.
 
-- **`GET /api/audit/events`** wired with org/limit/offset from `AppEnvironment`
-- **More → Activity → Audit events** — loading, empty, error+retry, pull-to-refresh, **Load more**
-- Row shows action, entity type, timestamp, payload summary (when API returns payload fields)
-- Tap row → detail sheet (entity ID, source, device, idempotency key, line count, etc. — only fields present in API)
-- After successful receive on shipment detail → **View activity** navigates to Activity (non-blocking)
-- **Read-only** — no writes, no auth headers, no Supabase on device
-
-**Files (main)**
-
-- `Networking/AuditEventModels.swift`, `Networking/APIEndpoint.swift`, `Networking/APIClient.swift`
-- `Activity/ActivityView.swift`, `Activity/ActivityViewModel.swift`
-- `Settings/SettingsView.swift`, `Inbound/ShipmentDetailView.swift`
-- `DockWalkTests/DockWalkFoundationTests.swift`
-
-**Still off:** scanner, Gemini, payments, auth, direct Supabase.
-
-**Validation (2026-05-17)**
-
-```bash
-cd apps/ios/dockwalk
-xcodebuild -project DockWalk.xcodeproj -scheme DockWalk -destination 'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO
-# BUILD SUCCEEDED
-
-xcodebuild -project DockWalk.xcodeproj -scheme DockWalk -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' test CODE_SIGNING_ALLOWED=NO
-# TEST SUCCEEDED — 31 tests
-```
-
-**Limitations**
-
-- Audit list shows fields returned by API (`entity_type`, `action`, `payload` keys present in service writes). No invented columns.
-- Stub API mode returns empty audit list with message.
-- No filtering by entity type in UI yet (full org trail only).
+See git history for files and validation output.
 
 ---
 
-## Prior delivery (Phase 1B + replay)
+## Suggested next iOS PR (Phase 1C consumer)
 
-- Railway QA defaults, inbound lines, device receiving writes, offline queue, auto-replay UserDefaults toggle — see git `71d0efc` / Phase 1B section in history.
+| Priority | Work | Contract |
+|----------|------|----------|
+| **P1** | **Putaway task list** (read-only) | `GET /api/tasks?org_id=&task_type=putaway` — show SKU, qty, from/to location, status |
+| **P2** | **Optional:** replay offline queue via `POST /api/sync/events` | [sync-contract.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/sync-contract.md) — preserve `idempotency_key`; map `duplicate` → success |
+| P3 | Auth when service defines mobile session |
+| P4 | Live scanner |
 
----
-
-## Suggested next iOS PR
-
-| Priority | Work |
-|----------|------|
-| P1 | Auth / mobile session when service defines it |
-| P2 | Live scanner (replace manual Receive 1) |
-| P3 | Filter Activity by `receiving_event` entity type |
+**Do not** implement task assign/complete writes (still stub on service).
 
 ---
 
 ## Cursor
 
-Backend: **ARCHITECT_RECAP** + **api-foundation**. iOS: **this file**.
+- **Backend truth:** ARCHITECT_RECAP + api-foundation (not duplicated here).  
+- **iOS truth:** this file.  
+- **`DOCKWALK.md` (umbrella):** does **not** auto-sync from this file — bump phase snapshot manually when iOS catches up.
