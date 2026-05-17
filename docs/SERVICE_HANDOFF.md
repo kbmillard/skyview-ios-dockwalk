@@ -9,6 +9,46 @@
 
 ---
 
+## Agent bootstrap (next prompt)
+
+**Read order (before editing):**
+
+1. Umbrella [DOCKWALK.md](https://github.com/kbmillard/SkyView/blob/main/docs/products/DOCKWALK.md) (product context; manual snapshot)
+2. [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md) — backend truth
+3. [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md) · [sync-contract.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/sync-contract.md)
+4. **This file** — iOS-only truth
+
+**Repo layout**
+
+| What | Path |
+|------|------|
+| Git root / Cursor workspace | `skyview-ios-dockwalk` |
+| Xcode project | `apps/ios/dockwalk/DockWalk.xcodeproj` |
+| Regenerate project after new Swift files | `cd apps/ios/dockwalk && xcodegen generate` |
+
+**Do not edit** sibling `skyview-dockwalk` (API/service) unless the task explicitly says so. Service is **green on Railway prod** — do not re-debug or replace API behavior for normal iOS work.
+
+**Railway QA defaults (device config)**
+
+| Key | UUID |
+|-----|------|
+| Org | `00000000-0000-4000-8000-000000000001` |
+| Facility | `00000000-0000-4000-8000-000000000010` |
+
+**Operator**
+
+- Validate with **`xcodebuild build`** or **archive** — do **not** run `xcodebuild test` unless Kyle asks.
+- Commit + push to `origin` when a coherent chunk is done (unless asked not to).
+- **Ship / Inventory tabs** are still placeholders — don’t assume full WMS is done.
+
+**Paste block for a new chat**
+
+```text
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live — QA via More → API connection. TestFlight 0.1.0 (1) internal (DockStockers). Build only unless tests requested. Scanner / AI / payments / auth / direct Supabase / task writes OFF.
+```
+
+---
+
 ## Summary (2026-05-17)
 
 DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle confirmed install after accepting the **DockStockers** internal invite (same Apple ID as App Store Connect). **LastLeg** TestFlight is unrelated — both apps can run side by side.
