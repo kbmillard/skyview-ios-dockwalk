@@ -7,6 +7,16 @@ enum APIEndpoint {
     case inboundShipmentLines(shipmentId: String, orgId: String)
     case receivingEvents
     case auditEvents(orgId: String, limit: Int, offset: Int)
+    case warehouseTasks(
+        orgId: String,
+        taskType: String?,
+        status: String?,
+        inboundShipmentId: String?,
+        limit: Int,
+        offset: Int
+    )
+    case warehouseTask(taskId: String, orgId: String)
+    case syncEvents
     case inventoryItems
     case outboundOrders
 
@@ -19,6 +29,9 @@ enum APIEndpoint {
             return "/api/inbound/shipments/\(shipmentId)/lines"
         case .receivingEvents: return "/api/inbound/receiving-events"
         case .auditEvents: return "/api/audit/events"
+        case .warehouseTasks: return "/api/tasks"
+        case .warehouseTask(let taskId, _): return "/api/tasks/\(taskId)"
+        case .syncEvents: return "/api/sync/events"
         case .inventoryItems: return "/api/inventory/items"
         case .outboundOrders: return "/api/outbound/orders"
         }
@@ -42,6 +55,24 @@ enum APIEndpoint {
                 URLQueryItem(name: "limit", value: String(limit)),
                 URLQueryItem(name: "offset", value: String(offset)),
             ]
+        case .warehouseTasks(let orgId, let taskType, let status, let inboundShipmentId, let limit, let offset):
+            var items = [
+                URLQueryItem(name: "org_id", value: orgId),
+                URLQueryItem(name: "limit", value: String(limit)),
+                URLQueryItem(name: "offset", value: String(offset)),
+            ]
+            if let taskType {
+                items.append(URLQueryItem(name: "task_type", value: taskType))
+            }
+            if let status {
+                items.append(URLQueryItem(name: "status", value: status))
+            }
+            if let inboundShipmentId {
+                items.append(URLQueryItem(name: "inbound_shipment_id", value: inboundShipmentId))
+            }
+            return items
+        case .warehouseTask(_, let orgId):
+            return [URLQueryItem(name: "org_id", value: orgId)]
         default:
             return []
         }

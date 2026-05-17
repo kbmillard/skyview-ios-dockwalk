@@ -65,6 +65,34 @@ struct APIClient {
         try await get(.auditEvents(orgId: orgId, limit: limit, offset: offset))
     }
 
+    func fetchTasks(
+        orgId: String,
+        taskType: String? = "putaway",
+        status: String? = nil,
+        inboundShipmentId: String? = nil,
+        limit: Int = 25,
+        offset: Int = 0
+    ) async throws -> WarehouseTasksListResponse {
+        try await get(
+            .warehouseTasks(
+                orgId: orgId,
+                taskType: taskType,
+                status: status,
+                inboundShipmentId: inboundShipmentId,
+                limit: limit,
+                offset: offset
+            )
+        )
+    }
+
+    func fetchTask(id: String, orgId: String) async throws -> WarehouseTaskDetailResponse {
+        try await get(.warehouseTask(taskId: id, orgId: orgId))
+    }
+
+    func postSyncEvents(_ envelope: SyncBatchEnvelope) async throws -> SyncBatchResponse {
+        try await post(.syncEvents, body: envelope)
+    }
+
     private func request<T: Decodable, Body>(
         _ endpoint: APIEndpoint,
         method: String,

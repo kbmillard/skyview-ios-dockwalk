@@ -54,4 +54,4 @@ See [`docs/MANUAL_XCODE_SETUP.md`](docs/MANUAL_XCODE_SETUP.md) if you need to re
 
 Default base URL for **new installs**: `https://dockwalk-api-production.up.railway.app` (`DeviceConfiguration.railwayQADefaults`). Use **More → API connection** to switch to `http://localhost:8790` for local API dev.
 
-Receiving writes go through the Railway API (not direct Supabase from iOS). See [`docs/SERVICE_HANDOFF.md`](docs/SERVICE_HANDOFF.md).
+Receiving writes and offline replay go through the Railway API (`POST /api/inbound/receiving-events` or batch `POST /api/sync/events`) — not direct Supabase from iOS. Putaway tasks load from `GET /api/tasks?task_type=putaway`. See [`docs/SERVICE_HANDOFF.md`](docs/SERVICE_HANDOFF.md).

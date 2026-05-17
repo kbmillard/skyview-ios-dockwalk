@@ -79,8 +79,12 @@ struct SettingsView: View {
                     Text("Sync")
                 } footer: {
                     if FeatureFlags.isReceivingEventAutoReplayPermitted {
-                        Text("Replays only queued receiving events after connectivity returns. Other queue kinds are not replayed. Manual replay remains in Debug.")
-                            .font(DockWalkTheme.captionFont)
+                        Text(
+                            FeatureFlags.syncBatchReplayEnabled
+                                ? "Replay uses POST /api/sync/events (batch). Accepted and duplicate results clear queue items. Manual replay remains in Debug."
+                                : "Replays queued receiving events one at a time. Manual replay remains in Debug."
+                        )
+                        .font(DockWalkTheme.captionFont)
                     }
                 }
 
@@ -89,6 +93,7 @@ struct SettingsView: View {
                     flagRow("Payments / POS", enabled: FeatureFlags.paymentsEnabled)
                     flagRow("Live scanner", enabled: FeatureFlags.liveScannerEnabled)
                     flagRow("Offline sync", enabled: FeatureFlags.offlineSyncEnabled)
+                    flagRow("Batch sync replay", enabled: FeatureFlags.syncBatchReplayEnabled)
                     flagRow("Debug panel", enabled: FeatureFlags.debugPanelEnabled)
                 }
 
@@ -96,13 +101,16 @@ struct SettingsView: View {
                     NavigationLink("Audit events") {
                         ActivityView()
                     }
-                    Text("Read-only trail from GET /api/audit/events — confirms receiving writes on the server.")
+                    NavigationLink("Putaway tasks") {
+                        PutawayTasksView()
+                    }
+                    Text("Read-only audit trail and putaway task list from the DockWalk API.")
                         .font(DockWalkTheme.captionFont)
                         .foregroundStyle(DockWalkTheme.textSecondary)
                 }
 
                 Section("Modules") {
-                    NavigationLink("Tasks") { TasksHomeView() }
+                    NavigationLink("Putaway tasks") { TasksHomeView() }
                     NavigationLink("Exceptions") { ExceptionsHomeView() }
                     NavigationLink("Inspection (stub)") { InspectionStubView() }
                 }

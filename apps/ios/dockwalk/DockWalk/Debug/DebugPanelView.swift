@@ -39,6 +39,12 @@ struct DebugPanelView: View {
                     }
                 }
 
+                if FeatureFlags.syncBatchReplayEnabled {
+                    Text("Replay path: POST /api/sync/events (batch)")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                }
+
                 if syncStore.pendingReceivingEventCount > 0 {
                     Button(replayCoordinator.isReplaying ? "Replaying…" : "Replay receiving events") {
                         Task {
@@ -74,5 +80,5 @@ struct DebugPanelView: View {
             .environment(OfflineSyncStore.shared)
             .environment(SyncPreferencesStore.shared)
             .environment(ReceivingEventReplayCoordinator.shared)
-}
+    }
 }

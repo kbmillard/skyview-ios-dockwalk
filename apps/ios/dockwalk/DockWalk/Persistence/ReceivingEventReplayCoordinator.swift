@@ -50,7 +50,6 @@ final class ReceivingEventReplayCoordinator {
         )
     }
 
-    /// Called when the user enables auto-replay in settings.
     func handleAutoReplayEnabledByUser(
         environment: AppEnvironment,
         syncStore: OfflineSyncStore
@@ -97,8 +96,15 @@ final class ReceivingEventReplayCoordinator {
         syncStore.markSyncing()
         let client = environment.makeAPIClient()
 
-        let outcome = await ReceivingEventReplayEngine.replay(actions: syncStore.queuedActions) { payload in
-            try await client.post(.receivingEvents, body: payload)
+        let outcome: ReceivingEventReplayOutcome
+        if FeatureFlags.syncBatchReplayEnabled {
+            outcome = await SyncBatchReplayEngine.replay(actions: syncStore.queuedActions) { envelope in
+                try await client.postSyncEvents(envelope)
+            }
+        } else {
+            outcome = await ReceivingEventReplayEngine.replay(actions: syncStore.queuedActions) { payload in
+                try await client.post(.receivingEvents, body: payload)
+            }
         }
 
         syncStore.removeQueuedActions(withIDs: Set(outcome.removedActionIDs))
@@ -107,10 +113,12 @@ final class ReceivingEventReplayCoordinator {
         if outcome.succeeded == 0 && outcome.failed == 0 {
             message = "\(label): no receiving events in queue."
         } else {
-            message = "\(label): \(outcome.succeeded) sent, \(outcome.failed) still pending."
+            let via = FeatureFlags.syncBatchReplayEnabled ? "batch sync" : "per-event"
+            message = "\(label) (\(via)): \(outcome.succeeded) sent, \(outcome.failed) still pending."
         }
 
         syncStore.recordReplayMessage(message)
+        syncStore.markOnline()
         if label.hasPrefix("Auto") {
             lastAutoReplayAt = Date()
             lastAutoReplaySummary = message

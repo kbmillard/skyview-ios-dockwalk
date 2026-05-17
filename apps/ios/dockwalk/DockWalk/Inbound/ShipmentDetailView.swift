@@ -5,6 +5,7 @@ struct ShipmentDetailView: View {
     @Environment(OfflineSyncStore.self) private var syncStore
     @Bindable var viewModel: ShipmentDetailViewModel
     @State private var showActivity = false
+    @State private var showPutawayTasks = false
 
     init(shipment: InboundShipmentItem, appointmentId: String?, environment: AppEnvironment = .shared) {
         viewModel = ShipmentDetailViewModel(
@@ -38,6 +39,9 @@ struct ShipmentDetailView: View {
         }
         .navigationDestination(isPresented: $showActivity) {
             ActivityView()
+        }
+        .navigationDestination(isPresented: $showPutawayTasks) {
+            PutawayTasksView(inboundShipmentId: viewModel.shipment.id)
         }
     }
 
@@ -82,6 +86,20 @@ struct ShipmentDetailView: View {
                     .font(DockWalkTheme.captionFont)
                     .foregroundStyle(DockWalkTheme.warning)
             }
+
+            Button {
+                showPutawayTasks = true
+            } label: {
+                Label("View putaway tasks", systemImage: "arrow.right.square")
+                    .font(DockWalkTheme.captionFont)
+            }
+
+            Button {
+                showActivity = true
+            } label: {
+                Label("View audit activity", systemImage: "list.bullet.rectangle")
+                    .font(DockWalkTheme.captionFont)
+            }
         }
     }
 
@@ -89,18 +107,10 @@ struct ShipmentDetailView: View {
     private var submitResultBanner: some View {
         switch viewModel.lastSubmitResult {
         case .success(let idempotent, let mode, _):
-            VStack(alignment: .leading, spacing: 8) {
-                StatusChip(
-                    label: idempotent ? "Already recorded (\(mode))" : "Receive recorded (\(mode))",
-                    tone: .success
-                )
-                Button {
-                    showActivity = true
-                } label: {
-                    Label("View activity", systemImage: "list.bullet.rectangle")
-                        .font(DockWalkTheme.captionFont)
-                }
-            }
+            StatusChip(
+                label: idempotent ? "Already recorded (\(mode))" : "Receive recorded (\(mode))",
+                tone: .success
+            )
         case .queuedOffline:
             VStack(alignment: .leading, spacing: 6) {
                 StatusChip(label: "Queued offline", tone: .warning)

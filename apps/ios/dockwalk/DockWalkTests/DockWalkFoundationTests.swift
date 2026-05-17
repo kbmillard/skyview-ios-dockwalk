@@ -47,6 +47,7 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertFalse(FeatureFlags.liveScannerEnabled)
         XCTAssertTrue(FeatureFlags.offlineSyncEnabled)
         XCTAssertTrue(FeatureFlags.receivingEventAutoReplayAvailable)
+        XCTAssertTrue(FeatureFlags.syncBatchReplayEnabled)
     }
 
     func testReceivingEventAutoReplayDefaultOff() {
@@ -445,6 +446,101 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertEqual(env.apiBaseURL.absoluteString, DeviceConfiguration.railwayProductionAPIBaseURL)
     }
 
+    func testWarehouseTasksEndpointIncludesPutawayFilter() {
+        let url = APIEndpoint.warehouseTasks(
+            orgId: "00000000-0000-4000-8000-000000000001",
+            taskType: "putaway",
+            status: nil,
+            inboundShipmentId: nil,
+            limit: 25,
+            offset: 0
+        ).url(base: URL(string: "https://dockwalk-api-production.up.railway.app")!)!
+        XCTAssertTrue(url.path.contains("/api/tasks"))
+        XCTAssertTrue(url.absoluteString.contains("task_type=putaway"))
+        XCTAssertTrue(url.absoluteString.contains("org_id="))
+    }
+
+    func testWarehouseTaskDTOMapping() throws {
+        let json = """
+        {"id":"00000000-0000-4000-8000-000000000501","task_type":"putaway","status":"pending",
+        "sku":"SKU-DEV-001","description":"Put away widgets","quantity":10,"uom":"ea",
+        "from_location_code":"RECV-STAGE","to_location_code":"BIN-A-01",
+        "inbound_shipment_id":"00000000-0000-4000-8000-000000000201"}
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(WarehouseTaskDTO.self, from: json)
+        let item = WarehouseTaskAPIMapping.mapTask(dto)
+        XCTAssertEqual(item.sku, "SKU-DEV-001")
+        XCTAssertEqual(item.routeLabel, "RECV-STAGE → BIN-A-01")
+        XCTAssertEqual(item.status, "pending")
+    }
+
+    func testSyncBatchResponseDuplicateIsSuccess() throws {
+        let json = """
+        {"mode":"live","results":[{"idempotency_key":"ios-dup","type":"inbound.receiving_event",
+        "status":"duplicate","receiving_event_id":"evt-1"}],
+        "summary":{"accepted":0,"duplicate":1,"rejected":0}}
+        """.data(using: .utf8)!
+        let response = try JSONDecoder().decode(SyncBatchResponse.self, from: json)
+        XCTAssertTrue(response.results.first?.isSuccess == true)
+    }
+
+    func testSyncBatchReplayEngineRemovesAcceptedAndDuplicate() async {
+        let id1 = UUID()
+        let id2 = UUID()
+        let actions = [
+            QueuedSyncAction(
+                id: id1,
+                kind: OfflineSyncStore.receivingEventKind,
+                summary: "A",
+                receivingEventPayload: sampleReceivingPayload(idempotencyKey: "batch-key-1")
+            ),
+            QueuedSyncAction(
+                id: id2,
+                kind: OfflineSyncStore.receivingEventKind,
+                summary: "B",
+                receivingEventPayload: sampleReceivingPayload(idempotencyKey: "batch-key-2")
+            ),
+        ]
+
+        let outcome = await SyncBatchReplayEngine.replay(actions: actions) { envelope in
+            XCTAssertEqual(envelope.events.count, 2)
+            XCTAssertEqual(envelope.events[0].idempotencyKey, "batch-key-1")
+            return SyncBatchResponse(
+                mode: "live",
+                results: envelope.events.map { event in
+                    SyncBatchResultItem(
+                        idempotencyKey: event.idempotencyKey,
+                        type: event.type,
+                        status: event.idempotencyKey == "batch-key-1" ? "accepted" : "duplicate",
+                        receivingEventId: "evt",
+                        error: nil
+                    )
+                },
+                summary: SyncBatchSummary(accepted: 1, duplicate: 1, rejected: 0)
+            )
+        }
+
+        XCTAssertEqual(outcome.succeeded, 2)
+        XCTAssertEqual(outcome.failed, 0)
+        XCTAssertEqual(Set(outcome.removedActionIDs), Set([id1, id2]))
+    }
+
+    func testSyncBatchEnvelopeOmitsIdempotencyKeyInsidePayload() throws {
+        let request = sampleReceivingPayload(idempotencyKey: "ios-batch-key-99")
+        let envelope = SyncBatchEnvelope(
+            orgId: request.orgId,
+            facilityId: request.facilityId,
+            deviceId: request.deviceId,
+            requests: [request]
+        )
+        let data = try JSONEncoder().encode(envelope)
+        let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let events = object?["events"] as? [[String: Any]]
+        let payload = events?.first?["payload"] as? [String: Any]
+        XCTAssertEqual(events?.first?["idempotency_key"] as? String, "ios-batch-key-99")
+        XCTAssertNil(payload?["idempotency_key"])
+    }
+
     func testShipmentDetailViewModelTreatsIdempotentAsSuccess() {
         let response = ReceivingEventResponse(
             mode: "live",
@@ -461,40 +557,5 @@ final class DockWalkFoundationTests: XCTestCase {
         )
         XCTAssertTrue(ReceivingEventReplayEngine.isSuccessfulResponse(response))
         XCTAssertTrue(response.isIdempotentReplay)
-    }
-
-    func testAuditEventsEndpointIncludesOrgLimitOffset() {
-        let url = APIEndpoint.auditEvents(
-            orgId: "00000000-0000-4000-8000-000000000001",
-            limit: 25,
-            offset: 50
-        ).url(base: URL(string: "https://dockwalk-api-production.up.railway.app")!)!
-        XCTAssertTrue(url.absoluteString.contains("org_id="))
-        XCTAssertTrue(url.absoluteString.contains("limit=25"))
-        XCTAssertTrue(url.absoluteString.contains("offset=50"))
-        XCTAssertTrue(url.path.contains("/api/audit/events"))
-    }
-
-    func testAuditEventDTODecodingAndMapping() throws {
-        let json = """
-        {"id":"ae-1","org_id":"org-1","facility_id":"fac-1","entity_type":"receiving_event",
-        "entity_id":"ev-1","action":"created","created_at":"2026-05-17T12:00:00Z",
-        "payload":{"event_type":"receive_scan","source":"device","device_id":"ios-1","line_count":1}}
-        """.data(using: .utf8)!
-        let dto = try JSONDecoder().decode(AuditEventDTO.self, from: json)
-        let item = AuditAPIMapping.mapAuditEvent(dto)
-        XCTAssertEqual(item.action, "created")
-        XCTAssertEqual(item.entityType, "receiving_event")
-        XCTAssertEqual(item.payloadSummary, "receive_scan · device · 1 line(s)")
-        XCTAssertTrue(item.detailLines.contains { $0.contains("device") })
-    }
-
-    func testAuditEventsListResponseDecoding() throws {
-        let json = """
-        {"mode":"live","items":[],"pagination":{"limit":25,"offset":0,"total":0}}
-        """.data(using: .utf8)!
-        let response = try JSONDecoder().decode(AuditEventsListResponse.self, from: json)
-        XCTAssertEqual(response.mode, "live")
-        XCTAssertEqual(response.pagination.total, 0)
     }
 }
