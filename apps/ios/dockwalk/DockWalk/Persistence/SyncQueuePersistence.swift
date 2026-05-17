@@ -7,19 +7,27 @@ struct QueuedSyncAction: Identifiable, Equatable, Codable {
     let createdAt: Date
     /// JSON-encoded `CreateReceivingEventRequest` when `kind == inbound.receiving_event`.
     var receivingEventPayload: CreateReceivingEventRequest?
+    /// Persisted putaway task action when `kind == task_action`.
+    var taskActionPayload: QueuedTaskActionPayload?
+    /// Last batch replay rejection or transport summary for display.
+    var lastError: String?
 
     init(
         id: UUID = UUID(),
         kind: String,
         summary: String,
         createdAt: Date = .now,
-        receivingEventPayload: CreateReceivingEventRequest? = nil
+        receivingEventPayload: CreateReceivingEventRequest? = nil,
+        taskActionPayload: QueuedTaskActionPayload? = nil,
+        lastError: String? = nil
     ) {
         self.id = id
         self.kind = kind
         self.summary = summary
         self.createdAt = createdAt
         self.receivingEventPayload = receivingEventPayload
+        self.taskActionPayload = taskActionPayload
+        self.lastError = lastError
     }
 }
 

@@ -39,6 +39,11 @@ struct SettingsView: View {
                             .font(DockWalkTheme.captionFont)
                             .foregroundStyle(DockWalkTheme.warning)
                     }
+                    if syncStore.pendingTaskActionCount > 0 {
+                        Text("\(syncStore.pendingTaskActionCount) putaway task action(s) queued")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.warning)
+                    }
                     HStack {
                         Text("Status")
                         Spacer()
@@ -47,7 +52,7 @@ struct SettingsView: View {
                     if replayCoordinator.isReplaying {
                         HStack {
                             ProgressView()
-                            Text("Replaying receiving events…")
+                            Text("Replaying offline queue…")
                                 .font(DockWalkTheme.captionFont)
                         }
                     }
@@ -81,8 +86,8 @@ struct SettingsView: View {
                     if FeatureFlags.isReceivingEventAutoReplayPermitted {
                         Text(
                             FeatureFlags.syncBatchReplayEnabled
-                                ? "Replay uses POST /api/sync/events (batch). Accepted and duplicate results clear queue items. Manual replay remains in Debug."
-                                : "Replays queued receiving events one at a time. Manual replay remains in Debug."
+                                ? "Replay uses POST /api/sync/events (batch) for receiving events and putaway task actions. Accepted and duplicate clear the queue; rejected task actions stay queued. Manual replay remains in Debug."
+                                : "Replays queued receiving events one at a time. Task actions require batch sync. Manual replay remains in Debug."
                         )
                         .font(DockWalkTheme.captionFont)
                     }

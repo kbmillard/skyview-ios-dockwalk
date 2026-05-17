@@ -27,6 +27,7 @@
 		4D925248B5861DE070F2F3D8 /* LoadStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CE8CBC58F1CE03FB3DDDEFE /* LoadStateView.swift */; };
 		4E47A863500A2982A263522E /* SyncStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954E5D3B5DFA985D13CB5C57 /* SyncStatus.swift */; };
 		4E5288E0A5CD4D173EFC9F64 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A978CBA08DF8B85851D865B /* AppEnvironment.swift */; };
+		4EDE38AE14BBEC13A45B1834 /* TaskActionSyncModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84310D5C5A731CF4ACF91256 /* TaskActionSyncModels.swift */; };
 		52E5427771D1EC9359E42BB6 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B782D5EF4D98C01F04189DE /* APIClient.swift */; };
 		60E98D57E8259E48BD1E804E /* DeviceConfigurationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F6D71C779925A575BDE126 /* DeviceConfigurationStore.swift */; };
 		697307A48E8324B72E2795BD /* LoadPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06B44D071E70EE2F7E60C975 /* LoadPhase.swift */; };
@@ -115,6 +116,7 @@
 		7D5C08D0A23B801E54197778 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
 		7F574C040783ECE04C37D361 /* PutawayTasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayTasksView.swift; sourceTree = "<group>"; };
 		83F6D71C779925A575BDE126 /* DeviceConfigurationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceConfigurationStore.swift; sourceTree = "<group>"; };
+		84310D5C5A731CF4ACF91256 /* TaskActionSyncModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskActionSyncModels.swift; sourceTree = "<group>"; };
 		86CDC4C1E70C8852D4C2171E /* ScannerPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerPlaceholderView.swift; sourceTree = "<group>"; };
 		8E908910669A3F7A8FA57A2D /* PutawayTasksViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayTasksViewModel.swift; sourceTree = "<group>"; };
 		8F9825520847293A864FC4C9 /* DockWalkApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockWalkApp.swift; sourceTree = "<group>"; };
@@ -254,6 +256,7 @@
 				EA7D11F1805588CFF8E1CA17 /* AuditEventModels.swift */,
 				281BEBC8BDB0B78462A285DD /* ReceivingEventModels.swift */,
 				5D0622CE00814C219A8DFE74 /* SyncBatchModels.swift */,
+				84310D5C5A731CF4ACF91256 /* TaskActionSyncModels.swift */,
 				F7CA1D9E2AFB4B1A5DE83BA7 /* WarehouseTaskActionModels.swift */,
 				C8BDD9812E0071A5A35E6B02 /* WarehouseTaskModels.swift */,
 			);
@@ -515,6 +518,7 @@
 				1FC805905D4411F44BE8C4F7 /* SyncPreferencesStore.swift in Sources */,
 				FD555837136CD26F6C70AF81 /* SyncQueuePersistence.swift in Sources */,
 				4E47A863500A2982A263522E /* SyncStatus.swift in Sources */,
+				4EDE38AE14BBEC13A45B1834 /* TaskActionSyncModels.swift in Sources */,
 				8D21C1DD6F0D54D4785BBC4D /* TasksHomeView.swift in Sources */,
 				B62BB5725DA386A949C19199 /* TodayView.swift in Sources */,
 				73E9FC37F4155133092E99E3 /* WarehouseTaskActionModels.swift in Sources */,

@@ -7,7 +7,7 @@ enum FeatureFlags {
     static let offlineSyncEnabled = true
     /// Product gate — runtime toggle in More → Sync controls on-device behavior (no rebuild).
     static let receivingEventAutoReplayAvailable = true
-    /// Use `POST /api/sync/events` for offline receiving replay (receiving events only).
+    /// Use `POST /api/sync/events` for offline replay (receiving events + task_action).
     static let syncBatchReplayEnabled = true
     static let debugPanelEnabled = true
 

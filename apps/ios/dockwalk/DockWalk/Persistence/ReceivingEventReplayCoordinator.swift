@@ -31,7 +31,7 @@ final class ReceivingEventReplayCoordinator {
         trigger: String
     ) async -> ReceivingEventReplayOutcome? {
         guard isAutoReplayEnabled else { return nil }
-        guard syncStore.pendingReceivingEventCount > 0 else { return nil }
+        guard syncStore.pendingSyncableCount > 0 else { return nil }
         guard !isReplaying else { return nil }
 
         if let lastAttemptAt,
@@ -55,7 +55,7 @@ final class ReceivingEventReplayCoordinator {
         syncStore: OfflineSyncStore
     ) async {
         guard isAutoReplayEnabled else { return }
-        guard syncStore.pendingReceivingEventCount > 0 else {
+        guard syncStore.pendingSyncableCount > 0 else {
             pendingAutoReplayHint = nil
             return
         }
@@ -79,6 +79,7 @@ final class ReceivingEventReplayCoordinator {
         pendingAutoReplayHint = nil
     }
 
+    /// Replays queued receiving events and task actions (name kept for call-site stability).
     @discardableResult
     func replayReceivingEvents(
         environment: AppEnvironment,
@@ -98,9 +99,11 @@ final class ReceivingEventReplayCoordinator {
 
         let outcome: ReceivingEventReplayOutcome
         if FeatureFlags.syncBatchReplayEnabled {
-            outcome = await SyncBatchReplayEngine.replay(actions: syncStore.queuedActions) { envelope in
+            let batchResult = await SyncBatchReplayEngine.replay(actions: syncStore.queuedActions) { envelope in
                 try await client.postSyncEvents(envelope)
             }
+            syncStore.applyReplayRejections(batchResult.rejectionMessages)
+            outcome = batchResult.outcome
         } else {
             outcome = await ReceivingEventReplayEngine.replay(actions: syncStore.queuedActions) { payload in
                 try await client.post(.receivingEvents, body: payload)
@@ -111,10 +114,16 @@ final class ReceivingEventReplayCoordinator {
 
         let message: String
         if outcome.succeeded == 0 && outcome.failed == 0 {
-            message = "\(label): no receiving events in queue."
+            message = "\(label): nothing to replay in queue."
         } else {
             let via = FeatureFlags.syncBatchReplayEnabled ? "batch sync" : "per-event"
-            message = "\(label) (\(via)): \(outcome.succeeded) sent, \(outcome.failed) still pending."
+            let receiving = syncStore.pendingReceivingEventCount
+            let tasks = syncStore.pendingTaskActionCount
+            var detail = "\(label) (\(via)): \(outcome.succeeded) sent, \(outcome.failed) still pending."
+            if receiving > 0 || tasks > 0 {
+                detail += " (\(receiving) receiving, \(tasks) task action(s) left)"
+            }
+            message = detail
         }
 
         syncStore.recordReplayMessage(message)

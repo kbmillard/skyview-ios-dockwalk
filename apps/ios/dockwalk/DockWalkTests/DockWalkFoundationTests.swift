@@ -541,6 +541,236 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertNil(payload?["idempotency_key"])
     }
 
+    func testTaskActionBatchEventEncoding() throws {
+        let queued = QueuedTaskActionBuilder.build(
+            taskId: "00000000-0000-4000-8000-000000000501",
+            kind: .block,
+            orgId: "00000000-0000-4000-8000-000000000001",
+            idempotencyKey: "ios-task-block-001",
+            deviceId: "ios-test",
+            block: TaskBlockRequest(
+                orgId: "00000000-0000-4000-8000-000000000001",
+                reasonCode: "location_blocked",
+                reason: "Bin occupied",
+                idempotencyKey: "ios-task-block-001",
+                deviceId: "ios-test",
+                notes: nil
+            )
+        )
+        let envelope = SyncBatchEnvelope(
+            orgId: queued.orgId,
+            facilityId: nil,
+            deviceId: queued.deviceId,
+            events: [.taskAction(queued)]
+        )
+        let data = try JSONEncoder().encode(envelope)
+        let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let events = object?["events"] as? [[String: Any]]
+        XCTAssertEqual(events?.first?["event_type"] as? String, "task_action")
+        XCTAssertEqual(events?.first?["idempotency_key"] as? String, "ios-task-block-001")
+        let payload = events?.first?["payload"] as? [String: Any]
+        XCTAssertEqual(payload?["task_id"] as? String, "00000000-0000-4000-8000-000000000501")
+        XCTAssertEqual(payload?["action"] as? String, "block")
+        XCTAssertEqual(payload?["reason_code"] as? String, "location_blocked")
+    }
+
+    func testOfflineSyncEnqueueTaskActionPreservesIdempotencyKey() {
+        let store = OfflineSyncStore(loadPersisted: false)
+        store.clearQueue()
+        let payload = QueuedTaskActionBuilder.build(
+            taskId: "task-1",
+            kind: .start,
+            orgId: "org-1",
+            idempotencyKey: "ios-task-start-99",
+            deviceId: "dev-1",
+            start: TaskStartRequest(orgId: "org-1", idempotencyKey: "ios-task-start-99", deviceId: "dev-1", notes: nil)
+        )
+        store.enqueueTaskAction(payload, summary: "Start putaway SKU-1")
+        XCTAssertEqual(store.pendingTaskActionCount, 1)
+        XCTAssertEqual(store.queuedActions.first?.taskActionPayload?.idempotencyKey, "ios-task-start-99")
+    }
+
+    func testAPIClientErrorClassifierDoesNotQueue409() {
+        XCTAssertFalse(
+            APIClientErrorClassifier.shouldQueueOffline(
+                for: APIClientError.httpStatus(409, message: "invalid_transition")
+            )
+        )
+    }
+
+    func testAPIClientErrorClassifierQueuesTransport() {
+        XCTAssertTrue(
+            APIClientErrorClassifier.shouldQueueOffline(
+                for: APIClientError.transport(URLError(.notConnectedToInternet))
+            )
+        )
+    }
+
+    func testSyncBatchReplayEngineTaskActionDuplicateDequeues() async {
+        let payload = QueuedTaskActionBuilder.build(
+            taskId: "task-1",
+            kind: .assign,
+            orgId: "org-1",
+            idempotencyKey: "ios-task-dup",
+            deviceId: "dev-1",
+            assign: TaskAssignRequest(
+                orgId: "org-1",
+                assignedTo: "dockwalk-ios",
+                idempotencyKey: "ios-task-dup",
+                deviceId: "dev-1",
+                notes: nil
+            )
+        )
+        let actionID = UUID()
+        let actions = [
+            QueuedSyncAction(
+                id: actionID,
+                kind: OfflineSyncStore.taskActionKind,
+                summary: "Assign",
+                taskActionPayload: payload
+            ),
+        ]
+
+        let batchResult = await SyncBatchReplayEngine.replay(actions: actions) { _ in
+            SyncBatchResponse(
+                mode: "live",
+                results: [
+                    SyncBatchResultItem(
+                        idempotencyKey: "ios-task-dup",
+                        type: "task_action",
+                        status: "duplicate",
+                        receivingEventId: nil,
+                        error: nil
+                    ),
+                ],
+                summary: SyncBatchSummary(accepted: 0, duplicate: 1, rejected: 0)
+            )
+        }
+
+        XCTAssertEqual(batchResult.outcome.succeeded, 1)
+        XCTAssertEqual(batchResult.outcome.removedActionIDs, [actionID])
+    }
+
+    func testSyncBatchReplayEngineTaskActionRejectedStaysQueued() async {
+        let payload = QueuedTaskActionBuilder.build(
+            taskId: "task-1",
+            kind: .complete,
+            orgId: "org-1",
+            idempotencyKey: "ios-task-rej",
+            deviceId: "dev-1",
+            complete: TaskCompleteRequest(
+                orgId: "org-1",
+                idempotencyKey: "ios-task-rej",
+                deviceId: "dev-1",
+                performedBy: "dockwalk-ios",
+                quantityCompleted: 1,
+                notes: nil
+            )
+        )
+        let actionID = UUID()
+        let actions = [
+            QueuedSyncAction(
+                id: actionID,
+                kind: OfflineSyncStore.taskActionKind,
+                summary: "Complete",
+                taskActionPayload: payload
+            ),
+        ]
+
+        let batchResult = await SyncBatchReplayEngine.replay(actions: actions) { _ in
+            SyncBatchResponse(
+                mode: "live",
+                results: [
+                    SyncBatchResultItem(
+                        idempotencyKey: "ios-task-rej",
+                        type: "task_action",
+                        status: "rejected",
+                        receivingEventId: nil,
+                        error: SyncBatchErrorBody(code: "invalid_transition", message: "Cannot complete")
+                    ),
+                ],
+                summary: SyncBatchSummary(accepted: 0, duplicate: 0, rejected: 1)
+            )
+        }
+
+        XCTAssertEqual(batchResult.outcome.failed, 1)
+        XCTAssertTrue(batchResult.outcome.removedActionIDs.isEmpty)
+        XCTAssertEqual(batchResult.rejectionMessages[actionID], "Cannot complete")
+    }
+
+    func testSyncBatchReplayEngineMixedBatchPartialSuccess() async {
+        let receivingID = UUID()
+        let taskID = UUID()
+        let receiving = QueuedSyncAction(
+            id: receivingID,
+            kind: OfflineSyncStore.receivingEventKind,
+            summary: "Receive",
+            receivingEventPayload: sampleReceivingPayload(idempotencyKey: "recv-key")
+        )
+        let taskPayload = QueuedTaskActionBuilder.build(
+            taskId: "task-1",
+            kind: .start,
+            orgId: "org-1",
+            idempotencyKey: "task-key",
+            deviceId: "dev-1",
+            start: TaskStartRequest(orgId: "org-1", idempotencyKey: "task-key", deviceId: "dev-1", notes: nil)
+        )
+        let taskAction = QueuedSyncAction(
+            id: taskID,
+            kind: OfflineSyncStore.taskActionKind,
+            summary: "Start",
+            taskActionPayload: taskPayload
+        )
+
+        let batchResult = await SyncBatchReplayEngine.replay(actions: [receiving, taskAction]) { envelope in
+            XCTAssertEqual(envelope.events.count, 2)
+            return SyncBatchResponse(
+                mode: "live",
+                results: [
+                    SyncBatchResultItem(
+                        idempotencyKey: "recv-key",
+                        type: SyncBatchEventRecord.receivingEventType,
+                        status: "accepted",
+                        receivingEventId: "evt-1",
+                        error: nil
+                    ),
+                    SyncBatchResultItem(
+                        idempotencyKey: "task-key",
+                        type: "task_action",
+                        status: "rejected",
+                        receivingEventId: nil,
+                        error: SyncBatchErrorBody(code: "invalid_transition", message: "Bad state")
+                    ),
+                ],
+                summary: SyncBatchSummary(accepted: 1, duplicate: 0, rejected: 1)
+            )
+        }
+
+        XCTAssertEqual(batchResult.outcome.succeeded, 1)
+        XCTAssertEqual(Set(batchResult.outcome.removedActionIDs), Set([receivingID]))
+        XCTAssertEqual(batchResult.rejectionMessages[taskID], "Bad state")
+    }
+
+    func testSyncBatchReplayEngineIgnoresNonSyncableKinds() async {
+        let actions = [
+            QueuedSyncAction(kind: "inbound.start", summary: "Start PO"),
+            QueuedSyncAction(
+                kind: OfflineSyncStore.taskActionKind,
+                summary: "Broken",
+                taskActionPayload: nil
+            ),
+        ]
+        let batchResult = await SyncBatchReplayEngine.replay(actions: actions) { _ in
+            XCTFail("Should not post when nothing syncable")
+            return SyncBatchResponse(
+                mode: "live",
+                results: [],
+                summary: SyncBatchSummary(accepted: 0, duplicate: 0, rejected: 0)
+            )
+        }
+        XCTAssertEqual(batchResult.outcome.succeeded, 0)
+    }
+
     func testShipmentDetailViewModelTreatsIdempotentAsSuccess() {
         let response = ReceivingEventResponse(
             mode: "live",
@@ -669,10 +899,8 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertLessThanOrEqual(key.count, 128)
     }
 
-    func testOfflineSyncStoreDoesNotQueueTaskActions() {
-        let store = OfflineSyncStore(loadPersisted: false)
-        store.clearQueue()
-        XCTAssertEqual(store.queuedActions.filter { $0.kind.contains("task") }.count, 0)
+    func testOfflineSyncStoreTaskActionKindConstant() {
+        XCTAssertEqual(OfflineSyncStore.taskActionKind, "task_action")
         XCTAssertEqual(OfflineSyncStore.receivingEventKind, "inbound.receiving_event")
     }
 }

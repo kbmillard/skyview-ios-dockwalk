@@ -6,6 +6,7 @@ final class OfflineSyncStore {
     static let shared = OfflineSyncStore()
 
     static let receivingEventKind = "inbound.receiving_event"
+    static let taskActionKind = "task_action"
 
     private(set) var queuedActions: [QueuedSyncAction] = []
     var status: SyncStatus = .online
@@ -38,6 +39,18 @@ final class OfflineSyncStore {
         refreshStatus()
     }
 
+    func enqueueTaskAction(_ payload: QueuedTaskActionPayload, summary: String) {
+        guard FeatureFlags.offlineSyncEnabled else { return }
+        let action = QueuedSyncAction(
+            kind: Self.taskActionKind,
+            summary: summary,
+            taskActionPayload: payload
+        )
+        queuedActions.append(action)
+        persist()
+        refreshStatus()
+    }
+
     func clearQueue() {
         queuedActions.removeAll()
         persist()
@@ -49,6 +62,16 @@ final class OfflineSyncStore {
         queuedActions.removeAll { ids.contains($0.id) }
         persist()
         refreshStatus()
+    }
+
+    func applyReplayRejections(_ messagesByActionID: [UUID: String]) {
+        guard !messagesByActionID.isEmpty else { return }
+        for index in queuedActions.indices {
+            if let message = messagesByActionID[queuedActions[index].id] {
+                queuedActions[index].lastError = message
+            }
+        }
+        persist()
     }
 
     func recordReplayMessage(_ message: String) {
@@ -72,7 +95,19 @@ final class OfflineSyncStore {
     }
 
     var pendingReceivingEventCount: Int {
-        ReceivingEventReplayEngine.pendingReceivingActions(from: queuedActions).count
+        SyncBatchReplayEngine.pendingSyncableActions(from: queuedActions)
+            .filter { $0.kind == Self.receivingEventKind }
+            .count
+    }
+
+    var pendingTaskActionCount: Int {
+        SyncBatchReplayEngine.pendingSyncableActions(from: queuedActions)
+            .filter { $0.kind == Self.taskActionKind }
+            .count
+    }
+
+    var pendingSyncableCount: Int {
+        SyncBatchReplayEngine.pendingSyncableActions(from: queuedActions).count
     }
 
     /// Manual replay from Debug — delegates to coordinator.

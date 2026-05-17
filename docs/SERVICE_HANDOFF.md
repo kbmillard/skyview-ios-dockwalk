@@ -1,6 +1,6 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-16 (Phase **1D** hardened — online putaway task actions)
+**Last updated:** 2026-05-16 (Phase **1E** — offline task-action queue + batch replay)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -44,7 +44,7 @@
 **Paste block for a new chat**
 
 ```text
-DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Putaway assign/start/block/complete are online-only (no task offline queue). TestFlight 0.1.0 (2). Build only unless tests requested. Scanner / AI / payments / auth / direct Supabase / task cancel / task_action batch OFF.
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Putaway: online → direct task routes; offline/transport failure → task_action queue + POST /api/sync/events replay. TestFlight 0.1.0 (2). Build only unless tests requested. Scanner / AI / payments / auth / direct Supabase / task cancel OFF.
 ```
 
 ---
@@ -152,17 +152,38 @@ Record outcomes here when known; then next iOS feature work is **scanner** (see 
 | **Batch replay** | `POST /api/sync/events` — `accepted` / `duplicate` dequeue |
 | **Auto-replay** | **More → Sync** (default **OFF**) |
 | **Manual replay** | **More → Debug** |
-| **Putaway** | List + detail; **assign / start / block / complete** (online only) |
-| **Putaway offline** | **Not queued** — failed actions show “Not submitted”; retry same tap reuses idempotency key |
+| **Putaway** | List + detail; **assign / start / block / complete** |
+| **Putaway online** | Direct `POST /api/tasks/:id/*` (happy path) |
+| **Putaway offline** | Transport failure → **`task_action` queue** → batch replay; **409/400/404** not queued |
+| **Task batch replay** | `POST /api/sync/events` — `accepted` / `duplicate` dequeue; **`rejected` stays queued** |
 | **Audit** | **More → Activity → Audit events** |
 | **TestFlight** | **0.1.0 (2)** — **DockStockers** |
 | **Scanner / AI / payments / auth** | **OFF** |
 | **Task cancel** | **OFF** (no API route exposed in app) |
-| **Task `task_action` batch sync** | **OFF** (service not live; receiving batch unchanged) |
 
 ---
 
-## Latest delivery — Phase 1D putaway task actions (2026-05-17)
+## Latest delivery — Phase 1E offline task-action queue (2026-05-16)
+
+**Scope:** Queue putaway task actions on transport failure; replay via **`task_action`** batch sync. Receiving replay unchanged.
+
+| Path | Behavior |
+|------|----------|
+| Online | Direct assign / start / block / complete (`org_id` + `idempotency_key` + `device_id`) |
+| Offline / transport | Enqueue `task_action` with **same** `idempotency_key` as failed direct call |
+| Replay | `POST /api/sync/events` — mixed batches with receiving events (up to **50** events) |
+| `accepted` / `duplicate` | Dequeue task action |
+| `rejected` | Keep queued; store `lastError` on queue row |
+| `409` on direct route | No queue; refresh task |
+| Auto-replay | **More → Sync** (default **OFF**) — receiving + task actions when enabled |
+
+**Files:** `Networking/TaskActionSyncModels.swift`, `SyncBatchModels.swift`, `Persistence/SyncBatchReplayEngine.swift`, `OfflineSyncStore.swift`, `ReceivingEventReplayCoordinator.swift`, `Putaway/PutawayTaskDetailViewModel.swift`, `Settings/SettingsView.swift`, `Debug/DebugPanelView.swift`, `DockWalkTests/DockWalkFoundationTests.swift`
+
+**Build:** `xcodegen generate` + `xcodebuild build CODE_SIGNING_ALLOWED=NO` → **BUILD SUCCEEDED** (no TestFlight / version bump)
+
+---
+
+## Phase 1D putaway task actions (2026-05-16)
 
 **Scope:** Online task writes only. **No** product changes to receive replay, scanner, auth, or Supabase.
 
@@ -181,18 +202,7 @@ Record outcomes here when known; then next iOS feature work is **scanner** (see 
 - Block presets: `location_blocked`, `product_damaged`, `missing_item`, `other`.
 - `in_progress`: **Complete** then **Block**.
 - **Cancel** not shown (no dedicated cancel route).
-- **No** task actions in `OfflineSyncStore` or `POST /api/sync/events`.
-
-**Files:** `Networking/WarehouseTaskActionModels.swift`, `APIEndpoint.swift`, `APIClient.swift`, `Putaway/PutawayTaskDetailView.swift`, `PutawayTaskDetailViewModel.swift`, `PutawayTasksView.swift`, `DockWalkTests/DockWalkFoundationTests.swift`
-
-**Build:**
-
-```bash
-cd apps/ios/dockwalk && xcodegen generate
-xcodebuild -project DockWalk.xcodeproj -scheme DockWalk -destination 'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO
-```
-
-**Result:** **BUILD SUCCEEDED** (2026-05-16 hardened pass — no archive; no version bump)
+- Phase 1E added offline queue (supersedes “online only” for transport failures).
 
 ---
 
@@ -233,9 +243,8 @@ Inbound lines, receiving POST, offline queue, audit list, Railway QA defaults.
 
 | Priority | Work |
 |----------|------|
-| P1 | TestFlight build **3** when ready to ship 1D to DockStockers |
-| P2 | Offline task-action queue after service adds `task_action` batch sync |
-| P3 | Live scanner |
+| P1 | TestFlight build **3** when ready to ship 1D/1E to DockStockers |
+| P2 | Live scanner (Phase 1F) |
 | P4 | Auth / mobile session |
 | P5 | Task cancel when API adds route |
 

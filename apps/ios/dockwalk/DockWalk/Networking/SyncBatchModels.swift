@@ -39,23 +39,49 @@ struct SyncReceivingEventPayload: Encodable, Equatable {
     }
 }
 
-struct SyncBatchEventItem: Encodable, Equatable {
-    let type: String
-    let idempotencyKey: String
-    let payload: SyncReceivingEventPayload
-
-    enum CodingKeys: String, CodingKey {
-        case type
-        case idempotencyKey = "idempotency_key"
-        case payload
-    }
+/// One row in `POST /api/sync/events` — receiving (`type`) or task_action (`event_type`).
+enum SyncBatchEventRecord: Encodable, Equatable {
+    case receiving(CreateReceivingEventRequest)
+    case taskAction(QueuedTaskActionPayload)
 
     static let receivingEventType = "inbound.receiving_event"
+    static let taskActionEventType = "task_action"
 
-    init(from request: CreateReceivingEventRequest) {
-        type = Self.receivingEventType
-        idempotencyKey = request.idempotencyKey
-        payload = SyncReceivingEventPayload(from: request)
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .receiving(let request):
+            try container.encode(Self.receivingEventType, forKey: .type)
+            try container.encode(request.idempotencyKey, forKey: .idempotencyKey)
+            try container.encode(SyncReceivingEventPayload(from: request), forKey: .payload)
+        case .taskAction(let payload):
+            try container.encode(Self.taskActionEventType, forKey: .eventType)
+            try container.encode(payload.idempotencyKey, forKey: .idempotencyKey)
+            try container.encode(payload.isoCreatedAt, forKey: .createdAt)
+            try container.encode(payload.syncPayloadBody(), forKey: .payload)
+        }
+    }
+
+    var idempotencyKey: String {
+        switch self {
+        case .receiving(let request): return request.idempotencyKey
+        case .taskAction(let payload): return payload.idempotencyKey
+        }
+    }
+
+    var orgId: String {
+        switch self {
+        case .receiving(let request): return request.orgId
+        case .taskAction(let payload): return payload.orgId
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case type
+        case eventType = "event_type"
+        case idempotencyKey = "idempotency_key"
+        case createdAt = "created_at"
+        case payload
     }
 }
 
@@ -63,12 +89,14 @@ struct SyncBatchEnvelope: Encodable, Equatable {
     let orgId: String
     let facilityId: String?
     let deviceId: String?
-    let events: [SyncBatchEventItem]
+    let source: String?
+    let events: [SyncBatchEventRecord]
 
     enum CodingKeys: String, CodingKey {
         case orgId = "org_id"
         case facilityId = "facility_id"
         case deviceId = "device_id"
+        case source
         case events
     }
 
@@ -76,7 +104,16 @@ struct SyncBatchEnvelope: Encodable, Equatable {
         self.orgId = orgId
         self.facilityId = facilityId
         self.deviceId = deviceId ?? requests.first?.deviceId
-        self.events = requests.map { SyncBatchEventItem(from: $0) }
+        self.source = "device"
+        self.events = requests.map { .receiving($0) }
+    }
+
+    init(orgId: String, facilityId: String?, deviceId: String?, events: [SyncBatchEventRecord]) {
+        self.orgId = orgId
+        self.facilityId = facilityId
+        self.deviceId = deviceId
+        self.source = "device"
+        self.events = events
     }
 }
 
@@ -90,13 +127,45 @@ struct SyncBatchResultItem: Decodable, Equatable {
     enum CodingKeys: String, CodingKey {
         case idempotencyKey = "idempotency_key"
         case type
+        case eventType = "event_type"
         case status
         case receivingEventId = "receiving_event_id"
         case error
     }
 
+    init(
+        idempotencyKey: String,
+        type: String,
+        status: String,
+        receivingEventId: String?,
+        error: SyncBatchErrorBody?
+    ) {
+        self.idempotencyKey = idempotencyKey
+        self.type = type
+        self.status = status
+        self.receivingEventId = receivingEventId
+        self.error = error
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        idempotencyKey = try container.decode(String.self, forKey: .idempotencyKey)
+        type = try container.decodeIfPresent(String.self, forKey: .type)
+            ?? container.decodeIfPresent(String.self, forKey: .eventType)
+            ?? ""
+        status = try container.decode(String.self, forKey: .status)
+        receivingEventId = try container.decodeIfPresent(String.self, forKey: .receivingEventId)
+        error = try container.decodeIfPresent(SyncBatchErrorBody.self, forKey: .error)
+    }
+
     var isSuccess: Bool {
         status == "accepted" || status == "duplicate"
+    }
+
+    var rejectionMessage: String? {
+        guard status == "rejected" else { return nil }
+        if let error, !error.message.isEmpty { return error.message }
+        return "Rejected by server"
     }
 }
 

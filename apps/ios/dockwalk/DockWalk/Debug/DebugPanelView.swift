@@ -35,6 +35,16 @@ struct DebugPanelView: View {
                                     .font(DockWalkTheme.captionFont)
                                     .foregroundStyle(DockWalkTheme.warning)
                             }
+                            if let payload = action.taskActionPayload {
+                                Text("Task action: \(payload.action) · \(payload.taskId)")
+                                    .font(.system(.caption2, design: .monospaced))
+                                    .foregroundStyle(DockWalkTheme.textSecondary)
+                            }
+                            if let lastError = action.lastError {
+                                Text(lastError)
+                                    .font(DockWalkTheme.captionFont)
+                                    .foregroundStyle(DockWalkTheme.danger)
+                            }
                         }
                     }
                 }
@@ -45,8 +55,8 @@ struct DebugPanelView: View {
                         .foregroundStyle(DockWalkTheme.textSecondary)
                 }
 
-                if syncStore.pendingReceivingEventCount > 0 {
-                    Button(replayCoordinator.isReplaying ? "Replaying…" : "Replay receiving events") {
+                if syncStore.pendingSyncableCount > 0 {
+                    Button(replayCoordinator.isReplaying ? "Replaying…" : "Replay offline queue") {
                         Task {
                             await replayCoordinator.replayReceivingEvents(
                                 environment: environment,
