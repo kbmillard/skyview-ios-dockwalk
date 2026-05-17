@@ -61,6 +61,7 @@ enum InboundAPIMapping {
             description: dto.description ?? "Inbound line",
             expectedQty: expected,
             receivedQty: received,
+            quantityDamaged: dto.quantityDamaged ?? 0,
             receiveNow: max(0, expected - received),
             uom: dto.uom ?? "ea",
             status: dto.status ?? "expected"

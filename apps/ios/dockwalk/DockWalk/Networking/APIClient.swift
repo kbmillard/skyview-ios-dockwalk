@@ -3,14 +3,18 @@ import Foundation
 enum APIClientError: Error, LocalizedError {
     case invalidURL
     case transport(Error)
-    case httpStatus(Int)
+    case httpStatus(Int, message: String?)
     case decoding(Error)
 
     var errorDescription: String? {
         switch self {
         case .invalidURL: return "Invalid API URL."
         case .transport(let error): return error.localizedDescription
-        case .httpStatus(let code): return "HTTP \(code)"
+        case .httpStatus(let code, let message):
+            if let message, !message.isEmpty {
+                return "HTTP \(code): \(message)"
+            }
+            return "HTTP \(code)"
         case .decoding(let error): return error.localizedDescription
         }
     }
@@ -82,7 +86,8 @@ struct APIClient {
             throw APIClientError.transport(URLError(.badServerResponse))
         }
         guard (200..<300).contains(http.statusCode) else {
-            throw APIClientError.httpStatus(http.statusCode)
+            let message = Self.parseAPIErrorMessage(from: data)
+            throw APIClientError.httpStatus(http.statusCode, message: message)
         }
 
         do {
@@ -90,6 +95,13 @@ struct APIClient {
         } catch {
             throw APIClientError.decoding(error)
         }
+    }
+
+    private static func parseAPIErrorMessage(from data: Data) -> String? {
+        guard let decoded = try? JSONDecoder().decode(APIErrorResponse.self, from: data) else {
+            return nil
+        }
+        return decoded.error.message
     }
 }
 

@@ -6,15 +6,32 @@ struct DeviceConfiguration: Equatable, Codable {
     var facilityId: String
     var facilityName: String
 
+    static let localDevAPIBaseURL = "http://localhost:8790"
+
     /// Railway production API (canonical URL — see service `ARCHITECT_RECAP.md`).
     static let railwayProductionAPIBaseURL = "https://dockwalk-api-production.up.railway.app"
 
-    static let devDefaults = DeviceConfiguration(
-        apiBaseURLString: "http://localhost:8790",
-        orgId: "00000000-0000-4000-8000-000000000001",
-        facilityId: "00000000-0000-4000-8000-000000000010",
+    private static let devOrgId = "00000000-0000-4000-8000-000000000001"
+    private static let devFacilityId = "00000000-0000-4000-8000-000000000010"
+
+    /// Default for new installs — Railway QA API.
+    static let railwayQADefaults = DeviceConfiguration(
+        apiBaseURLString: railwayProductionAPIBaseURL,
+        orgId: devOrgId,
+        facilityId: devFacilityId,
         facilityName: "SkyPrairie Demo DC"
     )
+
+    /// Local DockWalk API on the Mac (Simulator).
+    static let localDevDefaults = DeviceConfiguration(
+        apiBaseURLString: localDevAPIBaseURL,
+        orgId: devOrgId,
+        facilityId: devFacilityId,
+        facilityName: "SkyPrairie Demo DC"
+    )
+
+    /// Backward-compatible name — same as Railway QA defaults.
+    static var devDefaults: DeviceConfiguration { railwayQADefaults }
 
     var apiBaseURL: URL? {
         URL(string: apiBaseURLString.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -22,6 +39,10 @@ struct DeviceConfiguration: Equatable, Codable {
 
     var isValid: Bool {
         apiBaseURL != nil && !orgId.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    var isRailwayProduction: Bool {
+        apiBaseURLString.contains("dockwalk-api-production.up.railway.app")
     }
 
     static func normalized(

@@ -60,6 +60,7 @@ struct InboundLineItem: Identifiable, Equatable {
     let description: String
     let expectedQty: Double
     let receivedQty: Double
+    let quantityDamaged: Double
     var receiveNow: Double
     let uom: String
     let status: String

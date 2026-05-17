@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 enum ReceiveSubmitResult: Equatable {
-    case success(duplicate: Bool, mode: String)
+    case success(idempotent: Bool, mode: String, eventId: String?)
     case queuedOffline
     case failure(String)
 }
@@ -16,6 +16,7 @@ final class ShipmentDetailViewModel {
     private(set) var loadPhase: LoadPhase = .idle
     private(set) var dataMode: String?
     private(set) var isSubmitting = false
+    private(set) var receivingLineId: String?
     private(set) var lastSubmitResult: ReceiveSubmitResult?
 
     private let environment: AppEnvironment
@@ -39,7 +40,7 @@ final class ShipmentDetailViewModel {
         let orgId = environment.orgId
 
         do {
-            let response: APIListResponse<InboundLineDTO> = try await apiClient.get(
+            let response: InboundLinesResponse = try await apiClient.get(
                 .inboundShipmentLines(shipmentId: shipment.id, orgId: orgId)
             )
             dataMode = response.mode
@@ -69,6 +70,25 @@ final class ShipmentDetailViewModel {
         lines[index].receiveNow = max(0, quantity)
     }
 
+    func receiveOne(lineId: String) async {
+        guard let line = lines.first(where: { $0.id == lineId }) else { return }
+        guard line.remainingQty > 0 else {
+            lastSubmitResult = .failure("This line is already fully received.")
+            return
+        }
+
+        let idempotencyKey = CreateReceivingEventRequest.makeIdempotencyKey()
+        let request = ReceivingEventBuilder.buildSingleLineReceive(
+            environment: environment,
+            appointmentId: appointmentId,
+            shipmentId: shipment.id,
+            line: line,
+            quantity: 1,
+            idempotencyKey: idempotencyKey
+        )
+        await submit(request: request, receivingLineId: lineId)
+    }
+
     func submitReceive() async {
         let linesToReceive = lines.filter { $0.receiveNow > 0 }
         guard !linesToReceive.isEmpty else {
@@ -76,19 +96,25 @@ final class ShipmentDetailViewModel {
             return
         }
 
-        isSubmitting = true
-        defer { isSubmitting = false }
-
         let request = ReceivingEventBuilder.buildRequest(
             environment: environment,
             appointmentId: appointmentId,
             shipmentId: shipment.id,
             lines: linesToReceive
         )
-
-        guard request.lines.count >= 1 else {
+        guard !request.lines.isEmpty else {
             lastSubmitResult = .failure("No valid lines to receive.")
             return
+        }
+        await submit(request: request, receivingLineId: nil)
+    }
+
+    private func submit(request: CreateReceivingEventRequest, receivingLineId: String?) async {
+        isSubmitting = true
+        self.receivingLineId = receivingLineId
+        defer {
+            isSubmitting = false
+            self.receivingLineId = nil
         }
 
         let apiClient = environment.makeAPIClient()
@@ -97,9 +123,14 @@ final class ShipmentDetailViewModel {
                 .receivingEvents,
                 body: request
             )
+            guard response.isSuccess else {
+                lastSubmitResult = .failure(response.message ?? "Receive was not recorded.")
+                return
+            }
             lastSubmitResult = .success(
-                duplicate: response.duplicate ?? false,
-                mode: response.mode
+                idempotent: response.isIdempotentReplay,
+                mode: response.mode,
+                eventId: response.item?.id
             )
             await load()
         } catch {

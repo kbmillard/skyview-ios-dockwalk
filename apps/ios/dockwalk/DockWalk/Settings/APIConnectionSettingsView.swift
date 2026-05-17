@@ -18,12 +18,19 @@ struct APIConnectionSettingsView: View {
         case failure(String)
     }
 
+    private var showsRailwayBadge: Bool {
+        apiBaseURLString.contains("dockwalk-api-production.up.railway.app")
+    }
+
     var body: some View {
         Form {
             Section {
-                Text("Simulator: use `http://localhost:8790` while the DockWalk API runs on your Mac.")
-                Text("Physical device (local API): use your Mac’s LAN IP, e.g. `http://192.168.1.42:8790` — not localhost.")
-                Text("Production: Railway deploy — tap below, then Save & apply and Test.")
+                if showsRailwayBadge {
+                    StatusChip(label: "Railway QA", tone: .success)
+                }
+                Text("New installs default to Railway production API. Saved settings are never overwritten automatically.")
+                Text("Simulator + local API: use `http://localhost:8790` on your Mac.")
+                Text("Physical device + local API: use your Mac’s LAN IP — not localhost.")
             }
             .font(DockWalkTheme.captionFont)
             .foregroundStyle(DockWalkTheme.textSecondary)
@@ -35,8 +42,8 @@ struct APIConnectionSettingsView: View {
                     connectionPhase = .idle
                 }
                 Button("Use local simulator API") {
-                    apiBaseURLString = DeviceConfiguration.devDefaults.apiBaseURLString
-                    saveMessage = "Localhost filled — run `npm run dev` in dockwalk-api, then Save & apply."
+                    apiBaseURLString = DeviceConfiguration.localDevAPIBaseURL
+                    saveMessage = "Localhost filled — run dockwalk-api locally, then Save & apply."
                     connectionPhase = .idle
                 }
             }
@@ -73,7 +80,7 @@ struct APIConnectionSettingsView: View {
             } header: {
                 Text("DockWalk API")
             } footer: {
-                Text("Dev seed org/facility match Railway smoke data when using production API.")
+                Text("Dev org/facility UUIDs match Railway smoke data on production.")
                     .font(DockWalkTheme.captionFont)
             }
 
@@ -81,10 +88,16 @@ struct APIConnectionSettingsView: View {
                 Button("Save & apply") {
                     saveConfiguration()
                 }
-                Button("Reset to dev defaults", role: .destructive) {
-                    environment.resetToDevDefaults()
+                Button("Reset to Railway QA") {
+                    environment.resetToRailwayQA()
                     loadFromEnvironment()
-                    saveMessage = "Restored dev defaults."
+                    saveMessage = "Railway QA defaults applied (production API + dev org/facility)."
+                    connectionPhase = .idle
+                }
+                Button("Reset to local API") {
+                    environment.resetToLocalAPI()
+                    loadFromEnvironment()
+                    saveMessage = "Local API defaults applied (localhost:8790)."
                     connectionPhase = .idle
                 }
             }
@@ -142,8 +155,8 @@ struct APIConnectionSettingsView: View {
                 }
                 Text(
                     health.supabase == "configured"
-                        ? "Server can reach Supabase (egas) — list routes may return live data."
-                        : "Server reports stub — lists may be empty until Supabase is configured."
+                        ? "Server reaches Supabase (egas). Receiving writes go through this API — not direct from iOS."
+                        : "Server reports stub — lists may be empty until Supabase is configured on Railway."
                 )
                 .font(DockWalkTheme.captionFont)
                 .foregroundStyle(DockWalkTheme.textSecondary)
@@ -213,5 +226,5 @@ struct APIConnectionSettingsView: View {
             .environment(OfflineSyncStore.shared)
             .environment(SyncPreferencesStore.shared)
             .environment(ReceivingEventReplayCoordinator.shared)
-}
+    }
 }

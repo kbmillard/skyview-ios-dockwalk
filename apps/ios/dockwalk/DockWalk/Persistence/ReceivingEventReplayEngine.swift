@@ -12,9 +12,7 @@ enum ReceivingEventReplayEngine {
     }
 
     static func isSuccessfulResponse(_ response: ReceivingEventResponse) -> Bool {
-        // HTTP 2xx decode — duplicate idempotency replay counts as success.
-        _ = response
-        return true
+        response.isSuccess
     }
 
     static func replay(

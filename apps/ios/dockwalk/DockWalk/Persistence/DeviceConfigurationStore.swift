@@ -7,15 +7,15 @@ enum DeviceConfigurationStore {
     private static let facilityNameKey = "DockWalk.facilityName"
 
     static func load(using defaults: UserDefaults = .standard) -> DeviceConfiguration {
-        let dev = DeviceConfiguration.devDefaults
+        let fallback = DeviceConfiguration.railwayQADefaults
         guard defaults.string(forKey: apiBaseURLKey) != nil else {
-            return dev
+            return fallback
         }
         return DeviceConfiguration(
-            apiBaseURLString: defaults.string(forKey: apiBaseURLKey) ?? dev.apiBaseURLString,
-            orgId: defaults.string(forKey: orgIdKey) ?? dev.orgId,
-            facilityId: defaults.string(forKey: facilityIdKey) ?? dev.facilityId,
-            facilityName: defaults.string(forKey: facilityNameKey) ?? dev.facilityName
+            apiBaseURLString: defaults.string(forKey: apiBaseURLKey) ?? fallback.apiBaseURLString,
+            orgId: defaults.string(forKey: orgIdKey) ?? fallback.orgId,
+            facilityId: defaults.string(forKey: facilityIdKey) ?? fallback.facilityId,
+            facilityName: defaults.string(forKey: facilityNameKey) ?? fallback.facilityName
         )
     }
 
@@ -26,10 +26,21 @@ enum DeviceConfigurationStore {
         defaults.set(configuration.facilityName, forKey: facilityNameKey)
     }
 
+    static func resetToRailwayQADefaults(using defaults: UserDefaults = .standard) -> DeviceConfiguration {
+        let qa = DeviceConfiguration.railwayQADefaults
+        save(qa, using: defaults)
+        return qa
+    }
+
+    static func resetToLocalDevDefaults(using defaults: UserDefaults = .standard) -> DeviceConfiguration {
+        let local = DeviceConfiguration.localDevDefaults
+        save(local, using: defaults)
+        return local
+    }
+
+    /// Alias — resets to Railway QA (not localhost).
     static func resetToDevDefaults(using defaults: UserDefaults = .standard) -> DeviceConfiguration {
-        let dev = DeviceConfiguration.devDefaults
-        save(dev, using: defaults)
-        return dev
+        resetToRailwayQADefaults(using: defaults)
     }
 
     static func clear(using defaults: UserDefaults = .standard) {

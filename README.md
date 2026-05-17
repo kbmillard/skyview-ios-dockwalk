@@ -50,6 +50,8 @@ See [`docs/MANUAL_XCODE_SETUP.md`](docs/MANUAL_XCODE_SETUP.md) if you need to re
 - [`docs/APP_STORE_MVP_NOTES.md`](docs/APP_STORE_MVP_NOTES.md) — App Store positioning  
 - [`docs/MANUAL_XCODE_SETUP.md`](docs/MANUAL_XCODE_SETUP.md) — manual Xcode steps  
 
-## Local API
+## API (Railway QA)
 
-Default base URL: `http://localhost:8790` (`AppEnvironment`). Phase 1A lists call the DockWalk API when it is running with Supabase configured; empty lists usually mean API stub mode or no seed data on **egas** (see service handoff).
+Default base URL for **new installs**: `https://dockwalk-api-production.up.railway.app` (`DeviceConfiguration.railwayQADefaults`). Use **More → API connection** to switch to `http://localhost:8790` for local API dev.
+
+Receiving writes go through the Railway API (not direct Supabase from iOS). See [`docs/SERVICE_HANDOFF.md`](docs/SERVICE_HANDOFF.md).

@@ -178,9 +178,9 @@ final class DockWalkFoundationTests: XCTestCase {
         let outcome = await ReceivingEventReplayEngine.replay(actions: actions) { payload in
             postedKeys.append(payload.idempotencyKey)
             if payload.idempotencyKey == "key-1" {
-                return ReceivingEventResponse(mode: "live", message: nil, duplicate: false)
+                return sampleReceivingResponse(idempotent: false)
             }
-            throw APIClientError.httpStatus(500)
+            throw APIClientError.httpStatus(500, message: nil)
         }
 
         XCTAssertEqual(outcome.succeeded, 1)
@@ -196,7 +196,7 @@ final class DockWalkFoundationTests: XCTestCase {
             receivingEventPayload: sampleReceivingPayload(idempotencyKey: "dup-key")
         )
         let outcome = await ReceivingEventReplayEngine.replay(actions: [action]) { _ in
-            ReceivingEventResponse(mode: "live", message: nil, duplicate: true)
+            sampleReceivingResponse(idempotent: true)
         }
         XCTAssertEqual(outcome.succeeded, 1)
         XCTAssertEqual(outcome.failed, 0)
@@ -212,7 +212,7 @@ final class DockWalkFoundationTests: XCTestCase {
         )
         _ = await ReceivingEventReplayEngine.replay(actions: [action]) { payload in
             XCTAssertEqual(payload.idempotencyKey, expectedKey)
-            return ReceivingEventResponse(mode: "live", message: nil, duplicate: false)
+            return sampleReceivingResponse(idempotent: false)
         }
     }
 
@@ -222,9 +222,10 @@ final class DockWalkFoundationTests: XCTestCase {
             facilityId: "fac-1",
             appointmentId: nil,
             inboundShipmentId: "ship-1",
-            eventType: "manual_receive",
-            status: "committed",
-            deviceId: nil,
+            eventType: "receive_scan",
+            source: "device",
+            deviceId: "ios-test",
+            performedBy: "dockwalk-ios",
             idempotencyKey: idempotencyKey,
             lines: [
                 ReceivingEventLineRequest(
@@ -232,9 +233,29 @@ final class DockWalkFoundationTests: XCTestCase {
                     sku: "SKU",
                     quantityExpected: nil,
                     quantityReceived: 1,
-                    conditionStatus: "good"
+                    quantityDamaged: 0,
+                    quantityShort: 0,
+                    conditionStatus: "good",
+                    rawBarcode: "SKU",
+                    metadata: ["source": "manual_receive"]
                 )
             ]
+        )
+    }
+
+    private func sampleReceivingResponse(idempotent: Bool) -> ReceivingEventResponse {
+        ReceivingEventResponse(
+            mode: "live",
+            idempotent: idempotent,
+            item: ReceivingEventItemDTO(
+                id: "evt-1",
+                orgId: "org-1",
+                status: "committed",
+                eventType: "receive_scan",
+                lineCount: 1,
+                idempotencyKey: "key"
+            ),
+            message: nil
         )
     }
 
@@ -281,62 +302,70 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertTrue(url.absoluteString.contains("org_id="))
     }
 
-    func testInboundLineDTODecoding() throws {
+    func testInboundLineDTODecodingPhase1B() throws {
         let json = """
-        {"id":"line-1","shipment_id":"ship-1","sku":"SKU-9","description":"Widget",
-        "expected_qty":10,"received_qty":3,"uom":"ea","status":"partial"}
+        {"id":"line-1","inbound_shipment_id":"ship-1","sku":"SKU-9","description":"Widget",
+        "quantity_expected":10,"quantity_received":3,"quantity_damaged":1,"uom":"ea","status":"expected"}
         """.data(using: .utf8)!
         let dto = try JSONDecoder().decode(InboundLineDTO.self, from: json)
         let item = InboundAPIMapping.mapInboundLine(dto)
         XCTAssertEqual(item.sku, "SKU-9")
         XCTAssertEqual(item.expectedQty, 10)
         XCTAssertEqual(item.receivedQty, 3)
+        XCTAssertEqual(item.quantityDamaged, 1)
         XCTAssertEqual(item.receiveNow, 7)
     }
 
+    func testInboundLinesResponseDecoding() throws {
+        let json = """
+        {"mode":"live","shipment_id":"ship-1","org_id":"org-1","items":[
+        {"id":"line-1","inbound_shipment_id":"ship-1","sku":"A","quantity_expected":5,
+        "quantity_received":0,"quantity_damaged":0,"status":"expected","metadata":{}}]}
+        """.data(using: .utf8)!
+        let response = try JSONDecoder().decode(InboundLinesResponse.self, from: json)
+        XCTAssertEqual(response.mode, "live")
+        XCTAssertEqual(response.shipmentId, "ship-1")
+        XCTAssertEqual(response.items.count, 1)
+    }
+
+    func testReceivingEventResponseIdempotentReplay() throws {
+        let json = """
+        {"mode":"live","idempotent":true,"item":{"id":"evt-9","org_id":"org-1",
+        "status":"committed","event_type":"receive_scan","line_count":1,
+        "idempotency_key":"ios-dup"}}
+        """.data(using: .utf8)!
+        let response = try JSONDecoder().decode(ReceivingEventResponse.self, from: json)
+        XCTAssertTrue(response.isIdempotentReplay)
+        XCTAssertTrue(response.isSuccess)
+        XCTAssertEqual(response.item?.id, "evt-9")
+    }
+
+    func testReceivingEventResponseCreateDecoding() throws {
+        let json = """
+        {"mode":"live","item":{"id":"evt-new","org_id":"org-1","status":"committed",
+        "event_type":"receive_scan","line_count":1,"idempotency_key":"ios-new"}}
+        """.data(using: .utf8)!
+        let response = try JSONDecoder().decode(ReceivingEventResponse.self, from: json)
+        XCTAssertFalse(response.isIdempotentReplay)
+        XCTAssertTrue(response.isSuccess)
+    }
+
     func testReceivingEventRequestEncoding() throws {
-        let request = CreateReceivingEventRequest(
-            orgId: "org-1",
-            facilityId: "fac-1",
-            appointmentId: "apt-1",
-            inboundShipmentId: "ship-1",
-            eventType: "manual_receive",
-            status: "committed",
-            deviceId: "ios-test",
-            idempotencyKey: "ios-12345678",
-            lines: [
-                ReceivingEventLineRequest(
-                    inboundLineId: "line-1",
-                    sku: "SKU-1",
-                    quantityExpected: 5,
-                    quantityReceived: 2,
-                    conditionStatus: "good"
-                )
-            ]
-        )
+        let request = sampleReceivingPayload(idempotencyKey: "ios-12345678")
         let data = try JSONEncoder().encode(request)
         let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         XCTAssertEqual(object?["org_id"] as? String, "org-1")
+        XCTAssertEqual(object?["source"] as? String, "device")
         XCTAssertEqual(object?["idempotency_key"] as? String, "ios-12345678")
         let lines = object?["lines"] as? [[String: Any]]
-        XCTAssertEqual(lines?.first?["quantity_received"] as? Double, 2)
+        XCTAssertEqual(lines?.first?["quantity_received"] as? Double, 1)
     }
 
     func testReceivingEventQueuePersistence() {
         let prior = SyncQueuePersistence.load()
         defer { _ = SyncQueuePersistence.save(prior) }
 
-        let payload = CreateReceivingEventRequest(
-            orgId: "org-1",
-            facilityId: "fac-1",
-            appointmentId: nil,
-            inboundShipmentId: "ship-1",
-            eventType: "manual_receive",
-            status: "committed",
-            deviceId: nil,
-            idempotencyKey: "ios-queue-key-12345678",
-            lines: [ReceivingEventLineRequest(inboundLineId: "l1", sku: "S", quantityExpected: nil, quantityReceived: 1, conditionStatus: "good")]
-        )
+        let payload = sampleReceivingPayload(idempotencyKey: "ios-queue-key-12345678")
         let action = QueuedSyncAction(
             kind: OfflineSyncStore.receivingEventKind,
             summary: "Receive ASN-1",
@@ -371,7 +400,7 @@ final class DockWalkFoundationTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: suite) }
 
         DeviceConfigurationStore.clear(using: defaults)
-        XCTAssertEqual(DeviceConfigurationStore.load(using: defaults), DeviceConfiguration.devDefaults)
+        XCTAssertEqual(DeviceConfigurationStore.load(using: defaults), DeviceConfiguration.railwayQADefaults)
 
         let custom = DeviceConfiguration(
             apiBaseURLString: "http://192.168.1.50:8790",
@@ -382,8 +411,11 @@ final class DockWalkFoundationTests: XCTestCase {
         DeviceConfigurationStore.save(custom, using: defaults)
         XCTAssertEqual(DeviceConfigurationStore.load(using: defaults), custom)
 
-        let reset = DeviceConfigurationStore.resetToDevDefaults(using: defaults)
-        XCTAssertEqual(reset, DeviceConfiguration.devDefaults)
+        let reset = DeviceConfigurationStore.resetToRailwayQADefaults(using: defaults)
+        XCTAssertEqual(reset.apiBaseURLString, DeviceConfiguration.railwayProductionAPIBaseURL)
+
+        let local = DeviceConfigurationStore.resetToLocalDevDefaults(using: defaults)
+        XCTAssertEqual(local.apiBaseURLString, DeviceConfiguration.localDevAPIBaseURL)
     }
 
     func testAppEnvironmentApplyAndReset() {
@@ -409,7 +441,25 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertEqual(env.orgId, "org-qa")
         XCTAssertGreaterThan(env.configRevision, revision)
 
-        env.resetToDevDefaults()
-        XCTAssertEqual(env.orgId, DeviceConfiguration.devDefaults.orgId)
+        env.resetToRailwayQA()
+        XCTAssertEqual(env.apiBaseURL.absoluteString, DeviceConfiguration.railwayProductionAPIBaseURL)
+    }
+
+    func testShipmentDetailViewModelTreatsIdempotentAsSuccess() {
+        let response = ReceivingEventResponse(
+            mode: "live",
+            idempotent: true,
+            item: ReceivingEventItemDTO(
+                id: "e1",
+                orgId: "o1",
+                status: "committed",
+                eventType: "receive_scan",
+                lineCount: 1,
+                idempotencyKey: "k1"
+            ),
+            message: nil
+        )
+        XCTAssertTrue(ReceivingEventReplayEngine.isSuccessfulResponse(response))
+        XCTAssertTrue(response.isIdempotentReplay)
     }
 }

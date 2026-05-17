@@ -35,12 +35,6 @@ struct ShipmentDetailView: View {
         .task(id: environment.configRevision) {
             await viewModel.load()
         }
-        .onChange(of: viewModel.lastSubmitResult) { _, result in
-            guard let result else { return }
-            if case .success = result {
-                // refreshed in view model
-            }
-        }
     }
 
     private var shipmentHeader: some View {
@@ -67,8 +61,11 @@ struct ShipmentDetailView: View {
             }
 
             PrimaryActionButton(
-                title: viewModel.isSubmitting ? "Submitting…" : "Record receive",
-                systemImage: "checkmark.circle.fill"
+                title: viewModel.isSubmitting && viewModel.receivingLineId == nil
+                    ? "Submitting…"
+                    : "Record custom quantities",
+                systemImage: "checkmark.circle.fill",
+                style: .secondary
             ) {
                 Task { await viewModel.submitReceive() }
             }
@@ -87,15 +84,15 @@ struct ShipmentDetailView: View {
     @ViewBuilder
     private var submitResultBanner: some View {
         switch viewModel.lastSubmitResult {
-        case .success(let duplicate, let mode):
+        case .success(let idempotent, let mode, _):
             StatusChip(
-                label: duplicate ? "Already recorded (\(mode))" : "Receive recorded (\(mode))",
+                label: idempotent ? "Already recorded (\(mode))" : "Receive recorded (\(mode))",
                 tone: .success
             )
         case .queuedOffline:
             VStack(alignment: .leading, spacing: 6) {
                 StatusChip(label: "Queued offline", tone: .warning)
-                Text("Event saved locally. Replay from Debug when the API is reachable.")
+                Text("Saved locally with the same idempotency key. Replay from Debug or enable auto-replay in Sync.")
                     .font(DockWalkTheme.captionFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
             }
@@ -116,7 +113,12 @@ struct ShipmentDetailView: View {
                 Text("Lines")
                     .font(DockWalkTheme.headlineFont)
                 ForEach(viewModel.lines) { line in
-                    lineCard(line)
+                    InboundLineRowView(
+                        line: line,
+                        isReceiving: viewModel.isSubmitting && viewModel.receivingLineId == line.id
+                    ) {
+                        Task { await viewModel.receiveOne(lineId: line.id) }
+                    }
                 }
             }
         case .empty, .error:
@@ -127,54 +129,6 @@ struct ShipmentDetailView: View {
         case .idle, .loading:
             EmptyView()
         }
-    }
-
-    private func lineCard(_ line: InboundLineItem) -> some View {
-        SectionCard {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Text(line.sku)
-                        .font(.system(.body, design: .monospaced).weight(.semibold))
-                    Spacer()
-                    StatusChip(label: line.statusDisplay, tone: .neutral)
-                }
-                Text(line.description)
-                    .font(DockWalkTheme.bodyFont)
-                    .foregroundStyle(DockWalkTheme.textSecondary)
-                HStack {
-                    Text("Expected: \(formatQty(line.expectedQty)) \(line.uom)")
-                    Spacer()
-                    Text("Received: \(formatQty(line.receivedQty))")
-                }
-                .font(DockWalkTheme.captionFont)
-                .foregroundStyle(DockWalkTheme.textSecondary)
-
-                HStack {
-                    Text("Receive now")
-                        .font(DockWalkTheme.headlineFont)
-                    Spacer()
-                    TextField(
-                        "Qty",
-                        value: Binding(
-                            get: {
-                                viewModel.lines.first(where: { $0.id == line.id })?.receiveNow ?? 0
-                            },
-                            set: { viewModel.updateReceiveNow(lineId: line.id, quantity: $0) }
-                        ),
-                        format: .number
-                    )
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 88)
-                }
-            }
-        }
-    }
-
-    private func formatQty(_ value: Double) -> String {
-        value.truncatingRemainder(dividingBy: 1) == 0
-            ? String(format: "%.0f", value)
-            : String(format: "%.2f", value)
     }
 }
 

@@ -52,6 +52,7 @@
 		E6D5FDD597F05971983C4AD7 /* OutboundModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FCB45AEF9A88F60EB5DE2F /* OutboundModels.swift */; };
 		EFED66CFBE326B8E88B0E101 /* ReceivingEventModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281BEBC8BDB0B78462A285DD /* ReceivingEventModels.swift */; };
 		F10B4730F25A2DBECFBF5D42 /* ShipmentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 708BF8E60C9C166452BCDFA8 /* ShipmentDetailView.swift */; };
+		C4E8A1F203B59D7E6A2B1C3D /* InboundLineRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5F9B2E314C60E8F7B3C2D4E /* InboundLineRowView.swift */; };
 		F42AFB2BE3B91E906EC41DE8 /* DebugPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E8477044F5641368A3205B /* DebugPanelView.swift */; };
 		FC946718B654F08B7A27D996 /* InboundAPIMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47DF4322C998E2DDA15FF177 /* InboundAPIMapping.swift */; };
 		FD555837136CD26F6C70AF81 /* SyncQueuePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74EDB16DA0846024C4930E5 /* SyncQueuePersistence.swift */; };
@@ -92,6 +93,7 @@
 		6CE8CBC58F1CE03FB3DDDEFE /* LoadStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadStateView.swift; sourceTree = "<group>"; };
 		6F46A38157C5CA497E2122A5 /* AppointmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppointmentsViewModel.swift; sourceTree = "<group>"; };
 		708BF8E60C9C166452BCDFA8 /* ShipmentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipmentDetailView.swift; sourceTree = "<group>"; };
+		D5F9B2E314C60E8F7B3C2D4E /* InboundLineRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundLineRowView.swift; sourceTree = "<group>"; };
 		782030745B983A18F3FF47F5 /* DockWalkTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DockWalkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A978CBA08DF8B85851D865B /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		7D5C08D0A23B801E54197778 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
@@ -248,6 +250,7 @@
 				F41079A1C0A5A00229E859F7 /* ReceivingView.swift */,
 				9C6F14CED858882E5331EA31 /* ReceivingViewModel.swift */,
 				708BF8E60C9C166452BCDFA8 /* ShipmentDetailView.swift */,
+				D5F9B2E314C60E8F7B3C2D4E /* InboundLineRowView.swift */,
 				BFCC73E56CB9BCDFAEBF5481 /* ShipmentDetailViewModel.swift */,
 			);
 			path = Inbound;
@@ -447,6 +450,7 @@
 				42F8C15BEA548A45A95AE82D /* SectionCard.swift in Sources */,
 				242BBC24606D08440C837235 /* SettingsView.swift in Sources */,
 				F10B4730F25A2DBECFBF5D42 /* ShipmentDetailView.swift in Sources */,
+				C4E8A1F203B59D7E6A2B1C3D /* InboundLineRowView.swift in Sources */,
 				BA3E8D0133EAE183E91B72D5 /* ShipmentDetailViewModel.swift in Sources */,
 				00DD420F479FE9D46F871469 /* ShippingHomeView.swift in Sources */,
 				78CED7C1E16F0EBD98B9FD36 /* StatusChip.swift in Sources */,

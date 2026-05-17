@@ -18,7 +18,7 @@ final class AppEnvironment {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let stored = DeviceConfigurationStore.load(using: defaults)
-        self.apiBaseURL = stored.apiBaseURL ?? DeviceConfiguration.devDefaults.apiBaseURL!
+        self.apiBaseURL = stored.apiBaseURL ?? DeviceConfiguration.railwayQADefaults.apiBaseURL!
         self.facilityId = stored.facilityId
         self.facilityName = stored.facilityName
         self.orgId = stored.orgId
@@ -54,12 +54,24 @@ final class AppEnvironment {
         return nil
     }
 
+    func resetToRailwayQA() {
+        applyStored(DeviceConfigurationStore.resetToRailwayQADefaults(using: defaults))
+    }
+
+    func resetToLocalAPI() {
+        applyStored(DeviceConfigurationStore.resetToLocalDevDefaults(using: defaults))
+    }
+
+    /// Resets to Railway QA (production API + dev org/facility UUIDs).
     func resetToDevDefaults() {
-        let dev = DeviceConfigurationStore.resetToDevDefaults(using: defaults)
-        apiBaseURL = dev.apiBaseURL!
-        orgId = dev.orgId
-        facilityId = dev.facilityId
-        facilityName = dev.facilityName
+        resetToRailwayQA()
+    }
+
+    private func applyStored(_ config: DeviceConfiguration) {
+        apiBaseURL = config.apiBaseURL!
+        orgId = config.orgId
+        facilityId = config.facilityId
+        facilityName = config.facilityName
         configRevision += 1
     }
 
