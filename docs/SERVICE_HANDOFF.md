@@ -101,6 +101,24 @@ Bump **`CURRENT_PROJECT_VERSION`** / `CFBundleVersion` before each new TestFligh
 
 **After Connect processing:** enable build **2** on **DockStockers** (or rely on automatic latest for internal group).
 
+### Build 2 verification pass (2026-05-17, commit `11b7734`)
+
+| Check | Result |
+|-------|--------|
+| Git | Clean except `dockwalkios.jpeg` — **gitignored** (do not commit; app icon = `AppIcon.appiconset`) |
+| Repo build metadata | `CFBundleVersion` **2**, `ITSAppUsesNonExemptEncryption` **false** in target `Info.plist` |
+| Local `xcodebuild build` | **BUILD SUCCEEDED** (no new archive/upload) |
+| App Store Connect API from agent | **Not queried** (no ASC issuer in local fastlane env) |
+
+**Kyle — confirm in App Store Connect (TestFlight):**
+
+1. **0.1.0 (2)** finished **Processing** (not still “Processing”)
+2. Export-compliance quiz **did not appear** (expected with plist `false`)
+3. Build **2** enabled for **DockStockers** (or group uses latest internal build)
+4. Optional device smoke on build 2: Railway API test, Receive, Putaway, Activity
+
+Record outcomes here when known; then next iOS feature work is **scanner** (see table below).
+
 ---
 
 ## API base URLs

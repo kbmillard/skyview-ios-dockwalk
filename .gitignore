@@ -11,3 +11,6 @@ xcuserdata/
 # Secrets
 .env
 *.pem
+
+# Local icon source (committed asset: AppIcon.appiconset + dockwalkios.png)
+dockwalkios.jpeg
