@@ -9,6 +9,9 @@
 **Sibling pairing (two-repo Cursor workflow):**  
 [SIBLING_IOS.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/SIBLING_IOS.md)
 
+**Umbrella index (“dad” `skyview` meta repo):**  
+[DOCKWALK.md](https://github.com/kbmillard/SkyView/blob/main/docs/products/DOCKWALK.md) — links both siblings; open `~/Desktop/skyview` with product folders in one workspace.
+
 ---
 
 ## Repo split
