@@ -2,6 +2,8 @@ import SwiftUI
 
 struct AppointmentsView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(OfflineSyncStore.self) private var syncStore
+    @Environment(ReceivingEventReplayCoordinator.self) private var replayCoordinator
     @State private var viewModel: AppointmentsViewModel?
 
     var body: some View {
@@ -22,7 +24,7 @@ struct AppointmentsView: View {
             }
             .navigationTitle("Receive")
             .refreshable {
-                await viewModel?.refresh()
+                await viewModel?.refresh(syncStore: syncStore)
             }
             .safeAreaInset(edge: .top) {
                 statusBanner
@@ -37,7 +39,7 @@ struct AppointmentsView: View {
             if viewModel == nil {
                 viewModel = AppointmentsViewModel(environment: environment)
             }
-            await viewModel?.refresh()
+            await viewModel?.refresh(syncStore: syncStore)
         }
     }
 
@@ -79,12 +81,22 @@ struct AppointmentsView: View {
     @ViewBuilder
     private var statusBanner: some View {
         if let viewModel, let mode = viewModel.dataMode, viewModel.loadPhase == .loaded {
-            HStack {
-                Text(mode == "live" ? "Live API" : "API stub mode")
-                    .font(DockWalkTheme.captionFont)
-                Spacer()
-                if !viewModel.apiReachable {
-                    StatusChip(label: "Health offline", tone: .warning)
+            VStack(spacing: 4) {
+                HStack {
+                    Text(mode == "live" ? "Live API" : "API stub mode")
+                        .font(DockWalkTheme.captionFont)
+                    Spacer()
+                    if replayCoordinator.isReplaying {
+                        StatusChip(label: "Syncing receive", tone: .info)
+                    } else if !viewModel.apiReachable {
+                        StatusChip(label: "Health offline", tone: .warning)
+                    }
+                }
+                if syncStore.pendingReceivingEventCount > 0 {
+                    Text("\(syncStore.pendingReceivingEventCount) receive event(s) queued")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.warning)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             .padding(.horizontal, DockWalkTheme.screenPadding)
@@ -97,4 +109,6 @@ struct AppointmentsView: View {
 #Preview {
     AppointmentsView()
         .environment(AppEnvironment.shared)
+        .environment(OfflineSyncStore.shared)
+        .environment(ReceivingEventReplayCoordinator.shared)
 }

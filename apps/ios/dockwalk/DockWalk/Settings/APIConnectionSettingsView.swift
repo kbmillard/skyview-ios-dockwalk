@@ -2,6 +2,8 @@ import SwiftUI
 
 struct APIConnectionSettingsView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(OfflineSyncStore.self) private var syncStore
+    @Environment(ReceivingEventReplayCoordinator.self) private var replayCoordinator
 
     @State private var apiBaseURLString: String = ""
     @State private var orgId: String = ""
@@ -39,17 +41,40 @@ struct APIConnectionSettingsView: View {
                 }
             }
 
-            Section("DockWalk API") {
-                TextField("API base URL", text: $apiBaseURLString)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .keyboardType(.URL)
-                TextField("Organization ID", text: $orgId)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                TextField("Facility ID", text: $facilityId)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
+            Section {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("API base URL")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                    TextField("https://… or http://localhost:8790", text: $apiBaseURLString)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.URL)
+                        .font(.system(.body, design: .monospaced))
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Organization ID")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                    TextField("org UUID", text: $orgId)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .font(.system(.footnote, design: .monospaced))
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Facility ID")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                    TextField("facility UUID", text: $facilityId)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .font(.system(.footnote, design: .monospaced))
+                }
+            } header: {
+                Text("DockWalk API")
+            } footer: {
+                Text("Dev seed org/facility match Railway smoke data when using production API.")
+                    .font(DockWalkTheme.captionFont)
             }
 
             Section {
@@ -170,6 +195,11 @@ struct APIConnectionSettingsView: View {
         do {
             let health = try await client.fetchHealth()
             connectionPhase = .success(health)
+            await replayCoordinator.attemptAutoReplayIfNeeded(
+                environment: environment,
+                syncStore: syncStore,
+                trigger: "health_ok"
+            )
         } catch {
             connectionPhase = .failure(error.localizedDescription)
         }
@@ -180,5 +210,7 @@ struct APIConnectionSettingsView: View {
     NavigationStack {
         APIConnectionSettingsView()
             .environment(AppEnvironment.shared)
+            .environment(OfflineSyncStore.shared)
+            .environment(ReceivingEventReplayCoordinator.shared)
     }
 }

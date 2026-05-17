@@ -3,7 +3,7 @@ import SwiftUI
 struct DebugPanelView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
-    @State private var isReplaying = false
+    @Environment(ReceivingEventReplayCoordinator.self) private var replayCoordinator
 
     var body: some View {
         List {
@@ -40,14 +40,16 @@ struct DebugPanelView: View {
                 }
 
                 if syncStore.pendingReceivingEventCount > 0 {
-                    Button(isReplaying ? "Replaying…" : "Replay receiving events") {
+                    Button(replayCoordinator.isReplaying ? "Replaying…" : "Replay receiving events") {
                         Task {
-                            isReplaying = true
-                            await syncStore.replayReceivingEvents(using: environment)
-                            isReplaying = false
+                            await replayCoordinator.replayReceivingEvents(
+                                environment: environment,
+                                syncStore: syncStore,
+                                label: "Manual"
+                            )
                         }
                     }
-                    .disabled(isReplaying)
+                    .disabled(replayCoordinator.isReplaying)
                 }
 
                 if let message = syncStore.lastReplayMessage {
@@ -70,5 +72,6 @@ struct DebugPanelView: View {
         DebugPanelView()
             .environment(AppEnvironment.shared)
             .environment(OfflineSyncStore.shared)
+            .environment(ReceivingEventReplayCoordinator.shared)
     }
 }

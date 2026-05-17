@@ -44,6 +44,17 @@ final class OfflineSyncStore {
         refreshStatus()
     }
 
+    func removeQueuedActions(withIDs ids: Set<UUID>) {
+        guard !ids.isEmpty else { return }
+        queuedActions.removeAll { ids.contains($0.id) }
+        persist()
+        refreshStatus()
+    }
+
+    func recordReplayMessage(_ message: String) {
+        lastReplayMessage = message
+    }
+
     func markSyncing() {
         status = .syncing
     }
@@ -61,38 +72,18 @@ final class OfflineSyncStore {
     }
 
     var pendingReceivingEventCount: Int {
-        queuedActions.filter { $0.kind == Self.receivingEventKind }.count
+        ReceivingEventReplayEngine.pendingReceivingActions(from: queuedActions).count
     }
 
-    /// Replays only queued receiving events (narrow scope — not a full sync engine).
+    /// Manual replay from Debug — delegates to coordinator.
     @discardableResult
     func replayReceivingEvents(using environment: AppEnvironment) async -> (succeeded: Int, failed: Int) {
-        let pending = queuedActions.filter { $0.kind == Self.receivingEventKind && $0.receivingEventPayload != nil }
-        guard !pending.isEmpty else {
-            lastReplayMessage = "No receiving events in queue."
-            return (0, 0)
-        }
-
-        markSyncing()
-        let client = environment.makeAPIClient()
-        var succeeded = 0
-        var failed = 0
-
-        for action in pending {
-            guard let payload = action.receivingEventPayload else { continue }
-            do {
-                let _: ReceivingEventResponse = try await client.post(.receivingEvents, body: payload)
-                queuedActions.removeAll { $0.id == action.id }
-                succeeded += 1
-            } catch {
-                failed += 1
-            }
-        }
-
-        persist()
-        refreshStatus()
-        lastReplayMessage = "Replay: \(succeeded) sent, \(failed) still pending."
-        return (succeeded, failed)
+        let outcome = await ReceivingEventReplayCoordinator.shared.replayReceivingEvents(
+            environment: environment,
+            syncStore: self,
+            label: "Manual"
+        )
+        return (outcome.succeeded, outcome.failed)
     }
 
     private func persist() {

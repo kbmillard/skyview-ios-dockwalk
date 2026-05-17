@@ -14,7 +14,7 @@ final class AppointmentsViewModel {
         self.environment = environment
     }
 
-    func refresh() async {
+    func refresh(syncStore: OfflineSyncStore = .shared) async {
         loadPhase = .loading
         let apiClient = environment.makeAPIClient()
         let orgId = environment.orgId
@@ -35,6 +35,14 @@ final class AppointmentsViewModel {
             } else {
                 appointments = mapped
                 loadPhase = .loaded
+            }
+
+            if apiReachable {
+                await ReceivingEventReplayCoordinator.shared.attemptAutoReplayIfNeeded(
+                    environment: environment,
+                    syncStore: syncStore,
+                    trigger: "receive_loaded"
+                )
             }
         } catch {
             appointments = []

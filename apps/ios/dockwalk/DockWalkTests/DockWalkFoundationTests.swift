@@ -46,6 +46,102 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertFalse(FeatureFlags.paymentsEnabled)
         XCTAssertFalse(FeatureFlags.liveScannerEnabled)
         XCTAssertTrue(FeatureFlags.offlineSyncEnabled)
+        XCTAssertFalse(FeatureFlags.autoReplayReceivingEventsEnabled)
+    }
+
+    func testReplayEngineFiltersReceivingEventsOnly() {
+        let receiving = QueuedSyncAction(
+            kind: OfflineSyncStore.receivingEventKind,
+            summary: "Receive",
+            receivingEventPayload: sampleReceivingPayload(idempotencyKey: "key-a")
+        )
+        let other = QueuedSyncAction(kind: "inbound.start", summary: "Start")
+        let pending = ReceivingEventReplayEngine.pendingReceivingActions(from: [receiving, other])
+        XCTAssertEqual(pending.count, 1)
+        XCTAssertEqual(pending.first?.kind, OfflineSyncStore.receivingEventKind)
+    }
+
+    func testReplayEngineSuccessRemovesOnlySucceeded() async {
+        let id1 = UUID()
+        let id2 = UUID()
+        let actions = [
+            QueuedSyncAction(
+                id: id1,
+                kind: OfflineSyncStore.receivingEventKind,
+                summary: "A",
+                receivingEventPayload: sampleReceivingPayload(idempotencyKey: "key-1")
+            ),
+            QueuedSyncAction(
+                id: id2,
+                kind: OfflineSyncStore.receivingEventKind,
+                summary: "B",
+                receivingEventPayload: sampleReceivingPayload(idempotencyKey: "key-2")
+            ),
+            QueuedSyncAction(kind: "exception", summary: "E"),
+        ]
+
+        var postedKeys: [String] = []
+        let outcome = await ReceivingEventReplayEngine.replay(actions: actions) { payload in
+            postedKeys.append(payload.idempotencyKey)
+            if payload.idempotencyKey == "key-1" {
+                return ReceivingEventResponse(mode: "live", message: nil, duplicate: false)
+            }
+            throw APIClientError.httpStatus(500)
+        }
+
+        XCTAssertEqual(outcome.succeeded, 1)
+        XCTAssertEqual(outcome.failed, 1)
+        XCTAssertEqual(outcome.removedActionIDs, [id1])
+        XCTAssertEqual(postedKeys.count, 2)
+    }
+
+    func testReplayEngineDuplicateResponseCountsAsSuccess() async {
+        let action = QueuedSyncAction(
+            kind: OfflineSyncStore.receivingEventKind,
+            summary: "Dup",
+            receivingEventPayload: sampleReceivingPayload(idempotencyKey: "dup-key")
+        )
+        let outcome = await ReceivingEventReplayEngine.replay(actions: [action]) { _ in
+            ReceivingEventResponse(mode: "live", message: nil, duplicate: true)
+        }
+        XCTAssertEqual(outcome.succeeded, 1)
+        XCTAssertEqual(outcome.failed, 0)
+        XCTAssertEqual(outcome.removedActionIDs.count, 1)
+    }
+
+    func testReplayEnginePreservesIdempotencyKey() async {
+        let expectedKey = "ios-preserve-key-12345678"
+        let action = QueuedSyncAction(
+            kind: OfflineSyncStore.receivingEventKind,
+            summary: "Preserve",
+            receivingEventPayload: sampleReceivingPayload(idempotencyKey: expectedKey)
+        )
+        _ = await ReceivingEventReplayEngine.replay(actions: [action]) { payload in
+            XCTAssertEqual(payload.idempotencyKey, expectedKey)
+            return ReceivingEventResponse(mode: "live", message: nil, duplicate: false)
+        }
+    }
+
+    private func sampleReceivingPayload(idempotencyKey: String) -> CreateReceivingEventRequest {
+        CreateReceivingEventRequest(
+            orgId: "org-1",
+            facilityId: "fac-1",
+            appointmentId: nil,
+            inboundShipmentId: "ship-1",
+            eventType: "manual_receive",
+            status: "committed",
+            deviceId: nil,
+            idempotencyKey: idempotencyKey,
+            lines: [
+                ReceivingEventLineRequest(
+                    inboundLineId: "line-1",
+                    sku: "SKU",
+                    quantityExpected: nil,
+                    quantityReceived: 1,
+                    conditionStatus: "good"
+                )
+            ]
+        )
     }
 
     func testSyncQueuePersistenceRoundTrip() {

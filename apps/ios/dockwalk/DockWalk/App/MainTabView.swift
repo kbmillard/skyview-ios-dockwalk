@@ -36,4 +36,5 @@ struct MainTabView: View {
     MainTabView()
         .environment(AppEnvironment.shared)
         .environment(OfflineSyncStore.shared)
+        .environment(ReceivingEventReplayCoordinator.shared)
 }
