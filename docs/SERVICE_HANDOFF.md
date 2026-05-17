@@ -46,6 +46,7 @@ New installs default to **Railway** (saved settings are never overwritten automa
 | **Putaway tasks** | **More → Putaway tasks** — `GET /api/tasks?task_type=putaway` (read-only) |
 | **Audit trail** | **More → Activity → Audit events** |
 | **Scanner / AI / payments / auth** | **OFF** |
+| **TestFlight** | **Build 0.1.0 (1) uploaded** 2026-05-17 — processing in App Store Connect |
 
 ---
 
