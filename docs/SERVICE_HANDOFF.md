@@ -1,6 +1,6 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-17 (iOS Phase 1B — inbound lines + device receiving writes)
+**Last updated:** 2026-05-17 (iOS agent — read-only audit / activity list)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -15,20 +15,7 @@
 | **Railway production (iOS QA default)** | **https://dockwalk-api-production.up.railway.app** |
 | Local (Simulator) | `http://localhost:8790` |
 
-**More → API connection** — presets, Save & Test, **Reset to Railway QA** / **Reset to local API**.
-
-New installs default to **Railway** (saved settings are never overwritten automatically).
-
----
-
-## Supabase split (do not conflate)
-
-| Project | Ref | Use on iOS |
-|---------|-----|------------|
-| Service (API) | `egasxwpnutwrqivwmufm` | **Never** — no service-role key on device |
-| iOS client | `jllqgothyavoqvhugrvf` | App Connect / client SDK only (if used later) |
-
-**Receiving writes:** `POST /api/inbound/receiving-events` on Railway → API writes to **egas**. iOS does **not** insert receiving rows into Supabase directly.
+**More → API connection** — presets, Save & Test.
 
 ---
 
@@ -36,39 +23,36 @@ New installs default to **Railway** (saved settings are never overwritten automa
 
 | Area | Status |
 |------|--------|
-| **Receive workflow** | Appointments → shipments → **shipment detail + lines** → **Receive 1** (manual scan commit) |
-| **Inbound lines** | `GET /api/inbound/shipments/:id/lines?org_id=` — Phase 1B contract (`quantity_*`, `inbound_shipment_id`) |
-| **Receiving POST** | `POST /api/inbound/receiving-events` — `source: device`, `event_type: receive_scan`, idempotency |
-| **Idempotency** | New UUID per user tap; **same key** when offline queue replays |
-| **Idempotent replay** | HTTP 200 + `idempotent: true` + `item` → treated as success |
-| **Offline queue** | Receiving events persisted with payload + `idempotency_key` |
-| **Manual replay** | **More → Debug → Replay receiving events** |
-| **Auto-replay** | **More → Sync → Auto-replay receiving events** (default OFF) |
-| **Scanner / AI / payments / auth** | **OFF** |
+| **Receive workflow** | Appointments → shipments → lines → **Receive 1** / custom quantities |
+| **Receiving POST** | `POST /api/inbound/receiving-events` — `source: device`, `event_type: receive_scan` |
+| **Offline queue + replay** | Receiving events only; manual Debug + runtime auto-replay toggle (default OFF) |
+| **Activity / audit (read-only)** | **More → Activity → Audit events** — `GET /api/audit/events?org_id=&limit=&offset=` |
+| **Auth / mobile session** | **Not implemented** — waiting on service contract |
+| **Scanner / AI / payments / direct Supabase** | **OFF** |
 
 ---
 
-## Phase 1B delivery (2026-05-17)
+## Latest delivery (read-only audit / activity list)
 
-**Flows**
+**What changed**
 
-1. **Receive** tab → appointment → inbound shipment → **shipment detail**
-2. Lines load from API; each line shows SKU, expected/received/damaged, status
-3. **Receive 1** posts one line (`quantity_received: 1`) without live scanner
-4. Optional **Record custom quantities** for multi-line commit
+- **`GET /api/audit/events`** wired with org/limit/offset from `AppEnvironment`
+- **More → Activity → Audit events** — loading, empty, error+retry, pull-to-refresh, **Load more**
+- Row shows action, entity type, timestamp, payload summary (when API returns payload fields)
+- Tap row → detail sheet (entity ID, source, device, idempotency key, line count, etc. — only fields present in API)
+- After successful receive on shipment detail → **View activity** navigates to Activity (non-blocking)
+- **Read-only** — no writes, no auth headers, no Supabase on device
 
-**Defaults**
+**Files (main)**
 
-- Fresh install: Railway QA URL + dev org `00000000-0000-4000-8000-000000000001` + facility `…0010`
-- Dev sample shipment on production: `00000000-0000-4000-8000-000000000201` (ASN-DEV-001)
+- `Networking/AuditEventModels.swift`, `Networking/APIEndpoint.swift`, `Networking/APIClient.swift`
+- `Activity/ActivityView.swift`, `Activity/ActivityViewModel.swift`
+- `Settings/SettingsView.swift`, `Inbound/ShipmentDetailView.swift`
+- `DockWalkTests/DockWalkFoundationTests.swift`
 
-**Key files**
+**Still off:** scanner, Gemini, payments, auth, direct Supabase.
 
-- `Networking/ReceivingEventModels.swift` — `InboundLinesResponse`, `ReceivingEventResponse`, request types
-- `Inbound/InboundLineRowView.swift`, `ShipmentDetailView*.swift`
-- `Core/DeviceConfiguration.swift` — `railwayQADefaults` / `localDevDefaults`
-
-**Validation**
+**Validation (2026-05-17)**
 
 ```bash
 cd apps/ios/dockwalk
@@ -76,16 +60,20 @@ xcodebuild -project DockWalk.xcodeproj -scheme DockWalk -destination 'generic/pl
 # BUILD SUCCEEDED
 
 xcodebuild -project DockWalk.xcodeproj -scheme DockWalk -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' test CODE_SIGNING_ALLOWED=NO
-# TEST SUCCEEDED — 28 tests
+# TEST SUCCEEDED — 31 tests
 ```
+
+**Limitations**
+
+- Audit list shows fields returned by API (`entity_type`, `action`, `payload` keys present in service writes). No invented columns.
+- Stub API mode returns empty audit list with message.
+- No filtering by entity type in UI yet (full org trail only).
 
 ---
 
-## Prior delivery
+## Prior delivery (Phase 1B + replay)
 
-- Runtime auto-replay toggle (Sync preferences)
-- Auto-replay engine + manual Debug replay
-- Phase 1A: appointments/shipments lists, API settings, offline queue scaffold
+- Railway QA defaults, inbound lines, device receiving writes, offline queue, auto-replay UserDefaults toggle — see git `71d0efc` / Phase 1B section in history.
 
 ---
 
@@ -95,7 +83,7 @@ xcodebuild -project DockWalk.xcodeproj -scheme DockWalk -destination 'platform=i
 |----------|------|
 | P1 | Auth / mobile session when service defines it |
 | P2 | Live scanner (replace manual Receive 1) |
-| P3 | Audit list read in app |
+| P3 | Filter Activity by `receiving_event` entity type |
 
 ---
 

@@ -4,6 +4,7 @@ struct ShipmentDetailView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
     @Bindable var viewModel: ShipmentDetailViewModel
+    @State private var showActivity = false
 
     init(shipment: InboundShipmentItem, appointmentId: String?, environment: AppEnvironment = .shared) {
         viewModel = ShipmentDetailViewModel(
@@ -34,6 +35,9 @@ struct ShipmentDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task(id: environment.configRevision) {
             await viewModel.load()
+        }
+        .navigationDestination(isPresented: $showActivity) {
+            ActivityView()
         }
     }
 
@@ -85,10 +89,18 @@ struct ShipmentDetailView: View {
     private var submitResultBanner: some View {
         switch viewModel.lastSubmitResult {
         case .success(let idempotent, let mode, _):
-            StatusChip(
-                label: idempotent ? "Already recorded (\(mode))" : "Receive recorded (\(mode))",
-                tone: .success
-            )
+            VStack(alignment: .leading, spacing: 8) {
+                StatusChip(
+                    label: idempotent ? "Already recorded (\(mode))" : "Receive recorded (\(mode))",
+                    tone: .success
+                )
+                Button {
+                    showActivity = true
+                } label: {
+                    Label("View activity", systemImage: "list.bullet.rectangle")
+                        .font(DockWalkTheme.captionFont)
+                }
+            }
         case .queuedOffline:
             VStack(alignment: .leading, spacing: 6) {
                 StatusChip(label: "Queued offline", tone: .warning)

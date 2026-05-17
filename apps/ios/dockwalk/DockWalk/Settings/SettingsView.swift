@@ -92,6 +92,15 @@ struct SettingsView: View {
                     flagRow("Debug panel", enabled: FeatureFlags.debugPanelEnabled)
                 }
 
+                Section("Activity") {
+                    NavigationLink("Audit events") {
+                        ActivityView()
+                    }
+                    Text("Read-only trail from GET /api/audit/events — confirms receiving writes on the server.")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                }
+
                 Section("Modules") {
                     NavigationLink("Tasks") { TasksHomeView() }
                     NavigationLink("Exceptions") { ExceptionsHomeView() }

@@ -57,6 +57,14 @@ struct APIClient {
         }
     }
 
+    func fetchAuditEvents(
+        orgId: String,
+        limit: Int = 25,
+        offset: Int = 0
+    ) async throws -> AuditEventsListResponse {
+        try await get(.auditEvents(orgId: orgId, limit: limit, offset: offset))
+    }
+
     private func request<T: Decodable, Body>(
         _ endpoint: APIEndpoint,
         method: String,

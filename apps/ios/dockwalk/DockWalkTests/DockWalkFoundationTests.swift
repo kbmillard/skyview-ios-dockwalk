@@ -462,4 +462,39 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertTrue(ReceivingEventReplayEngine.isSuccessfulResponse(response))
         XCTAssertTrue(response.isIdempotentReplay)
     }
+
+    func testAuditEventsEndpointIncludesOrgLimitOffset() {
+        let url = APIEndpoint.auditEvents(
+            orgId: "00000000-0000-4000-8000-000000000001",
+            limit: 25,
+            offset: 50
+        ).url(base: URL(string: "https://dockwalk-api-production.up.railway.app")!)!
+        XCTAssertTrue(url.absoluteString.contains("org_id="))
+        XCTAssertTrue(url.absoluteString.contains("limit=25"))
+        XCTAssertTrue(url.absoluteString.contains("offset=50"))
+        XCTAssertTrue(url.path.contains("/api/audit/events"))
+    }
+
+    func testAuditEventDTODecodingAndMapping() throws {
+        let json = """
+        {"id":"ae-1","org_id":"org-1","facility_id":"fac-1","entity_type":"receiving_event",
+        "entity_id":"ev-1","action":"created","created_at":"2026-05-17T12:00:00Z",
+        "payload":{"event_type":"receive_scan","source":"device","device_id":"ios-1","line_count":1}}
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(AuditEventDTO.self, from: json)
+        let item = AuditAPIMapping.mapAuditEvent(dto)
+        XCTAssertEqual(item.action, "created")
+        XCTAssertEqual(item.entityType, "receiving_event")
+        XCTAssertEqual(item.payloadSummary, "receive_scan · device · 1 line(s)")
+        XCTAssertTrue(item.detailLines.contains { $0.contains("device") })
+    }
+
+    func testAuditEventsListResponseDecoding() throws {
+        let json = """
+        {"mode":"live","items":[],"pagination":{"limit":25,"offset":0,"total":0}}
+        """.data(using: .utf8)!
+        let response = try JSONDecoder().decode(AuditEventsListResponse.self, from: json)
+        XCTAssertEqual(response.mode, "live")
+        XCTAssertEqual(response.pagination.total, 0)
+    }
 }

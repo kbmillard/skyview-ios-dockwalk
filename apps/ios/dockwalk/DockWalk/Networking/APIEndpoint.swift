@@ -6,6 +6,7 @@ enum APIEndpoint {
     case inboundShipments(orgId: String, appointmentId: String?)
     case inboundShipmentLines(shipmentId: String, orgId: String)
     case receivingEvents
+    case auditEvents(orgId: String, limit: Int, offset: Int)
     case inventoryItems
     case outboundOrders
 
@@ -17,6 +18,7 @@ enum APIEndpoint {
         case .inboundShipmentLines(let shipmentId, _):
             return "/api/inbound/shipments/\(shipmentId)/lines"
         case .receivingEvents: return "/api/inbound/receiving-events"
+        case .auditEvents: return "/api/audit/events"
         case .inventoryItems: return "/api/inventory/items"
         case .outboundOrders: return "/api/outbound/orders"
         }
@@ -34,6 +36,12 @@ enum APIEndpoint {
             return items
         case .inboundShipmentLines(_, let orgId):
             return [URLQueryItem(name: "org_id", value: orgId)]
+        case .auditEvents(let orgId, let limit, let offset):
+            return [
+                URLQueryItem(name: "org_id", value: orgId),
+                URLQueryItem(name: "limit", value: String(limit)),
+                URLQueryItem(name: "offset", value: String(offset)),
+            ]
         default:
             return []
         }

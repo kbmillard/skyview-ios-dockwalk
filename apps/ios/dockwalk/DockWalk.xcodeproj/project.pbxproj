@@ -36,6 +36,7 @@
 		8D21C1DD6F0D54D4785BBC4D /* TasksHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F688F50AFDC4D186CCBBBF /* TasksHomeView.swift */; };
 		95B31D3181C512C6B5F6BE53 /* APIEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3C78FB5F7638E84C64F36F /* APIEndpoint.swift */; };
 		991EEA386E0A466F0F41EF5B /* InventoryHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E08A4D5BF891D9ECAF945C /* InventoryHomeView.swift */; };
+		A199E254249F362F47C3F03D /* InboundLineRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E23B57D58AD0E4F88B0A59 /* InboundLineRowView.swift */; };
 		A34B01C7107D6BB29EE18384 /* PrimaryActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F880B64A0FC1079D74ED7640 /* PrimaryActionButton.swift */; };
 		A3D17E896A53ADBD7A6546DE /* ReceivingEventReplayEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AB148742D39441AF123D35B /* ReceivingEventReplayEngine.swift */; };
 		A9C31FFD638244A10731BF1C /* ReceivingEventReplayCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32AE8B706344E937315DEE42 /* ReceivingEventReplayCoordinator.swift */; };
@@ -49,11 +50,13 @@
 		CDF0B471D12A93C26BF7EAC2 /* ExceptionsHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39C4B1F3E1EE296F8007931 /* ExceptionsHomeView.swift */; };
 		D571070FE57A1BD038E38654 /* InspectionStubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF38FA4B54C294D6EA9BC63A /* InspectionStubView.swift */; };
 		D934FFE3AD479D5B5E34BA71 /* DockWalkApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9825520847293A864FC4C9 /* DockWalkApp.swift */; };
+		DC03A918904EB4E7B75C35C0 /* AuditEventModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7D11F1805588CFF8E1CA17 /* AuditEventModels.swift */; };
 		E6D5FDD597F05971983C4AD7 /* OutboundModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FCB45AEF9A88F60EB5DE2F /* OutboundModels.swift */; };
 		EFED66CFBE326B8E88B0E101 /* ReceivingEventModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281BEBC8BDB0B78462A285DD /* ReceivingEventModels.swift */; };
 		F10B4730F25A2DBECFBF5D42 /* ShipmentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 708BF8E60C9C166452BCDFA8 /* ShipmentDetailView.swift */; };
-		C4E8A1F203B59D7E6A2B1C3D /* InboundLineRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5F9B2E314C60E8F7B3C2D4E /* InboundLineRowView.swift */; };
+		F19B91C3117CB3390E9977C2 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC3427C53C00D23834F49FC /* ActivityView.swift */; };
 		F42AFB2BE3B91E906EC41DE8 /* DebugPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E8477044F5641368A3205B /* DebugPanelView.swift */; };
+		F7FF419EDF801A2359EC9609 /* ActivityViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C1522D112D64554E55E59EC /* ActivityViewModel.swift */; };
 		FC946718B654F08B7A27D996 /* InboundAPIMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47DF4322C998E2DDA15FF177 /* InboundAPIMapping.swift */; };
 		FD555837136CD26F6C70AF81 /* SyncQueuePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74EDB16DA0846024C4930E5 /* SyncQueuePersistence.swift */; };
 /* End PBXBuildFile section */
@@ -77,6 +80,7 @@
 		1033B2B383D9561E19655FFC /* DockWalkModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockWalkModels.swift; sourceTree = "<group>"; };
 		106CB13D9A54E191EE509B92 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		1AB45F357398409F852D0A63 /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
+		1C1522D112D64554E55E59EC /* ActivityViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewModel.swift; sourceTree = "<group>"; };
 		26143E5AAC25ACAFE2804EA3 /* APIConnectionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConnectionSettingsView.swift; sourceTree = "<group>"; };
 		281BEBC8BDB0B78462A285DD /* ReceivingEventModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingEventModels.swift; sourceTree = "<group>"; };
 		32AE8B706344E937315DEE42 /* ReceivingEventReplayCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingEventReplayCoordinator.swift; sourceTree = "<group>"; };
@@ -93,7 +97,7 @@
 		6CE8CBC58F1CE03FB3DDDEFE /* LoadStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadStateView.swift; sourceTree = "<group>"; };
 		6F46A38157C5CA497E2122A5 /* AppointmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppointmentsViewModel.swift; sourceTree = "<group>"; };
 		708BF8E60C9C166452BCDFA8 /* ShipmentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipmentDetailView.swift; sourceTree = "<group>"; };
-		D5F9B2E314C60E8F7B3C2D4E /* InboundLineRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundLineRowView.swift; sourceTree = "<group>"; };
+		76E23B57D58AD0E4F88B0A59 /* InboundLineRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundLineRowView.swift; sourceTree = "<group>"; };
 		782030745B983A18F3FF47F5 /* DockWalkTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DockWalkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A978CBA08DF8B85851D865B /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		7D5C08D0A23B801E54197778 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
@@ -105,6 +109,7 @@
 		99D635A37EFE7B7FEBDA838B /* InventoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryViewModel.swift; sourceTree = "<group>"; };
 		9C6F14CED858882E5331EA31 /* ReceivingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingViewModel.swift; sourceTree = "<group>"; };
 		9CFED203BDD4851E4D6C25BE /* SectionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionCard.swift; sourceTree = "<group>"; };
+		ACC3427C53C00D23834F49FC /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
 		B04A2CB30C4175FB8AE21139 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		B064FBBBC798F261B1320467 /* ScanResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanResult.swift; sourceTree = "<group>"; };
 		B6E8477044F5641368A3205B /* DebugPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugPanelView.swift; sourceTree = "<group>"; };
@@ -115,6 +120,7 @@
 		CE3C78FB5F7638E84C64F36F /* APIEndpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIEndpoint.swift; sourceTree = "<group>"; };
 		D1D58A15DC729A16961EEABA /* InventoryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryModels.swift; sourceTree = "<group>"; };
 		D512E2135DA76E6D631C2188 /* InboundModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundModels.swift; sourceTree = "<group>"; };
+		EA7D11F1805588CFF8E1CA17 /* AuditEventModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuditEventModels.swift; sourceTree = "<group>"; };
 		EAEEAA7D36A3B4923A45D2FB /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		EF38FA4B54C294D6EA9BC63A /* InspectionStubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectionStubView.swift; sourceTree = "<group>"; };
 		F39C4B1F3E1EE296F8007931 /* ExceptionsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExceptionsHomeView.swift; sourceTree = "<group>"; };
@@ -135,6 +141,7 @@
 		168F38898EF14F5969CD91E5 /* DockWalk */ = {
 			isa = PBXGroup;
 			children = (
+				928A9B1E5E92590C6F479E78 /* Activity */,
 				65FB770FD4599B2E0719067D /* App */,
 				F60DBA5B1F27E4A6A52D9E8C /* Core */,
 				C655C93A0E0773527CCC50AB /* Debug */,
@@ -216,9 +223,19 @@
 				4B782D5EF4D98C01F04189DE /* APIClient.swift */,
 				CE3C78FB5F7638E84C64F36F /* APIEndpoint.swift */,
 				1AB45F357398409F852D0A63 /* APIModels.swift */,
+				EA7D11F1805588CFF8E1CA17 /* AuditEventModels.swift */,
 				281BEBC8BDB0B78462A285DD /* ReceivingEventModels.swift */,
 			);
 			path = Networking;
+			sourceTree = "<group>";
+		};
+		928A9B1E5E92590C6F479E78 /* Activity */ = {
+			isa = PBXGroup;
+			children = (
+				ACC3427C53C00D23834F49FC /* ActivityView.swift */,
+				1C1522D112D64554E55E59EC /* ActivityViewModel.swift */,
+			);
+			path = Activity;
 			sourceTree = "<group>";
 		};
 		99DEB5DB0B37421338CBC2DC /* Resources */ = {
@@ -246,11 +263,11 @@
 				65B0D6FC114C221591F6DE4F /* AppointmentsView.swift */,
 				6F46A38157C5CA497E2122A5 /* AppointmentsViewModel.swift */,
 				47DF4322C998E2DDA15FF177 /* InboundAPIMapping.swift */,
+				76E23B57D58AD0E4F88B0A59 /* InboundLineRowView.swift */,
 				D512E2135DA76E6D631C2188 /* InboundModels.swift */,
 				F41079A1C0A5A00229E859F7 /* ReceivingView.swift */,
 				9C6F14CED858882E5331EA31 /* ReceivingViewModel.swift */,
 				708BF8E60C9C166452BCDFA8 /* ShipmentDetailView.swift */,
-				D5F9B2E314C60E8F7B3C2D4E /* InboundLineRowView.swift */,
 				BFCC73E56CB9BCDFAEBF5481 /* ShipmentDetailViewModel.swift */,
 			);
 			path = Inbound;
@@ -416,9 +433,12 @@
 				C5CCD0539FD94B87C2C9F348 /* APIConnectionSettingsView.swift in Sources */,
 				95B31D3181C512C6B5F6BE53 /* APIEndpoint.swift in Sources */,
 				14919ED96437C5C54D7155B5 /* APIModels.swift in Sources */,
+				F19B91C3117CB3390E9977C2 /* ActivityView.swift in Sources */,
+				F7FF419EDF801A2359EC9609 /* ActivityViewModel.swift in Sources */,
 				4E5288E0A5CD4D173EFC9F64 /* AppEnvironment.swift in Sources */,
 				7E84CBC872675F0D988454F0 /* AppointmentsView.swift in Sources */,
 				4B925293F9E09D749FCDC3F8 /* AppointmentsViewModel.swift in Sources */,
+				DC03A918904EB4E7B75C35C0 /* AuditEventModels.swift in Sources */,
 				F42AFB2BE3B91E906EC41DE8 /* DebugPanelView.swift in Sources */,
 				8A85DB3459F11CF233BD6469 /* DeviceConfiguration.swift in Sources */,
 				60E98D57E8259E48BD1E804E /* DeviceConfigurationStore.swift in Sources */,
@@ -428,6 +448,7 @@
 				CDF0B471D12A93C26BF7EAC2 /* ExceptionsHomeView.swift in Sources */,
 				C31E417E8A047DA319AF5D80 /* FeatureFlags.swift in Sources */,
 				FC946718B654F08B7A27D996 /* InboundAPIMapping.swift in Sources */,
+				A199E254249F362F47C3F03D /* InboundLineRowView.swift in Sources */,
 				C002F18121A3EEA09B9F8073 /* InboundModels.swift in Sources */,
 				D571070FE57A1BD038E38654 /* InspectionStubView.swift in Sources */,
 				991EEA386E0A466F0F41EF5B /* InventoryHomeView.swift in Sources */,
@@ -450,7 +471,6 @@
 				42F8C15BEA548A45A95AE82D /* SectionCard.swift in Sources */,
 				242BBC24606D08440C837235 /* SettingsView.swift in Sources */,
 				F10B4730F25A2DBECFBF5D42 /* ShipmentDetailView.swift in Sources */,
-				C4E8A1F203B59D7E6A2B1C3D /* InboundLineRowView.swift in Sources */,
 				BA3E8D0133EAE183E91B72D5 /* ShipmentDetailViewModel.swift in Sources */,
 				00DD420F479FE9D46F871469 /* ShippingHomeView.swift in Sources */,
 				78CED7C1E16F0EBD98B9FD36 /* StatusChip.swift in Sources */,
