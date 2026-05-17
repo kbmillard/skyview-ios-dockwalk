@@ -1,6 +1,6 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-17 (iOS agent)
+**Last updated:** 2026-05-17 (iOS agent; lines path corrected per service recap)
 
 **Canonical system state (API, Supabase service DB, workers, phases):**  
 [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)
@@ -88,7 +88,7 @@ xcodebuild -project DockWalk.xcodeproj -scheme DockWalk \
 ### Operator notes
 
 - **Empty Receive list** with API up usually means `mode: "stub"` on the server (no Supabase) or no rows for the dev org — not an iOS bug. With **egas** seeded, curl the same `org_id` and you should see two appointments; pull-to-refresh on Receive.
-- **Receiving shipments** section shows inbound shipment headers for the appointment, not `inbound_lines` yet (no lines route on API).
+- **Receiving shipments** section shows inbound shipment headers for the appointment; **lines API exists** (`GET /api/inbound/shipments/:id/lines?org_id=`) — iOS does not call it yet (still maps shipments into the list).
 - **Simulator → Mac API:** use LAN IP in Settings/Debug if `localhost` fails on device.
 
 ### Intentionally not started
@@ -100,7 +100,7 @@ Live AVFoundation scanner, Gemini/cloud inspection, PaymentManager / PSP SDKs, S
 | Priority | Work |
 |----------|------|
 | P0 | Settings field for API base URL + org id (persisted, not hardcoded) |
-| P1 | Inbound **lines** when service exposes `GET /api/inbound/lines?shipment_id=` |
+| P1 | Wire inbound **lines** UI → `GET /api/inbound/shipments/:id/lines?org_id=` (route live on service) |
 | P1 | Replay offline queue to API when write routes exist |
 | P2 | Auth header / Supabase session when service defines mobile auth |
 | P3 | Live scanner behind `liveScannerEnabled` |
