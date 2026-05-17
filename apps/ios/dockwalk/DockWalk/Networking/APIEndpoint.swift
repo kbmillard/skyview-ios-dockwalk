@@ -80,7 +80,7 @@ enum APIEndpoint {
 
     func url(base: URL) -> URL? {
         let trimmed = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        var url = base.appending(path: trimmed)
+        let url = base.appending(path: trimmed)
         guard !queryItems.isEmpty else { return url }
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         components?.queryItems = queryItems

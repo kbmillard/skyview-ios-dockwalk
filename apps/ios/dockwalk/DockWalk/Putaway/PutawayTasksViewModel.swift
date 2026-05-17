@@ -94,7 +94,7 @@ final class PutawayTasksViewModel {
     }
 
     private func emptyMessage(for mode: String) -> String {
-        if let inboundShipmentId {
+        if inboundShipmentId != nil {
             return "No putaway tasks for this shipment."
         }
         if mode == "stub" {
