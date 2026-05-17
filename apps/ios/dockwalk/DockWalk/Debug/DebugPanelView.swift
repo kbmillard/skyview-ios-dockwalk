@@ -3,7 +3,6 @@ import SwiftUI
 struct DebugPanelView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
-    @State private var healthResult: String = "—"
 
     var body: some View {
         List {
@@ -11,17 +10,12 @@ struct DebugPanelView: View {
                 LabeledContent("API", value: environment.apiBaseURL.absoluteString)
                 LabeledContent("Facility", value: environment.facilityId)
                 LabeledContent("Org", value: environment.orgId)
+                LabeledContent("Config revision", value: "\(environment.configRevision)")
             }
 
-            Section("API probe") {
-                Text(healthResult)
-                    .font(.system(.body, design: .monospaced))
-                Button("Ping /health") {
-                    Task {
-                        let client = APIClient(baseURL: environment.apiBaseURL)
-                        let ok = await client.healthCheck()
-                        healthResult = ok ? "OK" : "Unavailable (expected if API not running)"
-                    }
+            Section {
+                NavigationLink("API connection & health test") {
+                    APIConnectionSettingsView()
                 }
             }
 

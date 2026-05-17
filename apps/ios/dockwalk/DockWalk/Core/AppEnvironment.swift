@@ -5,24 +5,71 @@ import Observation
 final class AppEnvironment {
     static let shared = AppEnvironment()
 
+    private(set) var configRevision = 0
+
     var apiBaseURL: URL
     var facilityId: String
     var facilityName: String
     var orgId: String
     var userRole: UserRole
 
-    init(
-        apiBaseURL: URL = URL(string: "http://localhost:8790")!,
-        facilityId: String = "00000000-0000-4000-8000-000000000010",
-        facilityName: String = "SkyPrairie Demo DC",
-        orgId: String = "00000000-0000-4000-8000-000000000001",
-        userRole: UserRole = .receiver
-    ) {
-        self.apiBaseURL = apiBaseURL
-        self.facilityId = facilityId
-        self.facilityName = facilityName
-        self.orgId = orgId
-        self.userRole = userRole
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        let stored = DeviceConfigurationStore.load(using: defaults)
+        self.apiBaseURL = stored.apiBaseURL ?? DeviceConfiguration.devDefaults.apiBaseURL!
+        self.facilityId = stored.facilityId
+        self.facilityName = stored.facilityName
+        self.orgId = stored.orgId
+        self.userRole = .receiver
+    }
+
+    func makeAPIClient() -> APIClient {
+        APIClient(baseURL: apiBaseURL)
+    }
+
+    @discardableResult
+    func apply(
+        apiBaseURLString: String,
+        orgId: String,
+        facilityId: String,
+        facilityName: String = "SkyPrairie Demo DC"
+    ) -> String? {
+        let config = DeviceConfiguration.normalized(
+            apiBaseURLString: apiBaseURLString,
+            orgId: orgId,
+            facilityId: facilityId,
+            facilityName: facilityName
+        )
+        guard let url = config.apiBaseURL else {
+            return "Enter a valid API base URL (e.g. http://localhost:8790)."
+        }
+        apiBaseURL = url
+        self.orgId = config.orgId
+        self.facilityId = config.facilityId
+        self.facilityName = config.facilityName
+        DeviceConfigurationStore.save(config, using: defaults)
+        configRevision += 1
+        return nil
+    }
+
+    func resetToDevDefaults() {
+        let dev = DeviceConfigurationStore.resetToDevDefaults(using: defaults)
+        apiBaseURL = dev.apiBaseURL!
+        orgId = dev.orgId
+        facilityId = dev.facilityId
+        facilityName = dev.facilityName
+        configRevision += 1
+    }
+
+    var currentConfiguration: DeviceConfiguration {
+        DeviceConfiguration(
+            apiBaseURLString: apiBaseURL.absoluteString,
+            orgId: orgId,
+            facilityId: facilityId,
+            facilityName: facilityName
+        )
     }
 }
 

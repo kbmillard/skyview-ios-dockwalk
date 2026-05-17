@@ -11,18 +11,19 @@ final class ReceivingViewModel {
     private(set) var dataMode: String?
     private(set) var isReceiving = false
 
-    private let apiClient: APIClient
+    private let environment: AppEnvironment
 
     init(
         appointment: ReceivingAppointment,
-        apiClient: APIClient = APIClient(baseURL: AppEnvironment.shared.apiBaseURL)
+        environment: AppEnvironment = .shared
     ) {
         self.appointment = appointment
-        self.apiClient = apiClient
+        self.environment = environment
     }
 
     func load() async {
         loadPhase = .loading
+        let apiClient = environment.makeAPIClient()
 
         do {
             let response: APIListResponse<InboundShipmentDTO> = try await apiClient.get(.inboundShipments)

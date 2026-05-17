@@ -1,12 +1,13 @@
 import SwiftUI
 
 struct ReceivingView: View {
+    @Environment(AppEnvironment.self) private var environment
     @State private var viewModel: ReceivingViewModel
     @State private var showScanner = false
     @Environment(OfflineSyncStore.self) private var syncStore
 
-    init(appointment: ReceivingAppointment) {
-        _viewModel = State(initialValue: ReceivingViewModel(appointment: appointment))
+    init(appointment: ReceivingAppointment, environment: AppEnvironment = .shared) {
+        _viewModel = State(initialValue: ReceivingViewModel(appointment: appointment, environment: environment))
     }
 
     var body: some View {
@@ -44,10 +45,8 @@ struct ReceivingView: View {
         .sheet(isPresented: $showScanner) {
             ScannerPlaceholderView()
         }
-        .task {
-            if viewModel.loadPhase == .idle {
-                await viewModel.load()
-            }
+        .task(id: environment.configRevision) {
+            await viewModel.load()
         }
     }
 

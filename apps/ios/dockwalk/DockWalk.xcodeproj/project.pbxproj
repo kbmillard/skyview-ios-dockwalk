@@ -24,12 +24,14 @@
 		4E47A863500A2982A263522E /* SyncStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954E5D3B5DFA985D13CB5C57 /* SyncStatus.swift */; };
 		4E5288E0A5CD4D173EFC9F64 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A978CBA08DF8B85851D865B /* AppEnvironment.swift */; };
 		52E5427771D1EC9359E42BB6 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B782D5EF4D98C01F04189DE /* APIClient.swift */; };
+		60E98D57E8259E48BD1E804E /* DeviceConfigurationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F6D71C779925A575BDE126 /* DeviceConfigurationStore.swift */; };
 		697307A48E8324B72E2795BD /* LoadPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06B44D071E70EE2F7E60C975 /* LoadPhase.swift */; };
 		6E9432E5A56A2F4E15761641 /* ReceivingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C6F14CED858882E5331EA31 /* ReceivingViewModel.swift */; };
 		709FEFB4FB6C2EF3883EB2C0 /* OutboundViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6BD6174FDF1330B85CFAE17 /* OutboundViewModel.swift */; };
 		78CED7C1E16F0EBD98B9FD36 /* StatusChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC6C7CCE993538213FF044D /* StatusChip.swift */; };
 		7E84CBC872675F0D988454F0 /* AppointmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B0D6FC114C221591F6DE4F /* AppointmentsView.swift */; };
 		7F69F3818A8B0E8E2D25417E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 02D72A64EC3A25E41E5A227A /* Assets.xcassets */; };
+		8A85DB3459F11CF233BD6469 /* DeviceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EC1D45ABBB4B332FCB9EB9 /* DeviceConfiguration.swift */; };
 		8D21C1DD6F0D54D4785BBC4D /* TasksHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F688F50AFDC4D186CCBBBF /* TasksHomeView.swift */; };
 		95B31D3181C512C6B5F6BE53 /* APIEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3C78FB5F7638E84C64F36F /* APIEndpoint.swift */; };
 		991EEA386E0A466F0F41EF5B /* InventoryHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E08A4D5BF891D9ECAF945C /* InventoryHomeView.swift */; };
@@ -38,6 +40,7 @@
 		BF7190C317CF39D0CD34903C /* OfflineSyncStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BAACA53AE5FDD000E2D76E7 /* OfflineSyncStore.swift */; };
 		C002F18121A3EEA09B9F8073 /* InboundModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D512E2135DA76E6D631C2188 /* InboundModels.swift */; };
 		C31E417E8A047DA319AF5D80 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D5C08D0A23B801E54197778 /* FeatureFlags.swift */; };
+		C5CCD0539FD94B87C2C9F348 /* APIConnectionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26143E5AAC25ACAFE2804EA3 /* APIConnectionSettingsView.swift */; };
 		C73EB6FDC22D1BE25BEC5777 /* DockWalkModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1033B2B383D9561E19655FFC /* DockWalkModels.swift */; };
 		CDF0B471D12A93C26BF7EAC2 /* ExceptionsHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39C4B1F3E1EE296F8007931 /* ExceptionsHomeView.swift */; };
 		D571070FE57A1BD038E38654 /* InspectionStubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF38FA4B54C294D6EA9BC63A /* InspectionStubView.swift */; };
@@ -67,8 +70,10 @@
 		1033B2B383D9561E19655FFC /* DockWalkModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockWalkModels.swift; sourceTree = "<group>"; };
 		106CB13D9A54E191EE509B92 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		1AB45F357398409F852D0A63 /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
+		26143E5AAC25ACAFE2804EA3 /* APIConnectionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConnectionSettingsView.swift; sourceTree = "<group>"; };
 		37F688F50AFDC4D186CCBBBF /* TasksHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksHomeView.swift; sourceTree = "<group>"; };
 		45E08A4D5BF891D9ECAF945C /* InventoryHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryHomeView.swift; sourceTree = "<group>"; };
+		46EC1D45ABBB4B332FCB9EB9 /* DeviceConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceConfiguration.swift; sourceTree = "<group>"; };
 		47DF4322C998E2DDA15FF177 /* InboundAPIMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundAPIMapping.swift; sourceTree = "<group>"; };
 		4B0C761EC07D529368685D10 /* DockWalkFoundationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockWalkFoundationTests.swift; sourceTree = "<group>"; };
 		4B782D5EF4D98C01F04189DE /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
@@ -80,6 +85,7 @@
 		782030745B983A18F3FF47F5 /* DockWalkTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DockWalkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A978CBA08DF8B85851D865B /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		7D5C08D0A23B801E54197778 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
+		83F6D71C779925A575BDE126 /* DeviceConfigurationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceConfigurationStore.swift; sourceTree = "<group>"; };
 		86CDC4C1E70C8852D4C2171E /* ScannerPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerPlaceholderView.swift; sourceTree = "<group>"; };
 		8F9825520847293A864FC4C9 /* DockWalkApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockWalkApp.swift; sourceTree = "<group>"; };
 		954E5D3B5DFA985D13CB5C57 /* SyncStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncStatus.swift; sourceTree = "<group>"; };
@@ -172,6 +178,7 @@
 		764BD5E90C9C3E7B1C4543E9 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				26143E5AAC25ACAFE2804EA3 /* APIConnectionSettingsView.swift */,
 				106CB13D9A54E191EE509B92 /* SettingsView.swift */,
 			);
 			path = Settings;
@@ -234,6 +241,7 @@
 		B5B695FEE30DAE043E9C8D77 /* Persistence */ = {
 			isa = PBXGroup;
 			children = (
+				83F6D71C779925A575BDE126 /* DeviceConfigurationStore.swift */,
 				0BAACA53AE5FDD000E2D76E7 /* OfflineSyncStore.swift */,
 				F74EDB16DA0846024C4930E5 /* SyncQueuePersistence.swift */,
 				954E5D3B5DFA985D13CB5C57 /* SyncStatus.swift */,
@@ -280,6 +288,7 @@
 			isa = PBXGroup;
 			children = (
 				7A978CBA08DF8B85851D865B /* AppEnvironment.swift */,
+				46EC1D45ABBB4B332FCB9EB9 /* DeviceConfiguration.swift */,
 				1033B2B383D9561E19655FFC /* DockWalkModels.swift */,
 				7D5C08D0A23B801E54197778 /* FeatureFlags.swift */,
 				06B44D071E70EE2F7E60C975 /* LoadPhase.swift */,
@@ -383,12 +392,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				52E5427771D1EC9359E42BB6 /* APIClient.swift in Sources */,
+				C5CCD0539FD94B87C2C9F348 /* APIConnectionSettingsView.swift in Sources */,
 				95B31D3181C512C6B5F6BE53 /* APIEndpoint.swift in Sources */,
 				14919ED96437C5C54D7155B5 /* APIModels.swift in Sources */,
 				4E5288E0A5CD4D173EFC9F64 /* AppEnvironment.swift in Sources */,
 				7E84CBC872675F0D988454F0 /* AppointmentsView.swift in Sources */,
 				4B925293F9E09D749FCDC3F8 /* AppointmentsViewModel.swift in Sources */,
 				F42AFB2BE3B91E906EC41DE8 /* DebugPanelView.swift in Sources */,
+				8A85DB3459F11CF233BD6469 /* DeviceConfiguration.swift in Sources */,
+				60E98D57E8259E48BD1E804E /* DeviceConfigurationStore.swift in Sources */,
 				D934FFE3AD479D5B5E34BA71 /* DockWalkApp.swift in Sources */,
 				C73EB6FDC22D1BE25BEC5777 /* DockWalkModels.swift in Sources */,
 				2E7C3112E616383BCF384E64 /* DockWalkTheme.swift in Sources */,

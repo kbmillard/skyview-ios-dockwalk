@@ -81,4 +81,55 @@ final class DockWalkFoundationTests: XCTestCase {
             .url(base: URL(string: "http://localhost:8790")!)!
         XCTAssertTrue(url.absoluteString.contains("org_id="))
     }
+
+    func testDeviceConfigurationStoreSaveLoadAndReset() {
+        let suite = "DockWalkTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            XCTFail("Could not create test defaults suite")
+            return
+        }
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        DeviceConfigurationStore.clear(using: defaults)
+        XCTAssertEqual(DeviceConfigurationStore.load(using: defaults), DeviceConfiguration.devDefaults)
+
+        let custom = DeviceConfiguration(
+            apiBaseURLString: "http://192.168.1.50:8790",
+            orgId: "org-custom",
+            facilityId: "fac-custom",
+            facilityName: "Test DC"
+        )
+        DeviceConfigurationStore.save(custom, using: defaults)
+        XCTAssertEqual(DeviceConfigurationStore.load(using: defaults), custom)
+
+        let reset = DeviceConfigurationStore.resetToDevDefaults(using: defaults)
+        XCTAssertEqual(reset, DeviceConfiguration.devDefaults)
+    }
+
+    func testAppEnvironmentApplyAndReset() {
+        let suite = "DockWalkTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            XCTFail("Could not create test defaults suite")
+            return
+        }
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        DeviceConfigurationStore.clear(using: defaults)
+        let env = AppEnvironment(defaults: defaults)
+        let revision = env.configRevision
+
+        XCTAssertNil(
+            env.apply(
+                apiBaseURLString: "http://10.0.0.5:8790",
+                orgId: "org-qa",
+                facilityId: "fac-qa"
+            )
+        )
+        XCTAssertEqual(env.apiBaseURL.absoluteString, "http://10.0.0.5:8790")
+        XCTAssertEqual(env.orgId, "org-qa")
+        XCTAssertGreaterThan(env.configRevision, revision)
+
+        env.resetToDevDefaults()
+        XCTAssertEqual(env.orgId, DeviceConfiguration.devDefaults.orgId)
+    }
 }

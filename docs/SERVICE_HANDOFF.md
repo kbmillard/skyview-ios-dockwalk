@@ -1,6 +1,6 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-17 (iOS agent; lines path corrected per service recap)
+**Last updated:** 2026-05-17 (iOS agent — persisted API connection settings)
 
 **Canonical system state (API, Supabase service DB, workers, phases):**  
 [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)
@@ -29,9 +29,10 @@
 ## Local dev (iOS + API)
 
 1. **Service repo:** `cd skyview-dockwalk/apps/api/dockwalk-api && npm run dev` → `:8790`, `supabase: configured`.
-2. **This app:** `AppEnvironment.apiBaseURL` defaults to `http://localhost:8790`.
-3. **Physical device:** use your Mac’s LAN IP, e.g. `http://192.168.x.x:8790` (Settings / Debug panel).
-4. **Smoke data:** dev org `00000000-0000-4000-8000-000000000001` — seed + sample appointments on **egas** (see service recap).
+2. **This app:** **More → API connection** (or Debug → API connection & health test). Defaults match dev seed; values persist in UserDefaults.
+3. **Simulator:** `http://localhost:8790`
+4. **Physical device:** Mac LAN IP, e.g. `http://192.168.x.x:8790` — save in API connection, then **Test API connection** (`GET /health`).
+5. **Smoke data:** dev org `00000000-0000-4000-8000-000000000001` — seed on **egas** (see service recap).
 
 ---
 
@@ -39,40 +40,39 @@
 
 | Area | Status |
 |------|--------|
-| **Receive — appointments** | `AppointmentsViewModel` → `GET /api/appointments?org_id=` |
-| **Receive — inbound** | `ReceivingViewModel` → `GET /api/inbound/shipments` (filter by appointment) |
+| **API connection settings** | Persisted URL + org + facility (`DeviceConfigurationStore` / UserDefaults); **More → API connection** |
+| **Health test** | `GET /health` — shows `status`, `service`, `supabase` (`configured` \| `stub`) |
+| **Receive — appointments** | `AppointmentsViewModel` → `GET /api/appointments?org_id=` (reads live `AppEnvironment`) |
+| **Receive — inbound** | `ReceivingViewModel` → `GET /api/inbound/shipments` (filter by appointment; reloads on config change) |
 | **Offline queue** | `OfflineSyncStore` + `dockwalk_sync_queue.json` persistence |
 | **Scanner** | Placeholder (`liveScannerEnabled` off) |
 | **AI inspection** | Stub UI; `aiInspectionEnabled` off |
 | **Payments** | Stub; `paymentsEnabled` off |
-| **Auth** | None yet — dev org UUID in `AppEnvironment` |
+| **Auth** | None yet — org/facility from persisted config |
 
 ---
 
-## First delivery summary (iOS agent)
+## Latest delivery (persisted API config)
 
-**Repo:** [skyview-ios-dockwalk](https://github.com/kbmillard/skyview-ios-dockwalk) · **Commits:** `1cce9c8` (WMS foundation) → `2aedab6` (Phase 1A API wiring)
+**What changed**
 
-### What shipped
+- `DeviceConfiguration` + `DeviceConfigurationStore` (UserDefaults) with dev defaults fallback
+- `AppEnvironment` loads/saves config, `configRevision` bumps on apply/reset, `makeAPIClient()` for ViewModels
+- **APIConnectionSettingsView** — edit URL/org/facility, Save & apply, Reset to dev defaults, Test API connection
+- ViewModels use `AppEnvironment` per refresh (no hardcoded localhost in VMs)
+- Receive list reloads when `configRevision` changes after save
 
-1. **Foundation** — SwiftUI shell with tabs Today / Receive / Ship / Inventory / More; design system; stub ViewModels for ship/inventory; feature flags (AI/payments/scanner off, offline sync on).
-2. **Phase 1A networking** — Live reads against local DockWalk API:
-   - `AppointmentsViewModel` → `GET /api/appointments?org_id={AppEnvironment.orgId}`
-   - `ReceivingViewModel` → `GET /api/inbound/shipments`, client-filtered by `appointment_id`
-   - DTOs in `Networking/APIModels.swift`, mapping in `Inbound/InboundAPIMapping.swift`
-3. **UX states** — `LoadPhase` + `LoadStateView` (loading / empty with API stub message / error + retry) on Receive list and Receiving shipments.
-4. **Offline queue** — `SyncQueuePersistence` writes `Application Support/DockWalk/dockwalk_sync_queue.json`; survives app restart.
-5. **Xcode** — `DockWalk.xcodeproj` via `apps/ios/dockwalk/project.yml` (XcodeGen).
+**Files (main)**
 
-### Dev defaults (aligned with service seed)
+- `Core/DeviceConfiguration.swift`, `Persistence/DeviceConfigurationStore.swift`
+- `Core/AppEnvironment.swift`
+- `Settings/APIConnectionSettingsView.swift`, `Settings/SettingsView.swift`, `Debug/DebugPanelView.swift`
+- `Inbound/AppointmentsViewModel.swift`, `Inbound/ReceivingViewModel.swift`, `Inbound/AppointmentsView.swift`
+- `Networking/APIClient.swift` (`fetchHealth`, expanded `HealthResponse`)
 
-| Key | Value |
-|-----|--------|
-| `apiBaseURL` | `http://localhost:8790` |
-| `orgId` | `00000000-0000-4000-8000-000000000001` |
-| `facilityId` | `00000000-0000-4000-8000-000000000010` |
+**Still off:** live scanner, Gemini, payments, auth headers, direct Supabase from iOS, Railway prod URL field (manual base URL only).
 
-### Validation (last run)
+**Validation (2026-05-17)**
 
 ```bash
 cd apps/ios/dockwalk
@@ -82,25 +82,24 @@ xcodebuild -project DockWalk.xcodeproj -scheme DockWalk \
 
 xcodebuild -project DockWalk.xcodeproj -scheme DockWalk \
   -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' test CODE_SIGNING_ALLOWED=NO
-# 7 tests passed
+# TEST SUCCEEDED — 9 tests
 ```
 
-### Operator notes
+**Limitation:** `/health` does not report list `mode: live|stub`; only `supabase: configured|stub`. Use Receive pull-to-refresh or appointments response for list mode.
 
-- **Empty Receive list** with API up usually means `mode: "stub"` on the server (no Supabase) or no rows for the dev org — not an iOS bug. With **egas** seeded, curl the same `org_id` and you should see two appointments; pull-to-refresh on Receive.
-- **Receiving shipments** section shows inbound shipment headers for the appointment; **lines API exists** (`GET /api/inbound/shipments/:id/lines?org_id=`) — iOS does not call it yet (still maps shipments into the list).
-- **Simulator → Mac API:** use LAN IP in Settings/Debug if `localhost` fails on device.
+---
 
-### Intentionally not started
+## First delivery summary (iOS agent)
 
-Live AVFoundation scanner, Gemini/cloud inspection, PaymentManager / PSP SDKs, Supabase direct reads from iOS (HTTP-only for Phase 1A lists), production Railway base URL, auth headers.
+**Repo:** [skyview-ios-dockwalk](https://github.com/kbmillard/skyview-ios-dockwalk) · **Commits:** `1cce9c8` (foundation) → `2aedab6` (Phase 1A API wiring) → `ae0300f` (handoff fix)
+
+See git history for full detail. Foundation + Phase 1A lists documented in earlier commits.
 
 ### Suggested next iOS PR
 
 | Priority | Work |
 |----------|------|
-| P0 | Settings field for API base URL + org id (persisted, not hardcoded) |
-| P1 | Wire inbound **lines** UI → `GET /api/inbound/shipments/:id/lines?org_id=` (route live on service) |
+| P1 | Wire inbound **lines** UI → `GET /api/inbound/shipments/:id/lines?org_id=` |
 | P1 | Replay offline queue to API when write routes exist |
 | P2 | Auth header / Supabase session when service defines mobile auth |
 | P3 | Live scanner behind `liveScannerEnabled` |

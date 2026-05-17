@@ -1,49 +1,58 @@
 import SwiftUI
 
 struct AppointmentsView: View {
-    @State private var viewModel = AppointmentsViewModel()
+    @Environment(AppEnvironment.self) private var environment
+    @State private var viewModel: AppointmentsViewModel?
 
     var body: some View {
         NavigationStack {
             ZStack {
-                if viewModel.loadPhase == .loaded {
+                if viewModel?.loadPhase == .loaded {
                     appointmentsList
-                } else {
+                } else if let viewModel {
                     LoadStateView(phase: viewModel.loadPhase) {
                         Task { await viewModel.refresh() }
                     }
                 }
 
-                if viewModel.loadPhase == .loading {
+                if case .loading? = viewModel?.loadPhase {
                     LoadStateView(phase: .loading)
                         .background(.ultraThinMaterial)
                 }
             }
             .navigationTitle("Receive")
             .refreshable {
-                await viewModel.refresh()
+                await viewModel?.refresh()
             }
             .safeAreaInset(edge: .top) {
                 statusBanner
             }
         }
-        .task {
-            if viewModel.loadPhase == .idle {
-                await viewModel.refresh()
+        .onAppear {
+            if viewModel == nil {
+                viewModel = AppointmentsViewModel(environment: environment)
             }
+        }
+        .task(id: environment.configRevision) {
+            if viewModel == nil {
+                viewModel = AppointmentsViewModel(environment: environment)
+            }
+            await viewModel?.refresh()
         }
     }
 
     @ViewBuilder
     private var appointmentsList: some View {
-        List(viewModel.appointments) { appointment in
-            NavigationLink {
-                ReceivingView(appointment: appointment)
-            } label: {
-                appointmentRow(appointment)
+        if let viewModel {
+            List(viewModel.appointments) { appointment in
+                NavigationLink {
+                    ReceivingView(appointment: appointment, environment: environment)
+                } label: {
+                    appointmentRow(appointment)
+                }
             }
+            .listStyle(.insetGrouped)
         }
-        .listStyle(.insetGrouped)
     }
 
     private func appointmentRow(_ appointment: ReceivingAppointment) -> some View {
@@ -69,7 +78,7 @@ struct AppointmentsView: View {
 
     @ViewBuilder
     private var statusBanner: some View {
-        if let mode = viewModel.dataMode, viewModel.loadPhase == .loaded {
+        if let viewModel, let mode = viewModel.dataMode, viewModel.loadPhase == .loaded {
             HStack {
                 Text(mode == "live" ? "Live API" : "API stub mode")
                     .font(DockWalkTheme.captionFont)
@@ -87,4 +96,5 @@ struct AppointmentsView: View {
 
 #Preview {
     AppointmentsView()
+        .environment(AppEnvironment.shared)
 }

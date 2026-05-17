@@ -8,19 +8,16 @@ final class AppointmentsViewModel {
     private(set) var dataMode: String?
     private(set) var apiReachable = false
 
-    private let apiClient: APIClient
-    private let orgId: String
+    private let environment: AppEnvironment
 
-    init(
-        apiClient: APIClient = APIClient(baseURL: AppEnvironment.shared.apiBaseURL),
-        orgId: String = AppEnvironment.shared.orgId
-    ) {
-        self.apiClient = apiClient
-        self.orgId = orgId
+    init(environment: AppEnvironment = .shared) {
+        self.environment = environment
     }
 
     func refresh() async {
         loadPhase = .loading
+        let apiClient = environment.makeAPIClient()
+        let orgId = environment.orgId
         apiReachable = await apiClient.healthCheck()
 
         do {

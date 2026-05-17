@@ -40,9 +40,13 @@ struct APIClient {
         return try await request(endpoint, method: "POST", body: encoded, as: type)
     }
 
+    func fetchHealth() async throws -> HealthResponse {
+        try await get(.health)
+    }
+
     func healthCheck() async -> Bool {
         do {
-            let _: HealthResponse = try await get(.health)
+            _ = try await fetchHealth()
             return true
         } catch {
             return false
@@ -89,7 +93,9 @@ struct APIClient {
     }
 }
 
-struct HealthResponse: Decodable {
-    let ok: Bool?
+struct HealthResponse: Decodable, Equatable {
     let status: String?
+    let service: String?
+    let environment: String?
+    let supabase: String?
 }

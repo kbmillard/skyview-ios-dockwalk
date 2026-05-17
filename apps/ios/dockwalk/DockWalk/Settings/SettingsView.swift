@@ -17,7 +17,10 @@ struct SettingsView: View {
 
                 Section("API") {
                     LabeledContent("Base URL", value: environment.apiBaseURL.absoluteString)
-                    Text("Live networking is stubbed; ViewModels use local demo data until Phase 1A.")
+                    NavigationLink("API connection…") {
+                        APIConnectionSettingsView()
+                    }
+                    Text("Simulator: localhost:8790 · Device: Mac LAN IP (see API connection).")
                         .font(DockWalkTheme.captionFont)
                         .foregroundStyle(DockWalkTheme.textSecondary)
                 }
