@@ -52,6 +52,21 @@ enum InboundAPIMapping {
         )
     }
 
+    static func mapInboundLine(_ dto: InboundLineDTO) -> InboundLineItem {
+        let expected = dto.expectedQty ?? 0
+        let received = dto.receivedQty ?? 0
+        return InboundLineItem(
+            id: dto.id,
+            sku: dto.sku ?? "—",
+            description: dto.description ?? "Inbound line",
+            expectedQty: expected,
+            receivedQty: received,
+            receiveNow: max(0, expected - received),
+            uom: dto.uom ?? "ea",
+            status: dto.status ?? "expected"
+        )
+    }
+
     static func mapShipmentToReceivedLine(_ shipment: InboundShipmentItem) -> ReceivedLine {
         ReceivedLine(
             id: shipment.id,

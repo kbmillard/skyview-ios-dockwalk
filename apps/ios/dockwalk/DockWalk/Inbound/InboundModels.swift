@@ -53,3 +53,22 @@ struct InboundShipmentItem: Identifiable, Equatable {
         status.replacingOccurrences(of: "_", with: " ").capitalized
     }
 }
+
+struct InboundLineItem: Identifiable, Equatable {
+    let id: String
+    let sku: String
+    let description: String
+    let expectedQty: Double
+    let receivedQty: Double
+    var receiveNow: Double
+    let uom: String
+    let status: String
+
+    var statusDisplay: String {
+        status.replacingOccurrences(of: "_", with: " ").capitalized
+    }
+
+    var remainingQty: Double {
+        max(0, expectedQty - receivedQty)
+    }
+}

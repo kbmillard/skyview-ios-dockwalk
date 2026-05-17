@@ -20,10 +20,24 @@ struct APIConnectionSettingsView: View {
         Form {
             Section {
                 Text("Simulator: use `http://localhost:8790` while the DockWalk API runs on your Mac.")
-                Text("Physical device: use your Mac’s LAN IP, e.g. `http://192.168.1.42:8790` — not localhost.")
+                Text("Physical device (local API): use your Mac’s LAN IP, e.g. `http://192.168.1.42:8790` — not localhost.")
+                Text("Production: Railway deploy — tap below, then Save & apply and Test.")
             }
             .font(DockWalkTheme.captionFont)
             .foregroundStyle(DockWalkTheme.textSecondary)
+
+            Section("Quick presets") {
+                Button("Use Railway production") {
+                    apiBaseURLString = DeviceConfiguration.railwayProductionAPIBaseURL
+                    saveMessage = "Railway URL filled — tap Save & apply, then Test API connection."
+                    connectionPhase = .idle
+                }
+                Button("Use local simulator API") {
+                    apiBaseURLString = DeviceConfiguration.devDefaults.apiBaseURLString
+                    saveMessage = "Localhost filled — run `npm run dev` in dockwalk-api, then Save & apply."
+                    connectionPhase = .idle
+                }
+            }
 
             Section("DockWalk API") {
                 TextField("API base URL", text: $apiBaseURLString)

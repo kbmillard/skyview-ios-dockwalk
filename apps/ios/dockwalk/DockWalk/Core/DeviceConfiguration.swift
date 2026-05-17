@@ -6,6 +6,9 @@ struct DeviceConfiguration: Equatable, Codable {
     var facilityId: String
     var facilityName: String
 
+    /// Railway production API (canonical URL — see service `ARCHITECT_RECAP.md`).
+    static let railwayProductionAPIBaseURL = "https://dockwalk-api-production.up.railway.app"
+
     static let devDefaults = DeviceConfiguration(
         apiBaseURLString: "http://localhost:8790",
         orgId: "00000000-0000-4000-8000-000000000001",

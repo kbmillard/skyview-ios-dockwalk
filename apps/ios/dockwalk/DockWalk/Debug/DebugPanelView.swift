@@ -3,6 +3,7 @@ import SwiftUI
 struct DebugPanelView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
+    @State private var isReplaying = false
 
     var body: some View {
         List {
@@ -29,9 +30,32 @@ struct DebugPanelView: View {
                             Text(action.kind)
                                 .font(DockWalkTheme.captionFont)
                                 .foregroundStyle(DockWalkTheme.textSecondary)
+                            if action.receivingEventPayload != nil {
+                                Text("Receiving event payload stored")
+                                    .font(DockWalkTheme.captionFont)
+                                    .foregroundStyle(DockWalkTheme.warning)
+                            }
                         }
                     }
                 }
+
+                if syncStore.pendingReceivingEventCount > 0 {
+                    Button(isReplaying ? "Replaying…" : "Replay receiving events") {
+                        Task {
+                            isReplaying = true
+                            await syncStore.replayReceivingEvents(using: environment)
+                            isReplaying = false
+                        }
+                    }
+                    .disabled(isReplaying)
+                }
+
+                if let message = syncStore.lastReplayMessage {
+                    Text(message)
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                }
+
                 Button("Clear queue", role: .destructive) {
                     syncStore.clearQueue()
                 }

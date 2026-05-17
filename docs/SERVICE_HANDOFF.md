@@ -1,6 +1,6 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-17 (iOS agent — persisted API connection settings)
+**Last updated:** 2026-05-17 (iOS agent — inbound lines + receiving events + Railway preset)
 
 **Canonical system state (API, Supabase service DB, workers, phases):**  
 [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)
@@ -26,13 +26,17 @@
 
 ---
 
-## Local dev (iOS + API)
+## API base URLs
 
-1. **Service repo:** `cd skyview-dockwalk/apps/api/dockwalk-api && npm run dev` → `:8790`, `supabase: configured`.
-2. **This app:** **More → API connection** (or Debug → API connection & health test). Defaults match dev seed; values persist in UserDefaults.
-3. **Simulator:** `http://localhost:8790`
-4. **Physical device:** Mac LAN IP, e.g. `http://192.168.x.x:8790` — save in API connection, then **Test API connection** (`GET /health`).
-5. **Smoke data:** dev org `00000000-0000-4000-8000-000000000001` — seed on **egas** (see service recap).
+| Target | URL | How to use in app |
+|--------|-----|-------------------|
+| **Local (Simulator)** | `http://localhost:8790` | Dev default; API via `npm run dev` in service repo |
+| **Local (device)** | `http://<Mac-LAN-IP>:8790` | Manual entry in **More → API connection** |
+| **Railway production** | `https://dockwalk-api-production.up.railway.app` | **More → API connection → Use Railway production** → Save & Test |
+
+Dev org / facility (seed on **egas**): `00000000-0000-4000-8000-000000000001` / `00000000-0000-4000-8000-000000000010`
+
+**Device QA (2026-05-17):** Production URL + health test (`supabase: configured`, `API env: production`) verified on physical device.
 
 ---
 
@@ -40,37 +44,45 @@
 
 | Area | Status |
 |------|--------|
-| **API connection settings** | Persisted URL + org + facility (`DeviceConfigurationStore` / UserDefaults); **More → API connection** |
-| **Health test** | `GET /health` — shows `status`, `service`, `supabase` (`configured` \| `stub`) |
-| **Receive — appointments** | `AppointmentsViewModel` → `GET /api/appointments?org_id=` (reads live `AppEnvironment`) |
-| **Receive — inbound** | `ReceivingViewModel` → `GET /api/inbound/shipments` (filter by appointment; reloads on config change) |
-| **Offline queue** | `OfflineSyncStore` + `dockwalk_sync_queue.json` persistence |
+| **API connection settings** | Persisted URL + org + facility; presets for **Railway production** and **local simulator** |
+| **Health test** | `GET /health` — works for localhost, LAN, or Railway |
+| **Receive — appointments** | `GET /api/appointments?org_id=` |
+| **Receive — inbound shipments** | `GET /api/inbound/shipments?org_id=&appointment_id=` |
+| **Receive — inbound lines** | `GET /api/inbound/shipments/:id/lines?org_id=` |
+| **Receive — record event** | `POST /api/inbound/receiving-events` (`manual_receive`, `committed`, idempotency key) |
+| **Offline queue** | Receiving events store full `CreateReceivingEventRequest` payload |
+| **Offline replay** | Debug → **Replay receiving events** only (not auto on reconnect) |
 | **Scanner** | Placeholder (`liveScannerEnabled` off) |
 | **AI inspection** | Stub UI; `aiInspectionEnabled` off |
 | **Payments** | Stub; `paymentsEnabled` off |
-| **Auth** | None yet — org/facility from persisted config |
+| **Auth** | None — org/facility from persisted config |
 
 ---
 
-## Latest delivery (persisted API config)
+## Latest delivery (inbound lines + receiving events + Railway preset)
 
 **What changed**
 
-- `DeviceConfiguration` + `DeviceConfigurationStore` (UserDefaults) with dev defaults fallback
-- `AppEnvironment` loads/saves config, `configRevision` bumps on apply/reset, `makeAPIClient()` for ViewModels
-- **APIConnectionSettingsView** — edit URL/org/facility, Save & apply, Reset to dev defaults, Test API connection
-- ViewModels use `AppEnvironment` per refresh (no hardcoded localhost in VMs)
-- Receive list reloads when `configRevision` changes after save
+- **Shipment detail:** Receive → appointment → shipment → lines (`GET .../lines?org_id=`)
+- **Manual receive:** `POST /api/inbound/receiving-events` with contract payload; idempotency key per submit; duplicate-safe success UI
+- **Fill remaining qty** / per-line **Receive now** quantity
+- **Offline:** transport failure queues receiving event; **Queued offline** banner
+- **Debug:** replay queued receiving events only
+- **API connection:** **Use Railway production** / **Use local simulator API** presets (optional; not forced)
+- **Inbound shipments** query includes `org_id` + `appointment_id`
 
 **Files (main)**
 
-- `Core/DeviceConfiguration.swift`, `Persistence/DeviceConfigurationStore.swift`
-- `Core/AppEnvironment.swift`
-- `Settings/APIConnectionSettingsView.swift`, `Settings/SettingsView.swift`, `Debug/DebugPanelView.swift`
-- `Inbound/AppointmentsViewModel.swift`, `Inbound/ReceivingViewModel.swift`, `Inbound/AppointmentsView.swift`
-- `Networking/APIClient.swift` (`fetchHealth`, expanded `HealthResponse`)
+- `Inbound/ShipmentDetailView.swift`, `Inbound/ShipmentDetailViewModel.swift`
+- `Inbound/ReceivingView.swift`, `Inbound/ReceivingViewModel.swift`
+- `Inbound/InboundModels.swift`, `Inbound/InboundAPIMapping.swift`
+- `Networking/APIEndpoint.swift`, `Networking/ReceivingEventModels.swift`
+- `Settings/APIConnectionSettingsView.swift`, `Core/DeviceConfiguration.swift`
+- `Persistence/OfflineSyncStore.swift`, `Persistence/SyncQueuePersistence.swift`
+- `Debug/DebugPanelView.swift`
+- `DockWalkTests/DockWalkFoundationTests.swift`
 
-**Still off:** live scanner, Gemini, payments, auth headers, direct Supabase from iOS, Railway prod URL field (manual base URL only).
+**Still off:** live scanner, Gemini/cloud inspection, payments/PSP, auth headers, direct Supabase from iOS.
 
 **Validation (2026-05-17)**
 
@@ -82,27 +94,30 @@ xcodebuild -project DockWalk.xcodeproj -scheme DockWalk \
 
 xcodebuild -project DockWalk.xcodeproj -scheme DockWalk \
   -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' test CODE_SIGNING_ALLOWED=NO
-# TEST SUCCEEDED — 9 tests
+# TEST SUCCEEDED — 15 tests
 ```
 
-**Limitation:** `/health` does not report list `mode: live|stub`; only `supabase: configured|stub`. Use Receive pull-to-refresh or appointments response for list mode.
+**Limitations**
+
+- Queued receiving events are **not** auto-replayed when API returns — use **More → Debug → Replay receiving events**.
+- Other queue kinds (`inbound.start`, `exception`) have no structured replay.
+- `/health` does not expose list `mode: live|stub`.
 
 ---
 
-## First delivery summary (iOS agent)
+## Prior delivery (persisted API config)
 
-**Repo:** [skyview-ios-dockwalk](https://github.com/kbmillard/skyview-ios-dockwalk) · **Commits:** `1cce9c8` (foundation) → `2aedab6` (Phase 1A API wiring) → `ae0300f` (handoff fix)
+`DeviceConfigurationStore`, **More → API connection**, health test, `AppEnvironment` — see git `3f6d866`.
 
-See git history for full detail. Foundation + Phase 1A lists documented in earlier commits.
+---
 
-### Suggested next iOS PR
+## Suggested next iOS PR
 
 | Priority | Work |
 |----------|------|
-| P1 | Wire inbound **lines** UI → `GET /api/inbound/shipments/:id/lines?org_id=` |
-| P1 | Replay offline queue to API when write routes exist |
-| P2 | Auth header / Supabase session when service defines mobile auth |
-| P3 | Live scanner behind `liveScannerEnabled` |
+| P1 | Auto-replay receiving events on reachability (narrow, behind flag) |
+| P2 | Auth / mobile session when service defines it |
+| P3 | Live scanner; audit list read (`GET /api/audit/events`) |
 
 ---
 
@@ -110,12 +125,11 @@ See git history for full detail. Foundation + Phase 1A lists documented in earli
 
 | Change | Repo |
 |--------|------|
-| New API route, schema, recap, contract | **skyview-dockwalk** first |
-| Swift UI, ViewModels, flags, offline behavior | **skyview-ios-dockwalk** |
-| API assumption changes | Link both PRs in descriptions |
+| API route, schema, recap, contract | **skyview-dockwalk** |
+| Swift UI, ViewModels, flags, offline, this handoff | **skyview-ios-dockwalk** |
 
 ---
 
 ## Cursor
 
-Add **both** repo roots to one workspace: `skyview-dockwalk` + `skyview-ios-dockwalk`. iOS agents: read service recap + contract before changing networking code.
+Workspace: `skyview-dockwalk` + `skyview-ios-dockwalk`. Backend truth: **ARCHITECT_RECAP** (overrides umbrella index if stale).

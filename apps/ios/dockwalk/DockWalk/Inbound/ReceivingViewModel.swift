@@ -24,14 +24,16 @@ final class ReceivingViewModel {
     func load() async {
         loadPhase = .loading
         let apiClient = environment.makeAPIClient()
+        let orgId = environment.orgId
 
         do {
-            let response: APIListResponse<InboundShipmentDTO> = try await apiClient.get(.inboundShipments)
+            let response: APIListResponse<InboundShipmentDTO> = try await apiClient.get(
+                .inboundShipments(orgId: orgId, appointmentId: appointment.id)
+            )
             dataMode = response.mode
 
-            let filtered = response.items
-                .map(InboundAPIMapping.mapInboundShipment)
-                .filter { $0.appointmentId == appointment.id }
+            let mapped = response.items.map(InboundAPIMapping.mapInboundShipment)
+            let filtered = mapped.filter { $0.appointmentId == appointment.id }
 
             shipments = filtered
             receivedLines = filtered.map(InboundAPIMapping.mapShipmentToReceivedLine)

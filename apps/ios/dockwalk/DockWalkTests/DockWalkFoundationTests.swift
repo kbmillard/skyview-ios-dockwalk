@@ -82,6 +82,96 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertTrue(url.absoluteString.contains("org_id="))
     }
 
+    func testInboundShipmentLinesEndpoint() {
+        let url = APIEndpoint.inboundShipmentLines(
+            shipmentId: "ship-abc",
+            orgId: "00000000-0000-4000-8000-000000000001"
+        ).url(base: URL(string: "http://localhost:8790")!)!
+        XCTAssertTrue(url.path.contains("/api/inbound/shipments/ship-abc/lines"))
+        XCTAssertTrue(url.absoluteString.contains("org_id="))
+    }
+
+    func testInboundLineDTODecoding() throws {
+        let json = """
+        {"id":"line-1","shipment_id":"ship-1","sku":"SKU-9","description":"Widget",
+        "expected_qty":10,"received_qty":3,"uom":"ea","status":"partial"}
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(InboundLineDTO.self, from: json)
+        let item = InboundAPIMapping.mapInboundLine(dto)
+        XCTAssertEqual(item.sku, "SKU-9")
+        XCTAssertEqual(item.expectedQty, 10)
+        XCTAssertEqual(item.receivedQty, 3)
+        XCTAssertEqual(item.receiveNow, 7)
+    }
+
+    func testReceivingEventRequestEncoding() throws {
+        let request = CreateReceivingEventRequest(
+            orgId: "org-1",
+            facilityId: "fac-1",
+            appointmentId: "apt-1",
+            inboundShipmentId: "ship-1",
+            eventType: "manual_receive",
+            status: "committed",
+            deviceId: "ios-test",
+            idempotencyKey: "ios-12345678",
+            lines: [
+                ReceivingEventLineRequest(
+                    inboundLineId: "line-1",
+                    sku: "SKU-1",
+                    quantityExpected: 5,
+                    quantityReceived: 2,
+                    conditionStatus: "good"
+                )
+            ]
+        )
+        let data = try JSONEncoder().encode(request)
+        let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        XCTAssertEqual(object?["org_id"] as? String, "org-1")
+        XCTAssertEqual(object?["idempotency_key"] as? String, "ios-12345678")
+        let lines = object?["lines"] as? [[String: Any]]
+        XCTAssertEqual(lines?.first?["quantity_received"] as? Double, 2)
+    }
+
+    func testReceivingEventQueuePersistence() {
+        let prior = SyncQueuePersistence.load()
+        defer { _ = SyncQueuePersistence.save(prior) }
+
+        let payload = CreateReceivingEventRequest(
+            orgId: "org-1",
+            facilityId: "fac-1",
+            appointmentId: nil,
+            inboundShipmentId: "ship-1",
+            eventType: "manual_receive",
+            status: "committed",
+            deviceId: nil,
+            idempotencyKey: "ios-queue-key-12345678",
+            lines: [ReceivingEventLineRequest(inboundLineId: "l1", sku: "S", quantityExpected: nil, quantityReceived: 1, conditionStatus: "good")]
+        )
+        let action = QueuedSyncAction(
+            kind: OfflineSyncStore.receivingEventKind,
+            summary: "Receive ASN-1",
+            receivingEventPayload: payload
+        )
+        XCTAssertTrue(SyncQueuePersistence.save([action]))
+        let loaded = SyncQueuePersistence.load().first
+        XCTAssertEqual(loaded?.receivingEventPayload?.idempotencyKey, "ios-queue-key-12345678")
+        XCTAssertEqual(loaded?.receivingEventPayload?.lines.count, 1)
+    }
+
+    func testIdempotencyKeyLength() {
+        let key = CreateReceivingEventRequest.makeIdempotencyKey()
+        XCTAssertGreaterThanOrEqual(key.count, 8)
+        XCTAssertLessThanOrEqual(key.count, 128)
+        XCTAssertTrue(key.hasPrefix("ios-"))
+    }
+
+    func testRailwayProductionURLConstant() {
+        XCTAssertEqual(
+            DeviceConfiguration.railwayProductionAPIBaseURL,
+            "https://dockwalk-api-production.up.railway.app"
+        )
+    }
+
     func testDeviceConfigurationStoreSaveLoadAndReset() {
         let suite = "DockWalkTests.\(UUID().uuidString)"
         guard let defaults = UserDefaults(suiteName: suite) else {

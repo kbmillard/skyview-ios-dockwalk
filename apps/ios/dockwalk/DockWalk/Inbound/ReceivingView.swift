@@ -2,12 +2,12 @@ import SwiftUI
 
 struct ReceivingView: View {
     @Environment(AppEnvironment.self) private var environment
-    @State private var viewModel: ReceivingViewModel
+    @Bindable var viewModel: ReceivingViewModel
     @State private var showScanner = false
     @Environment(OfflineSyncStore.self) private var syncStore
 
     init(appointment: ReceivingAppointment, environment: AppEnvironment = .shared) {
-        _viewModel = State(initialValue: ReceivingViewModel(appointment: appointment, environment: environment))
+        viewModel = ReceivingViewModel(appointment: appointment, environment: environment)
     }
 
     var body: some View {
@@ -92,32 +92,47 @@ struct ReceivingView: View {
             Text("Inbound shipments")
                 .font(DockWalkTheme.headlineFont)
 
-            if viewModel.receivedLines.isEmpty && viewModel.loadPhase != .loading {
-                Text("No shipments on file — use Scan to simulate a receipt.")
+            if viewModel.shipments.isEmpty && viewModel.loadPhase != .loading {
+                Text("No shipments for this appointment.")
                     .foregroundStyle(DockWalkTheme.textSecondary)
             } else {
-                ForEach(viewModel.receivedLines) { line in
-                    SectionCard {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(line.sku)
-                                    .font(.system(.body, design: .monospaced).weight(.semibold))
-                                Text(line.description)
-                                    .font(DockWalkTheme.captionFont)
-                                    .foregroundStyle(DockWalkTheme.textSecondary)
-                            }
-                            Spacer()
-                            Text("×\(line.quantity)")
-                                .font(DockWalkTheme.headlineFont)
-                        }
+                ForEach(viewModel.shipments) { shipment in
+                    NavigationLink {
+                        ShipmentDetailView(
+                            shipment: shipment,
+                            appointmentId: viewModel.appointment.id,
+                            environment: environment
+                        )
+                    } label: {
+                        shipmentRow(shipment)
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
     }
 
+    private func shipmentRow(_ shipment: InboundShipmentItem) -> some View {
+        SectionCard {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(shipment.referenceNumber)
+                        .font(DockWalkTheme.headlineFont)
+                    Text("Tap to view lines and record receive")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                }
+                Spacer()
+                StatusChip(label: shipment.statusDisplay, tone: .info)
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(DockWalkTheme.textSecondary)
+            }
+        }
+    }
+
     private var scannerNote: some View {
-        Text("Scanner remains simulated. Shipment rows load from GET /api/inbound/shipments filtered by appointment.")
+        Text("Scanner remains simulated. Shipments load from GET /api/inbound/shipments; lines and receive use the live inbound routes.")
             .font(DockWalkTheme.captionFont)
             .foregroundStyle(DockWalkTheme.textSecondary)
             .padding(.top, 8)
@@ -138,5 +153,6 @@ struct ReceivingView: View {
             )
         )
     }
+    .environment(AppEnvironment.shared)
     .environment(OfflineSyncStore.shared)
 }

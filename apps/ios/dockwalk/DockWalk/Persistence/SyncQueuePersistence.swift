@@ -5,6 +5,22 @@ struct QueuedSyncAction: Identifiable, Equatable, Codable {
     let kind: String
     let summary: String
     let createdAt: Date
+    /// JSON-encoded `CreateReceivingEventRequest` when `kind == inbound.receiving_event`.
+    var receivingEventPayload: CreateReceivingEventRequest?
+
+    init(
+        id: UUID = UUID(),
+        kind: String,
+        summary: String,
+        createdAt: Date = .now,
+        receivingEventPayload: CreateReceivingEventRequest? = nil
+    ) {
+        self.id = id
+        self.kind = kind
+        self.summary = summary
+        self.createdAt = createdAt
+        self.receivingEventPayload = receivingEventPayload
+    }
 }
 
 enum SyncQueuePersistence {

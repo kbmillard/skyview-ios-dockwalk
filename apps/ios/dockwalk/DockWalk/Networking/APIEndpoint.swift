@@ -3,7 +3,9 @@ import Foundation
 enum APIEndpoint {
     case health
     case appointments(orgId: String)
-    case inboundShipments
+    case inboundShipments(orgId: String, appointmentId: String?)
+    case inboundShipmentLines(shipmentId: String, orgId: String)
+    case receivingEvents
     case inventoryItems
     case outboundOrders
 
@@ -12,6 +14,9 @@ enum APIEndpoint {
         case .health: return "/health"
         case .appointments: return "/api/appointments"
         case .inboundShipments: return "/api/inbound/shipments"
+        case .inboundShipmentLines(let shipmentId, _):
+            return "/api/inbound/shipments/\(shipmentId)/lines"
+        case .receivingEvents: return "/api/inbound/receiving-events"
         case .inventoryItems: return "/api/inventory/items"
         case .outboundOrders: return "/api/outbound/orders"
         }
@@ -20,6 +25,14 @@ enum APIEndpoint {
     var queryItems: [URLQueryItem] {
         switch self {
         case .appointments(let orgId):
+            return [URLQueryItem(name: "org_id", value: orgId)]
+        case .inboundShipments(let orgId, let appointmentId):
+            var items = [URLQueryItem(name: "org_id", value: orgId)]
+            if let appointmentId {
+                items.append(URLQueryItem(name: "appointment_id", value: appointmentId))
+            }
+            return items
+        case .inboundShipmentLines(_, let orgId):
             return [URLQueryItem(name: "org_id", value: orgId)]
         default:
             return []
