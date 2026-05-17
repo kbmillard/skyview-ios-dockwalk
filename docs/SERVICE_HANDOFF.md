@@ -1,6 +1,6 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-16 (Phase **1E** — offline task-action queue + batch replay)
+**Last updated:** 2026-05-17 (TestFlight **0.1.0 (3)** — Phase 1D + 1E)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -44,7 +44,7 @@
 **Paste block for a new chat**
 
 ```text
-DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Putaway: online → direct task routes; offline/transport failure → task_action queue + POST /api/sync/events replay. TestFlight 0.1.0 (2). Build only unless tests requested. Scanner / AI / payments / auth / direct Supabase / task cancel OFF.
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Putaway: online → direct task routes; offline/transport failure → task_action queue + POST /api/sync/events replay. TestFlight 0.1.0 (3). Build only unless tests requested. Scanner / AI / payments / auth / direct Supabase / task cancel OFF.
 ```
 
 ---
@@ -58,9 +58,10 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | Phase 1C consumer (putaway list + batch sync replay) | **Shipped** (`906405d`) |
 | App icon 1024×1024 | **Shipped** (`dockwalkios.png` → `AppIcon.appiconset`) |
 | TestFlight **0.1.0 (1)** | Superseded by build **2** (still installable until expired) |
-| TestFlight **0.1.0 (2)** | **Uploaded** 2026-05-17 — processing in App Store Connect |
-| Export compliance | **`ITSAppUsesNonExemptEncryption = false`** in app `Info.plist` (verified in archive) |
-| Device QA | Build 1: Today / Receive / More OK; build **2** same binaries + plist only |
+| TestFlight **0.1.0 (2)** | Superseded by build **3** (plist-only hygiene) |
+| TestFlight **0.1.0 (3)** | **Uploaded** 2026-05-17 — Phase **1D** + **1E** (putaway writes + offline task-action replay) |
+| Export compliance | **`ITSAppUsesNonExemptEncryption = false`** in app `Info.plist` (verified in archive build 3) |
+| Device QA | Build 3 smoke pending in Connect (see checklist below) |
 
 **App Store Connect**
 
@@ -84,22 +85,42 @@ Bump **`CURRENT_PROJECT_VERSION`** / `CFBundleVersion` before each new TestFligh
 
 ---
 
-## Latest delivery — TestFlight 0.1.0 (2) (2026-05-17)
+## Latest delivery — TestFlight 0.1.0 (3) (2026-05-17)
 
-**Scope:** Release hygiene only — **no** new product features, scanner, AI, payments, auth, task writes, or Supabase client changes.
+**Scope:** Ship **Phase 1D + 1E** to internal TestFlight. **No** scanner, AI, payments, auth, direct Supabase, or task cancel.
+
+| Included in build | Behavior |
+|-------------------|----------|
+| **Phase 1D** | Putaway assign / start / block / complete (online direct routes) |
+| **Phase 1E** | Offline `task_action` queue + `POST /api/sync/events` batch replay |
+| **Phase 1C** | Receive offline queue + receiving batch replay (unchanged) |
 
 | Step | Result |
 |------|--------|
-| `ITSAppUsesNonExemptEncryption` | `false` in `DockWalk/Resources/Info.plist` — confirmed in archived app |
-| Version | Marketing **0.1.0** · build **2** (`CFBundleVersion` + `project.yml` `CURRENT_PROJECT_VERSION`) |
+| `ITSAppUsesNonExemptEncryption` | `false` in `Info.plist` — confirmed in archived app (`CFBundleVersion` **3**) |
+| Version | Marketing **0.1.0** · build **3** |
 | Bundle ID | `io.skyprairie.dockwalk` (unchanged) |
 | Archive | **ARCHIVE SUCCEEDED** |
-| Export + upload | **EXPORT SUCCEEDED** · **Upload succeeded** (CLI, `ExportOptions.plist` destination `upload`) |
-| Export compliance quiz | Expect **skipped** on build 2 once processing completes (plist declares no non-exempt encryption) |
+| Export + upload | **EXPORT SUCCEEDED** · **Upload succeeded** (`ExportOptions.plist` → `upload`) |
+| Local IPA | Upload destination consumed package; no long-lived IPA kept in repo (standard CLI upload flow) |
+| Export compliance quiz | Expect **skipped** (plist `ITSAppUsesNonExemptEncryption` = false) |
 
-**Files changed:** `Info.plist`, `project.yml`, `DockWalk.xcodeproj/project.pbxproj` (xcodegen)
+**Git:** `ca70c40` + build bump commit on `main`
 
-**After Connect processing:** enable build **2** on **DockStockers** (or rely on automatic latest for internal group).
+**Still off:** scanner, AI, payments, auth, direct Supabase (egas), task cancel UI.
+
+**After Connect processing:** enable build **3** on **DockStockers** and run device smoke (checklist below).
+
+**Kyle — App Store Connect checklist (build 3):**
+
+1. Wait until **0.1.0 (3)** finishes **Processing** in TestFlight.
+2. Enable build **3** for internal group **DockStockers** (or confirm group uses latest build).
+3. Export-compliance quiz should **not** appear (`ITSAppUsesNonExemptEncryption` = false).
+4. **Putaway (online):** assign → start → block → complete against Railway prod dev tasks.
+5. **Putaway (offline):** airplane mode or bad network → action shows **Queued for sync** → restore network → **More → Sync** manual or auto-replay → task updates on server.
+6. **Receive:** receive line still queues/replays as before.
+7. **Activity:** audit list still loads.
+8. **More → Sync:** queued receiving + task-action counts; replay message after manual replay in Debug.
 
 ### Build 2 verification pass (2026-05-17, commit `11b7734`)
 
@@ -157,7 +178,7 @@ Record outcomes here when known; then next iOS feature work is **scanner** (see 
 | **Putaway offline** | Transport failure → **`task_action` queue** → batch replay; **409/400/404** not queued |
 | **Task batch replay** | `POST /api/sync/events` — `accepted` / `duplicate` dequeue; **`rejected` stays queued** |
 | **Audit** | **More → Activity → Audit events** |
-| **TestFlight** | **0.1.0 (2)** — **DockStockers** |
+| **TestFlight** | **0.1.0 (3)** uploaded — **DockStockers** (enable after processing) |
 | **Scanner / AI / payments / auth** | **OFF** |
 | **Task cancel** | **OFF** (no API route exposed in app) |
 
@@ -243,7 +264,7 @@ Inbound lines, receiving POST, offline queue, audit list, Railway QA defaults.
 
 | Priority | Work |
 |----------|------|
-| P1 | TestFlight build **3** when ready to ship 1D/1E to DockStockers |
+| P1 | Device smoke on TestFlight **0.1.0 (3)** (putaway online/offline, receive, sync) |
 | P2 | Live scanner (Phase 1F) |
 | P4 | Auth / mobile session |
 | P5 | Task cancel when API adds route |
