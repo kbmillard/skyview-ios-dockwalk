@@ -156,8 +156,9 @@ struct PutawayTasksView: View {
         switch status {
         case "completed": return .success
         case "in_progress", "assigned": return .info
+        case "blocked": return .warning
         case "cancelled": return .neutral
-        default: return .warning
+        default: return .neutral
         }
     }
 }

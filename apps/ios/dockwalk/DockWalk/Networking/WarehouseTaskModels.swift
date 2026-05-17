@@ -82,6 +82,7 @@ enum PutawayTaskStatusFilter: String, CaseIterable, Identifiable {
     case pending
     case assigned
     case inProgress = "in_progress"
+    case blocked
     case completed
     case cancelled
 
@@ -93,6 +94,7 @@ enum PutawayTaskStatusFilter: String, CaseIterable, Identifiable {
         case .pending: return "Pending"
         case .assigned: return "Assigned"
         case .inProgress: return "In progress"
+        case .blocked: return "Blocked"
         case .completed: return "Completed"
         case .cancelled: return "Cancelled"
         }

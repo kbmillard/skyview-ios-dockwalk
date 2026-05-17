@@ -9,8 +9,10 @@ struct PutawayTaskDetailView: View {
 
     @State private var viewModel: PutawayTaskDetailViewModel?
     @State private var showBlockSheet = false
-    @State private var blockReason = ""
+    @State private var blockReasonOption: PutawayBlockReasonOption = .locationBlocked
+    @State private var blockReasonText = PutawayBlockReasonOption.locationBlocked.defaultReasonText
     @State private var showCompleteConfirm = false
+    @State private var completeQuantityText = "1"
 
     var body: some View {
         NavigationStack {
@@ -41,11 +43,11 @@ struct PutawayTaskDetailView: View {
                 titleVisibility: .visible
             ) {
                 Button("Complete task", role: .destructive) {
-                    Task { await viewModel?.performAction(.complete) }
+                    submitComplete()
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This marks the task completed on the server. This cannot be undone from the app.")
+                completeConfirmMessage
             }
             .onAppear { ensureViewModel() }
             .task {
@@ -69,101 +71,148 @@ struct PutawayTaskDetailView: View {
 
     @ViewBuilder
     private func detailContent(_ viewModel: PutawayTaskDetailViewModel, detail: PutawayTaskItem) -> some View {
-        List {
-            if let mode = viewModel.dataMode {
-                Section {
-                    StatusChip(
-                        label: mode == "live" ? "Live task" : "Stub API",
-                        tone: mode == "live" ? .success : .neutral
-                    )
-                }
-            }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                headerRow(viewModel, detail: detail)
 
-            if let message = viewModel.actionBannerMessage {
-                Section {
+                if let message = viewModel.actionBannerMessage {
                     StatusChip(label: message, tone: viewModel.actionBannerTone.statusChipTone)
                 }
-            }
 
-            Section("SKU") {
-                LabeledContent("SKU", value: detail.sku)
-                LabeledContent("Description", value: detail.description)
-                LabeledContent("Quantity", value: "\(formatQuantity(detail.quantity)) \(detail.uom)")
-                LabeledContent("Status", value: detail.statusDisplay)
-            }
-
-            Section("Locations") {
-                LabeledContent("From", value: detail.fromLocationCode)
-                LabeledContent("To", value: detail.toLocationCode)
-            }
-
-            if let shipmentId = detail.inboundShipmentId {
-                Section("Inbound") {
-                    LabeledContent("Shipment ID", value: shipmentId)
-                        .font(.system(.body, design: .monospaced))
+                labeledSection("SKU") {
+                    detailRow("SKU", detail.sku)
+                    detailRow("Description", detail.description)
+                    detailRow("Quantity", "\(formatQuantity(detail.quantity)) \(detail.uom)")
+                    detailRow("Status", detail.statusDisplay)
                 }
-            }
 
-            if let created = detail.createdAt {
-                Section("Timestamps") {
-                    LabeledContent("Created", value: created.formatted(date: .abbreviated, time: .shortened))
+                labeledSection("Locations") {
+                    detailRow("From", detail.fromLocationCode)
+                    detailRow("To", detail.toLocationCode)
                 }
-            }
 
-            let actions = viewModel.availableActions
-            if !actions.isEmpty {
-                Section {
-                    ForEach(actions) { action in
-                        actionButton(viewModel, action: action)
+                if let shipmentId = detail.inboundShipmentId {
+                    labeledSection("Inbound") {
+                        Text(shipmentId)
+                            .font(.system(.body, design: .monospaced))
+                            .foregroundStyle(DockWalkTheme.textPrimary)
                     }
-                } header: {
-                    Text("Actions")
-                } footer: {
-                    Text("Online only — task actions are not queued offline. Cancel is not available yet.")
-                        .font(DockWalkTheme.captionFont)
                 }
-            } else {
-                Section {
-                    Text("No actions for \(detail.statusDisplay.lowercased()) tasks.")
-                        .font(DockWalkTheme.captionFont)
-                        .foregroundStyle(DockWalkTheme.textSecondary)
+
+                if let created = detail.createdAt {
+                    labeledSection("Timestamps") {
+                        detailRow(
+                            "Created",
+                            created.formatted(date: .abbreviated, time: .shortened)
+                        )
+                    }
                 }
+
+                actionsSection(viewModel, detail: detail)
             }
+            .padding()
         }
-        .listStyle(.insetGrouped)
+        .background(DockWalkTheme.background)
     }
 
     @ViewBuilder
-    private func actionButton(_ viewModel: PutawayTaskDetailViewModel, action: PutawayTaskActionKind) -> some View {
-        Button {
+    private func headerRow(_ viewModel: PutawayTaskDetailViewModel, detail: PutawayTaskItem) -> some View {
+        HStack {
+            StatusChip(label: detail.statusDisplay, tone: statusTone(detail.status))
+            Spacer()
+            if let mode = viewModel.dataMode {
+                StatusChip(
+                    label: mode == "live" ? "Live task" : "Stub API",
+                    tone: mode == "live" ? .success : .neutral
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func actionsSection(_ viewModel: PutawayTaskDetailViewModel, detail: PutawayTaskItem) -> some View {
+        let actions = viewModel.availableActions
+        if actions.isEmpty {
+            labeledSection("Actions") {
+                Text("No actions for \(detail.statusDisplay.lowercased()) tasks.")
+                    .font(DockWalkTheme.captionFont)
+                    .foregroundStyle(DockWalkTheme.textSecondary)
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Actions")
+                    .font(DockWalkTheme.headlineFont)
+                ForEach(actions) { action in
+                    actionButton(viewModel, action: action, taskStatus: detail.status)
+                }
+                Text("Online only — task actions are not queued offline. Cancel is not available yet.")
+                    .font(DockWalkTheme.captionFont)
+                    .foregroundStyle(DockWalkTheme.textSecondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func actionButton(
+        _ viewModel: PutawayTaskDetailViewModel,
+        action: PutawayTaskActionKind,
+        taskStatus: String
+    ) -> some View {
+        let title = action.dockTitle(for: taskStatus)
+        let isLoading = viewModel.submittingAction == action
+        let style: PrimaryActionButton.Style = action == .complete ? .primary : (action == .block ? .secondary : .primary)
+
+        PrimaryActionButton(
+            title: isLoading ? "\(title)…" : title,
+            systemImage: action.systemImage,
+            style: style
+        ) {
             handleActionTap(viewModel, action: action)
-        } label: {
-            Label(action.title, systemImage: action.systemImage)
         }
         .disabled(viewModel.isSubmittingAction)
+        .opacity(viewModel.isSubmittingAction && !isLoading ? 0.5 : 1)
     }
 
     private func handleActionTap(_ viewModel: PutawayTaskDetailViewModel, action: PutawayTaskActionKind) {
         switch action {
         case .block:
-            blockReason = ""
+            blockReasonOption = .locationBlocked
+            blockReasonText = PutawayBlockReasonOption.locationBlocked.defaultReasonText
             showBlockSheet = true
         case .complete:
+            completeQuantityText = formatQuantity(viewModel.defaultCompleteQuantity)
             showCompleteConfirm = true
-        case .assign, .start:
-            Task { await viewModel.performAction(action) }
+        case .assign:
+            Task { await viewModel.assignTask() }
+        case .start:
+            Task { await viewModel.startTask() }
         }
     }
 
     private var blockReasonSheet: some View {
         NavigationStack {
             Form {
-                Section {
-                    TextField("Reason", text: $blockReason, axis: .vertical)
+                Section("Reason") {
+                    Picker("Category", selection: $blockReasonOption) {
+                        ForEach(PutawayBlockReasonOption.allCases) { option in
+                            Text(option.label).tag(option)
+                        }
+                    }
+                    .pickerStyle(.inline)
+                    .onChange(of: blockReasonOption) { _, newValue in
+                        if newValue == .other {
+                            if blockReasonText == PutawayBlockReasonOption.locationBlocked.defaultReasonText
+                                || blockReasonText == PutawayBlockReasonOption.productDamaged.defaultReasonText
+                                || blockReasonText == PutawayBlockReasonOption.missingItem.defaultReasonText {
+                                blockReasonText = ""
+                            }
+                        } else {
+                            blockReasonText = newValue.defaultReasonText
+                        }
+                    }
+
+                    TextField("Details", text: $blockReasonText, axis: .vertical)
                         .lineLimit(3...6)
-                } footer: {
-                    Text("Required by the API (reason_code is sent as \"other\").")
-                        .font(DockWalkTheme.captionFont)
                 }
             }
             .navigationTitle("Block task")
@@ -175,13 +224,67 @@ struct PutawayTaskDetailView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Submit") {
                         showBlockSheet = false
-                        Task { await viewModel?.performAction(.block, blockReason: blockReason) }
+                        Task {
+                            await viewModel?.blockTask(
+                                reasonCode: blockReasonOption.rawValue,
+                                reason: blockReasonText
+                            )
+                        }
                     }
-                    .disabled(blockReason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(blockReasonText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.large])
+    }
+
+    private var completeConfirmMessage: Text {
+        if let task = viewModel?.task {
+            let expected = formatQuantity(task.quantity)
+            return Text(
+                "Submit \(completeQuantityText.trimmingCharacters(in: .whitespaces)) of \(expected) \(task.uom) as completed on the server. This cannot be undone from the app."
+            )
+        }
+        return Text("This marks the task completed on the server.")
+    }
+
+    private func submitComplete() {
+        let trimmed = completeQuantityText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let qty = Double(trimmed) ?? viewModel?.defaultCompleteQuantity ?? 1
+        Task { await viewModel?.completeTask(quantityCompleted: qty) }
+    }
+
+    @ViewBuilder
+    private func labeledSection<Content: View>(_ title: String, @ViewBuilder content: @escaping () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(DockWalkTheme.headlineFont)
+            SectionCard(content: content)
+        }
+    }
+
+    @ViewBuilder
+    private func detailRow(_ label: String, _ value: String) -> some View {
+        HStack(alignment: .top) {
+            Text(label)
+                .font(DockWalkTheme.captionFont)
+                .foregroundStyle(DockWalkTheme.textSecondary)
+                .frame(width: 88, alignment: .leading)
+            Text(value)
+                .font(DockWalkTheme.bodyFont)
+                .foregroundStyle(DockWalkTheme.textPrimary)
+            Spacer(minLength: 0)
+        }
+    }
+
+    private func statusTone(_ status: String) -> StatusChip.Tone {
+        switch status {
+        case "completed": return .success
+        case "in_progress", "assigned": return .info
+        case "blocked": return .warning
+        case "cancelled": return .neutral
+        default: return .warning
+        }
     }
 
     private func formatQuantity(_ value: Double) -> String {

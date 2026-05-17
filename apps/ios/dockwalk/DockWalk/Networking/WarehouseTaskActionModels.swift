@@ -78,6 +78,9 @@ struct WarehouseTaskWriteResponse: Decodable, Equatable {
     var isIdempotentReplay: Bool { idempotent == true }
 }
 
+/// Alias aligned with api-foundation task write responses.
+typealias TaskWriteResponse = WarehouseTaskWriteResponse
+
 // MARK: - Actions
 
 enum PutawayTaskActionKind: String, CaseIterable, Identifiable {
@@ -87,6 +90,16 @@ enum PutawayTaskActionKind: String, CaseIterable, Identifiable {
     case complete
 
     var id: String { rawValue }
+
+    func dockTitle(for taskStatus: String) -> String {
+        switch self {
+        case .assign: return "Assign to me"
+        case .start:
+            return taskStatus == "blocked" ? "Resume" : "Start"
+        case .block: return "Block"
+        case .complete: return "Complete"
+        }
+    }
 
     var title: String {
         switch self {
@@ -115,13 +128,40 @@ enum PutawayTaskActionAvailability {
         case "assigned":
             return [.start, .block]
         case "in_progress":
-            return [.block, .complete]
+            return [.complete, .block]
         case "blocked":
             return [.assign, .start]
         case "completed", "cancelled":
             return []
         default:
             return []
+        }
+    }
+}
+
+enum PutawayBlockReasonOption: String, CaseIterable, Identifiable {
+    case locationBlocked = "location_blocked"
+    case productDamaged = "product_damaged"
+    case missingItem = "missing_item"
+    case other
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .locationBlocked: return "Location blocked"
+        case .productDamaged: return "Product damaged"
+        case .missingItem: return "Missing item"
+        case .other: return "Other"
+        }
+    }
+
+    var defaultReasonText: String {
+        switch self {
+        case .locationBlocked: return "Staging or destination location blocked"
+        case .productDamaged: return "Product damaged — cannot put away"
+        case .missingItem: return "Expected item not found"
+        case .other: return ""
         }
     }
 }

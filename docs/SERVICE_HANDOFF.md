@@ -1,6 +1,6 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-17 (Phase **1D** — online putaway task actions)
+**Last updated:** 2026-05-16 (Phase **1D** hardened — online putaway task actions)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -170,12 +170,16 @@ Record outcomes here when known; then next iOS feature work is **scanner** (see 
 |---------------|-----|
 | `POST /api/tasks/:id/assign` | Assign (pending, blocked) |
 | `POST /api/tasks/:id/start` | Start (pending, assigned, blocked) |
-| `POST /api/tasks/:id/block` | Block sheet → reason required (`reason_code: other`) |
-| `POST /api/tasks/:id/complete` | Confirm dialog → complete |
+| `POST /api/tasks/:id/block` | Block sheet — preset `reason_code` + details |
+| `POST /api/tasks/:id/complete` | Confirm dialog → `quantity_completed` default **1** (shows task qty context) |
 
+- List filters: **all**, pending, assigned, in_progress, **blocked**, completed, cancelled.
+- Dock-friendly **PrimaryActionButton** actions (“Assign to me”, “Resume” when blocked).
 - Fresh `ios-task-*` idempotency key per user tap; **same key** retained on transport retry for that tap.
 - `idempotent: true` → success banner, not error.
-- **409** `invalid_transition` → message + refresh task + list.
+- **409** `invalid_transition` → readable message + refresh task + list.
+- Block presets: `location_blocked`, `product_damaged`, `missing_item`, `other`.
+- `in_progress`: **Complete** then **Block**.
 - **Cancel** not shown (no dedicated cancel route).
 - **No** task actions in `OfflineSyncStore` or `POST /api/sync/events`.
 
@@ -188,7 +192,7 @@ cd apps/ios/dockwalk && xcodegen generate
 xcodebuild -project DockWalk.xcodeproj -scheme DockWalk -destination 'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO
 ```
 
-**Result:** **BUILD SUCCEEDED** (no archive; no version bump)
+**Result:** **BUILD SUCCEEDED** (2026-05-16 hardened pass — no archive; no version bump)
 
 ---
 

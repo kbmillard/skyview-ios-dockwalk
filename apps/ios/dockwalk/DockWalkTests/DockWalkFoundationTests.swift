@@ -597,9 +597,53 @@ final class DockWalkFoundationTests: XCTestCase {
         )
         XCTAssertEqual(
             PutawayTaskActionAvailability.availableActions(for: "in_progress"),
-            [.block, .complete]
+            [.complete, .block]
+        )
+        XCTAssertEqual(
+            PutawayTaskActionAvailability.availableActions(for: "blocked"),
+            [.assign, .start]
         )
         XCTAssertTrue(PutawayTaskActionAvailability.availableActions(for: "completed").isEmpty)
+    }
+
+    func testPutawayTaskActionDockTitles() {
+        XCTAssertEqual(PutawayTaskActionKind.assign.dockTitle(for: "pending"), "Assign to me")
+        XCTAssertEqual(PutawayTaskActionKind.start.dockTitle(for: "blocked"), "Resume")
+        XCTAssertEqual(PutawayTaskActionKind.start.dockTitle(for: "assigned"), "Start")
+    }
+
+    func testTaskCompleteRequestEncodingDefaultsQuantity() throws {
+        let request = TaskCompleteRequest(
+            orgId: "org-1",
+            idempotencyKey: "ios-task-abc",
+            deviceId: "dev-1",
+            performedBy: "dockwalk-ios",
+            quantityCompleted: 1,
+            notes: nil
+        )
+        let data = try JSONEncoder().encode(request)
+        let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        XCTAssertEqual(object?["org_id"] as? String, "org-1")
+        XCTAssertEqual(object?["quantity_completed"] as? Double, 1)
+    }
+
+    func testTaskBlockRequestEncodingReasonCode() throws {
+        let request = TaskBlockRequest(
+            orgId: "org-1",
+            reasonCode: "location_blocked",
+            reason: "Aisle closed",
+            idempotencyKey: "ios-task-xyz",
+            deviceId: "dev-1",
+            notes: nil
+        )
+        let data = try JSONEncoder().encode(request)
+        let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        XCTAssertEqual(object?["reason_code"] as? String, "location_blocked")
+    }
+
+    func testPutawayStatusFilterIncludesBlocked() {
+        XCTAssertTrue(PutawayTaskStatusFilter.allCases.contains(.blocked))
+        XCTAssertEqual(PutawayTaskStatusFilter.blocked.apiStatus, "blocked")
     }
 
     func testWarehouseTaskActionErrorMappingConflict() {

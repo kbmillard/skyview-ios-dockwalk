@@ -19,11 +19,13 @@ final class PutawayTaskDetailViewModel {
     private(set) var task: PutawayTaskItem?
     private(set) var loadPhase: LoadPhase = .idle
     private(set) var dataMode: String?
-    private(set) var isSubmittingAction = false
+    private(set) var submittingAction: PutawayTaskActionKind?
     private(set) var actionBannerMessage: String?
     private(set) var actionBannerTone: PutawayActionBannerTone = .neutral
 
     var onTaskUpdated: (() -> Void)?
+
+    var isSubmittingAction: Bool { submittingAction != nil }
 
     private let taskId: String
     private let environment: AppEnvironment
@@ -48,6 +50,10 @@ final class PutawayTaskDetailViewModel {
         return PutawayTaskActionAvailability.availableActions(for: task.status)
     }
 
+    var defaultCompleteQuantity: Double {
+        1
+    }
+
     func load() async {
         if task == nil {
             loadPhase = .loading
@@ -67,20 +73,45 @@ final class PutawayTaskDetailViewModel {
         }
     }
 
-    func performAction(_ kind: PutawayTaskActionKind, blockReason: String? = nil) async {
-        guard !isSubmittingAction else { return }
+    func assignTask() async {
+        await submit(.assign)
+    }
+
+    func startTask() async {
+        await submit(.start)
+    }
+
+    func blockTask(reasonCode: String, reason: String) async {
+        await submit(.block, blockReasonCode: reasonCode, blockReason: reason)
+    }
+
+    func completeTask(quantityCompleted: Double) async {
+        await submit(.complete, quantityCompleted: quantityCompleted)
+    }
+
+    func clearActionBanner() {
+        actionBannerMessage = nil
+    }
+
+    private func submit(
+        _ kind: PutawayTaskActionKind,
+        blockReasonCode: String? = nil,
+        blockReason: String? = nil,
+        quantityCompleted: Double? = nil
+    ) async {
+        guard submittingAction == nil else { return }
 
         let idempotencyKey = idempotencyKey(for: kind)
-        isSubmittingAction = true
+        submittingAction = kind
         actionBannerMessage = nil
-        defer { isSubmittingAction = false }
+        defer { submittingAction = nil }
 
         let apiClient = environment.makeAPIClient()
         let orgId = environment.orgId
         let deviceId = ReceivingEventBuilder.deviceId
 
         do {
-            let response: WarehouseTaskWriteResponse
+            let response: TaskWriteResponse
             switch kind {
             case .assign:
                 response = try await apiClient.assignTask(
@@ -104,9 +135,10 @@ final class PutawayTaskDetailViewModel {
                     )
                 )
             case .block:
+                let code = (blockReasonCode ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
                 let reason = (blockReason ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !reason.isEmpty else {
-                    actionBannerMessage = "Enter a block reason."
+                guard !code.isEmpty, !reason.isEmpty else {
+                    actionBannerMessage = "Select a block reason."
                     actionBannerTone = .warning
                     return
                 }
@@ -114,7 +146,7 @@ final class PutawayTaskDetailViewModel {
                     taskId: taskId,
                     body: TaskBlockRequest(
                         orgId: orgId,
-                        reasonCode: "other",
+                        reasonCode: code,
                         reason: reason,
                         idempotencyKey: idempotencyKey,
                         deviceId: deviceId,
@@ -122,6 +154,12 @@ final class PutawayTaskDetailViewModel {
                     )
                 )
             case .complete:
+                let qty = quantityCompleted ?? defaultCompleteQuantity
+                guard qty > 0 else {
+                    actionBannerMessage = "Enter a quantity greater than zero."
+                    actionBannerTone = .warning
+                    return
+                }
                 response = try await apiClient.completeTask(
                     taskId: taskId,
                     body: TaskCompleteRequest(
@@ -129,7 +167,7 @@ final class PutawayTaskDetailViewModel {
                         idempotencyKey: idempotencyKey,
                         deviceId: deviceId,
                         performedBy: WarehouseTaskActionIdempotency.operatorId,
-                        quantityCompleted: task?.quantity,
+                        quantityCompleted: qty,
                         notes: nil
                     )
                 )
@@ -140,11 +178,12 @@ final class PutawayTaskDetailViewModel {
             task = WarehouseTaskAPIMapping.mapTask(response.item)
             loadPhase = .loaded
 
+            let label = kind.dockTitle(for: task?.status ?? "")
             if response.isIdempotentReplay {
-                actionBannerMessage = "\(kind.title) already recorded on the server."
+                actionBannerMessage = "\(label) already recorded on the server."
                 actionBannerTone = .success
             } else {
-                actionBannerMessage = "\(kind.title) submitted."
+                actionBannerMessage = "\(label) submitted."
                 actionBannerTone = .success
             }
 
@@ -165,10 +204,6 @@ final class PutawayTaskDetailViewModel {
                 onTaskUpdated?()
             }
         }
-    }
-
-    func clearActionBanner() {
-        actionBannerMessage = nil
     }
 
     private func idempotencyKey(for kind: PutawayTaskActionKind) -> String {
