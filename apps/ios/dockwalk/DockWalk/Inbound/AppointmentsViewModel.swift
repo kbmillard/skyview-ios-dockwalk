@@ -4,65 +4,58 @@ import Observation
 @Observable
 final class AppointmentsViewModel {
     private(set) var appointments: [ReceivingAppointment] = []
-    private(set) var isLoading = false
+    private(set) var loadPhase: LoadPhase = .idle
+    private(set) var dataMode: String?
     private(set) var apiReachable = false
 
     private let apiClient: APIClient
+    private let orgId: String
 
-    init(apiClient: APIClient = APIClient(baseURL: AppEnvironment.shared.apiBaseURL)) {
+    init(
+        apiClient: APIClient = APIClient(baseURL: AppEnvironment.shared.apiBaseURL),
+        orgId: String = AppEnvironment.shared.orgId
+    ) {
         self.apiClient = apiClient
-        loadStubData()
+        self.orgId = orgId
     }
 
     func refresh() async {
-        isLoading = true
-        defer { isLoading = false }
+        loadPhase = .loading
         apiReachable = await apiClient.healthCheck()
-        if !apiReachable {
-            loadStubData()
+
+        do {
+            let response: APIListResponse<AppointmentDTO> = try await apiClient.get(
+                .appointments(orgId: orgId)
+            )
+            dataMode = response.mode
+            let mapped = response.items.map(InboundAPIMapping.mapAppointment)
+
+            if mapped.isEmpty {
+                appointments = []
+                loadPhase = .empty(
+                    message: response.message ?? emptyMessage(for: response.mode)
+                )
+            } else {
+                appointments = mapped
+                loadPhase = .loaded
+            }
+        } catch {
+            appointments = []
+            loadPhase = .error(message: userFacingError(error))
         }
     }
 
-    private func loadStubData() {
-        let calendar = Calendar.current
-        let base = calendar.startOfDay(for: .now)
-        appointments = [
-            ReceivingAppointment(
-                id: "apt-001",
-                carrier: "SwiftLine Freight",
-                dock: "Dock 3",
-                scheduledAt: calendar.date(byAdding: .hour, value: 8, to: base)!,
-                status: .receiving,
-                poNumber: "PO-88421",
-                palletCount: 24
-            ),
-            ReceivingAppointment(
-                id: "apt-002",
-                carrier: "Midwest Carriers",
-                dock: "Dock 1",
-                scheduledAt: calendar.date(byAdding: .hour, value: 10, to: base)!,
-                status: .scheduled,
-                poNumber: "PO-88455",
-                palletCount: 18
-            ),
-            ReceivingAppointment(
-                id: "apt-003",
-                carrier: "Blue Ridge 3PL",
-                dock: "Door 12",
-                scheduledAt: calendar.date(byAdding: .hour, value: 13, to: base)!,
-                status: .checkedIn,
-                poNumber: "PO-88501",
-                palletCount: 12
-            ),
-            ReceivingAppointment(
-                id: "apt-004",
-                carrier: "National LTL",
-                dock: "Dock 5",
-                scheduledAt: calendar.date(byAdding: .hour, value: 15, to: base)!,
-                status: .delayed,
-                poNumber: "PO-88522",
-                palletCount: 30
-            ),
-        ]
+    private func emptyMessage(for mode: String) -> String {
+        if mode == "stub" {
+            return "DockWalk API is in stub mode — connect Supabase on the server to load appointments."
+        }
+        return "No appointments scheduled for this facility."
+    }
+
+    private func userFacingError(_ error: Error) -> String {
+        if let apiError = error as? APIClientError {
+            return apiError.errorDescription ?? "Request failed."
+        }
+        return error.localizedDescription
     }
 }

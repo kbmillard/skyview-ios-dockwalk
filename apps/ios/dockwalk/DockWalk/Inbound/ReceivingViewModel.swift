@@ -4,12 +4,49 @@ import Observation
 @Observable
 final class ReceivingViewModel {
     let appointment: ReceivingAppointment
+
+    private(set) var shipments: [InboundShipmentItem] = []
     private(set) var receivedLines: [ReceivedLine] = []
+    private(set) var loadPhase: LoadPhase = .idle
+    private(set) var dataMode: String?
     private(set) var isReceiving = false
 
-    init(appointment: ReceivingAppointment) {
+    private let apiClient: APIClient
+
+    init(
+        appointment: ReceivingAppointment,
+        apiClient: APIClient = APIClient(baseURL: AppEnvironment.shared.apiBaseURL)
+    ) {
         self.appointment = appointment
-        receivedLines = Self.stubLines
+        self.apiClient = apiClient
+    }
+
+    func load() async {
+        loadPhase = .loading
+
+        do {
+            let response: APIListResponse<InboundShipmentDTO> = try await apiClient.get(.inboundShipments)
+            dataMode = response.mode
+
+            let filtered = response.items
+                .map(InboundAPIMapping.mapInboundShipment)
+                .filter { $0.appointmentId == appointment.id }
+
+            shipments = filtered
+            receivedLines = filtered.map(InboundAPIMapping.mapShipmentToReceivedLine)
+
+            if filtered.isEmpty {
+                loadPhase = .empty(
+                    message: response.message ?? emptyMessage(for: response.mode)
+                )
+            } else {
+                loadPhase = .loaded
+            }
+        } catch {
+            shipments = []
+            receivedLines = []
+            loadPhase = .error(message: userFacingError(error))
+        }
     }
 
     func startReceiving() {
@@ -20,14 +57,23 @@ final class ReceivingViewModel {
         let line = ReceivedLine(
             id: UUID().uuidString,
             sku: scan.value,
-            description: "Scanned item (stub)",
+            description: "Simulated scan (local)",
             quantity: 1
         )
         receivedLines.insert(line, at: 0)
     }
 
-    private static let stubLines: [ReceivedLine] = [
-        ReceivedLine(id: "line-1", sku: "SKU-44102", description: "Shrink-wrapped cases", quantity: 48),
-        ReceivedLine(id: "line-2", sku: "SKU-99201", description: "Floor-loaded drums", quantity: 12),
-    ]
+    private func emptyMessage(for mode: String) -> String {
+        if mode == "stub" {
+            return "No inbound shipments in stub mode for this appointment."
+        }
+        return "No inbound shipments linked to this appointment yet."
+    }
+
+    private func userFacingError(_ error: Error) -> String {
+        if let apiError = error as? APIClientError {
+            return apiError.errorDescription ?? "Request failed."
+        }
+        return error.localizedDescription
+    }
 }

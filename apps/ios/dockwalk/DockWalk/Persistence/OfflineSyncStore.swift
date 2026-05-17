@@ -1,13 +1,6 @@
 import Foundation
 import Observation
 
-struct QueuedSyncAction: Identifiable, Equatable {
-    let id: UUID
-    let kind: String
-    let summary: String
-    let createdAt: Date
-}
-
 @Observable
 final class OfflineSyncStore {
     static let shared = OfflineSyncStore()
@@ -15,7 +8,10 @@ final class OfflineSyncStore {
     private(set) var queuedActions: [QueuedSyncAction] = []
     var status: SyncStatus = .online
 
-    private init() {
+    init(loadPersisted: Bool = true) {
+        if loadPersisted {
+            queuedActions = SyncQueuePersistence.load()
+        }
         refreshStatus()
     }
 
@@ -28,11 +24,13 @@ final class OfflineSyncStore {
             createdAt: Date()
         )
         queuedActions.append(action)
+        persist()
         refreshStatus()
     }
 
     func clearQueue() {
         queuedActions.removeAll()
+        persist()
         refreshStatus()
     }
 
@@ -45,11 +43,15 @@ final class OfflineSyncStore {
     }
 
     func markOnline() {
-        status = .online
+        refreshStatus()
     }
 
     func markOffline() {
         status = .offline
+    }
+
+    private func persist() {
+        _ = SyncQueuePersistence.save(queuedActions)
     }
 
     private func refreshStatus() {

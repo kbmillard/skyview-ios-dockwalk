@@ -19,10 +19,12 @@ enum APIClientError: Error, LocalizedError {
 struct APIClient {
     let baseURL: URL
     let session: URLSession
+    let decoder: JSONDecoder
 
     init(baseURL: URL, session: URLSession = .shared) {
         self.baseURL = baseURL
         self.session = session
+        self.decoder = JSONDecoder()
     }
 
     func get<T: Decodable>(_ endpoint: APIEndpoint, as type: T.Type = T.self) async throws -> T {
@@ -53,7 +55,9 @@ struct APIClient {
         body: Body?,
         as type: T.Type
     ) async throws -> T {
-        let url = endpoint.url(base: baseURL)
+        guard let url = endpoint.url(base: baseURL) else {
+            throw APIClientError.invalidURL
+        }
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -78,7 +82,7 @@ struct APIClient {
         }
 
         do {
-            return try JSONDecoder().decode(T.self, from: data)
+            return try decoder.decode(T.self, from: data)
         } catch {
             throw APIClientError.decoding(error)
         }

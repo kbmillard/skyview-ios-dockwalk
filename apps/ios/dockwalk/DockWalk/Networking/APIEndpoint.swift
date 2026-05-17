@@ -2,7 +2,7 @@ import Foundation
 
 enum APIEndpoint {
     case health
-    case appointments
+    case appointments(orgId: String)
     case inboundShipments
     case inventoryItems
     case outboundOrders
@@ -17,7 +17,21 @@ enum APIEndpoint {
         }
     }
 
-    func url(base: URL) -> URL {
-        base.appending(path: path.trimmingCharacters(in: CharacterSet(charactersIn: "/")))
+    var queryItems: [URLQueryItem] {
+        switch self {
+        case .appointments(let orgId):
+            return [URLQueryItem(name: "org_id", value: orgId)]
+        default:
+            return []
+        }
+    }
+
+    func url(base: URL) -> URL? {
+        let trimmed = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        var url = base.appending(path: trimmed)
+        guard !queryItems.isEmpty else { return url }
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.queryItems = queryItems
+        return components?.url ?? url
     }
 }

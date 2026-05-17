@@ -13,9 +13,9 @@ final class AppEnvironment {
 
     init(
         apiBaseURL: URL = URL(string: "http://localhost:8790")!,
-        facilityId: String = "facility-demo-01",
+        facilityId: String = "00000000-0000-4000-8000-000000000010",
         facilityName: String = "SkyPrairie Demo DC",
-        orgId: String = "org-demo-01",
+        orgId: String = "00000000-0000-4000-8000-000000000001",
         userRole: UserRole = .receiver
     ) {
         self.apiBaseURL = apiBaseURL

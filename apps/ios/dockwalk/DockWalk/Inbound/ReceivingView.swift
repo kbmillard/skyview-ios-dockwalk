@@ -10,20 +10,44 @@ struct ReceivingView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
-                summaryCard
-                actionButtons
-                receivedLinesSection
-                stubNote
+        ZStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
+                    summaryCard
+                    actionButtons
+
+                    switch viewModel.loadPhase {
+                    case .loaded, .loading:
+                        shipmentsSection
+                    case .empty, .error:
+                        LoadStateView(phase: viewModel.loadPhase) {
+                            Task { await viewModel.load() }
+                        }
+                        .frame(minHeight: 200)
+                    case .idle:
+                        EmptyView()
+                    }
+
+                    scannerNote
+                }
+                .padding(DockWalkTheme.screenPadding)
             }
-            .padding(DockWalkTheme.screenPadding)
+
+            if viewModel.loadPhase == .loading {
+                LoadStateView(phase: .loading)
+                    .background(.ultraThinMaterial)
+            }
         }
         .background(DockWalkTheme.background)
         .navigationTitle("Receiving")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showScanner) {
             ScannerPlaceholderView()
+        }
+        .task {
+            if viewModel.loadPhase == .idle {
+                await viewModel.load()
+            }
         }
     }
 
@@ -36,6 +60,9 @@ struct ReceivingView: View {
                 Label(viewModel.appointment.poNumber, systemImage: "doc.text")
                 Label("\(viewModel.appointment.palletCount) pallets", systemImage: "square.stack.3d.up")
                 StatusChip(label: viewModel.appointment.status.displayName, tone: viewModel.appointment.status.chipTone)
+                if let mode = viewModel.dataMode {
+                    StatusChip(label: mode == "live" ? "Live shipments" : "Stub API", tone: .neutral)
+                }
             }
             .font(DockWalkTheme.bodyFont)
             .foregroundStyle(DockWalkTheme.textSecondary)
@@ -61,12 +88,13 @@ struct ReceivingView: View {
         }
     }
 
-    private var receivedLinesSection: some View {
+    private var shipmentsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Received lines")
+            Text("Inbound shipments")
                 .font(DockWalkTheme.headlineFont)
-            if viewModel.receivedLines.isEmpty {
-                Text("No lines yet — scan or enter manually (stub).")
+
+            if viewModel.receivedLines.isEmpty && viewModel.loadPhase != .loading {
+                Text("No shipments on file — use Scan to simulate a receipt.")
                     .foregroundStyle(DockWalkTheme.textSecondary)
             } else {
                 ForEach(viewModel.receivedLines) { line in
@@ -89,8 +117,8 @@ struct ReceivingView: View {
         }
     }
 
-    private var stubNote: some View {
-        Text("Scanner and DockWalk API are stubbed in this foundation build. Live AVFoundation scanning and inbound sync ship in a later phase.")
+    private var scannerNote: some View {
+        Text("Scanner remains simulated. Shipment rows load from GET /api/inbound/shipments filtered by appointment.")
             .font(DockWalkTheme.captionFont)
             .foregroundStyle(DockWalkTheme.textSecondary)
             .padding(.top, 8)

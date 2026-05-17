@@ -5,37 +5,45 @@ struct AppointmentsView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if viewModel.appointments.isEmpty {
-                    ContentUnavailableView(
-                        "No appointments",
-                        systemImage: "calendar",
-                        description: Text("Inbound appointments will appear here.")
-                    )
+            ZStack {
+                if viewModel.loadPhase == .loaded {
+                    appointmentsList
                 } else {
-                    List(viewModel.appointments) { appointment in
-                        NavigationLink {
-                            ReceivingView(appointment: appointment)
-                        } label: {
-                            appointmentRow(appointment)
-                        }
+                    LoadStateView(phase: viewModel.loadPhase) {
+                        Task { await viewModel.refresh() }
                     }
-                    .listStyle(.insetGrouped)
+                }
+
+                if viewModel.loadPhase == .loading {
+                    LoadStateView(phase: .loading)
+                        .background(.ultraThinMaterial)
                 }
             }
             .navigationTitle("Receive")
             .refreshable {
                 await viewModel.refresh()
             }
-            .overlay(alignment: .top) {
-                if !viewModel.apiReachable {
-                    apiBanner
-                }
+            .safeAreaInset(edge: .top) {
+                statusBanner
             }
         }
         .task {
-            await viewModel.refresh()
+            if viewModel.loadPhase == .idle {
+                await viewModel.refresh()
+            }
         }
+    }
+
+    @ViewBuilder
+    private var appointmentsList: some View {
+        List(viewModel.appointments) { appointment in
+            NavigationLink {
+                ReceivingView(appointment: appointment)
+            } label: {
+                appointmentRow(appointment)
+            }
+        }
+        .listStyle(.insetGrouped)
     }
 
     private func appointmentRow(_ appointment: ReceivingAppointment) -> some View {
@@ -59,12 +67,21 @@ struct AppointmentsView: View {
         .padding(.vertical, 4)
     }
 
-    private var apiBanner: some View {
-        Text("API offline — showing stub appointments")
-            .font(DockWalkTheme.captionFont)
-            .frame(maxWidth: .infinity)
-            .padding(8)
-            .background(DockWalkTheme.warning.opacity(0.15))
+    @ViewBuilder
+    private var statusBanner: some View {
+        if let mode = viewModel.dataMode, viewModel.loadPhase == .loaded {
+            HStack {
+                Text(mode == "live" ? "Live API" : "API stub mode")
+                    .font(DockWalkTheme.captionFont)
+                Spacer()
+                if !viewModel.apiReachable {
+                    StatusChip(label: "Health offline", tone: .warning)
+                }
+            }
+            .padding(.horizontal, DockWalkTheme.screenPadding)
+            .padding(.vertical, 6)
+            .background(DockWalkTheme.cardBackground)
+        }
     }
 }
 

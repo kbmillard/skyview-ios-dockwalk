@@ -40,3 +40,16 @@ struct ReceivedLine: Identifiable, Equatable {
     let description: String
     let quantity: Int
 }
+
+struct InboundShipmentItem: Identifiable, Equatable {
+    let id: String
+    let appointmentId: String?
+    let referenceNumber: String
+    let status: String
+    let expectedAt: Date?
+    let receivedAt: Date?
+
+    var statusDisplay: String {
+        status.replacingOccurrences(of: "_", with: " ").capitalized
+    }
+}
