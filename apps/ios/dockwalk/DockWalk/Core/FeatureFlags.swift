@@ -5,7 +5,11 @@ enum FeatureFlags {
     static let paymentsEnabled = false
     static let liveScannerEnabled = false
     static let offlineSyncEnabled = true
-    /// When true, queued receiving events replay after health/connectivity (throttled).
-    static let autoReplayReceivingEventsEnabled = false
+    /// Product gate — runtime toggle in More → Sync controls on-device behavior (no rebuild).
+    static let receivingEventAutoReplayAvailable = true
     static let debugPanelEnabled = true
+
+    static var isReceivingEventAutoReplayPermitted: Bool {
+        offlineSyncEnabled && receivingEventAutoReplayAvailable
+    }
 }

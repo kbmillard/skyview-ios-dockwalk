@@ -11,10 +11,18 @@ final class ReceivingEventReplayCoordinator {
     private(set) var isReplaying = false
     private(set) var lastAutoReplayAt: Date?
     private(set) var lastAutoReplaySummary: String?
+    private(set) var pendingAutoReplayHint: String?
 
     private var lastAttemptAt: Date?
+    private let preferences: SyncPreferencesStore
 
-    private init() {}
+    init(preferences: SyncPreferencesStore = .shared) {
+        self.preferences = preferences
+    }
+
+    var isAutoReplayEnabled: Bool {
+        FeatureFlags.isReceivingEventAutoReplayPermitted && preferences.receivingEventAutoReplayEnabled
+    }
 
     @discardableResult
     func attemptAutoReplayIfNeeded(
@@ -22,8 +30,7 @@ final class ReceivingEventReplayCoordinator {
         syncStore: OfflineSyncStore,
         trigger: String
     ) async -> ReceivingEventReplayOutcome? {
-        guard FeatureFlags.autoReplayReceivingEventsEnabled else { return nil }
-        guard FeatureFlags.offlineSyncEnabled else { return nil }
+        guard isAutoReplayEnabled else { return nil }
         guard syncStore.pendingReceivingEventCount > 0 else { return nil }
         guard !isReplaying else { return nil }
 
@@ -35,11 +42,42 @@ final class ReceivingEventReplayCoordinator {
         let client = environment.makeAPIClient()
         guard await client.healthCheck() else { return nil }
 
+        pendingAutoReplayHint = nil
         return await replayReceivingEvents(
             environment: environment,
             syncStore: syncStore,
             label: "Auto (\(trigger))"
         )
+    }
+
+    /// Called when the user enables auto-replay in settings.
+    func handleAutoReplayEnabledByUser(
+        environment: AppEnvironment,
+        syncStore: OfflineSyncStore
+    ) async {
+        guard isAutoReplayEnabled else { return }
+        guard syncStore.pendingReceivingEventCount > 0 else {
+            pendingAutoReplayHint = nil
+            return
+        }
+
+        let client = environment.makeAPIClient()
+        if await client.healthCheck() {
+            if let outcome = await attemptAutoReplayIfNeeded(
+                environment: environment,
+                syncStore: syncStore,
+                trigger: "toggle_on"
+            ), outcome.succeeded > 0 || outcome.failed > 0 {
+                return
+            }
+        }
+
+        pendingAutoReplayHint =
+            "Auto-replay enabled. Will run after the next successful health check, app foreground, or Receive refresh."
+    }
+
+    func handleAutoReplayDisabledByUser() {
+        pendingAutoReplayHint = nil
     }
 
     @discardableResult

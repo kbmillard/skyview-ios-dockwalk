@@ -46,7 +46,101 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertFalse(FeatureFlags.paymentsEnabled)
         XCTAssertFalse(FeatureFlags.liveScannerEnabled)
         XCTAssertTrue(FeatureFlags.offlineSyncEnabled)
-        XCTAssertFalse(FeatureFlags.autoReplayReceivingEventsEnabled)
+        XCTAssertTrue(FeatureFlags.receivingEventAutoReplayAvailable)
+    }
+
+    func testReceivingEventAutoReplayDefaultOff() {
+        let suite = "DockWalkTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            XCTFail("Could not create test defaults suite")
+            return
+        }
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        XCTAssertFalse(SyncPreferencesStore.loadReceivingEventAutoReplayEnabled(using: defaults))
+        let store = SyncPreferencesStore(defaults: defaults)
+        XCTAssertFalse(store.receivingEventAutoReplayEnabled)
+    }
+
+    func testReceivingEventAutoReplayPersists() {
+        let suite = "DockWalkTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            XCTFail("Could not create test defaults suite")
+            return
+        }
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        let store = SyncPreferencesStore(defaults: defaults)
+        store.setReceivingEventAutoReplayEnabled(true)
+        XCTAssertTrue(SyncPreferencesStore.loadReceivingEventAutoReplayEnabled(using: defaults))
+
+        let reloaded = SyncPreferencesStore(defaults: defaults)
+        XCTAssertTrue(reloaded.receivingEventAutoReplayEnabled)
+    }
+
+    func testCoordinatorSkipsAutoReplayWhenRuntimeSettingOff() async {
+        let suite = "DockWalkTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            XCTFail("Could not create test defaults suite")
+            return
+        }
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        let preferences = SyncPreferencesStore(defaults: defaults)
+        XCTAssertFalse(preferences.receivingEventAutoReplayEnabled)
+
+        let coordinator = ReceivingEventReplayCoordinator(preferences: preferences)
+        let syncStore = OfflineSyncStore(loadPersisted: false)
+        syncStore.enqueueReceivingEvent(
+            sampleReceivingPayload(idempotencyKey: "off-key"),
+            summary: "Queued"
+        )
+
+        let env = AppEnvironment(defaults: defaults)
+        let result = await coordinator.attemptAutoReplayIfNeeded(
+            environment: env,
+            syncStore: syncStore,
+            trigger: "test"
+        )
+        XCTAssertNil(result)
+        XCTAssertEqual(syncStore.pendingReceivingEventCount, 1)
+    }
+
+    func testCoordinatorAutoReplayWhenRuntimeSettingOn() {
+        let suite = "DockWalkTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            XCTFail("Could not create test defaults suite")
+            return
+        }
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        let preferences = SyncPreferencesStore(defaults: defaults)
+        preferences.setReceivingEventAutoReplayEnabled(true)
+
+        let coordinator = ReceivingEventReplayCoordinator(preferences: preferences)
+        XCTAssertTrue(coordinator.isAutoReplayEnabled)
+    }
+
+    func testManualReplayIndependentOfAutoReplaySetting() async {
+        let suite = "DockWalkTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            XCTFail("Could not create test defaults suite")
+            return
+        }
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        let preferences = SyncPreferencesStore(defaults: defaults)
+        XCTAssertFalse(preferences.receivingEventAutoReplayEnabled)
+
+        let coordinator = ReceivingEventReplayCoordinator(preferences: preferences)
+        let syncStore = OfflineSyncStore(loadPersisted: false)
+        syncStore.enqueueReceivingEvent(
+            sampleReceivingPayload(idempotencyKey: "manual-key"),
+            summary: "Manual path"
+        )
+
+        XCTAssertFalse(coordinator.isAutoReplayEnabled)
+        XCTAssertEqual(coordinator.isAutoReplayEnabled, false)
     }
 
     func testReplayEngineFiltersReceivingEventsOnly() {

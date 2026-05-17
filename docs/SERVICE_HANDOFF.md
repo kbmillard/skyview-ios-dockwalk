@@ -1,23 +1,10 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-17 (iOS agent — receiving-event auto-replay)
+**Last updated:** 2026-05-17 (iOS agent — runtime auto-replay toggle)
 
-**Canonical system state (API, Supabase service DB, workers, phases):**  
-[ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)
-
-**API contract (paths, query params, stub vs live):**  
-[api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)
-
-**Umbrella index:** [DOCKWALK.md](https://github.com/kbmillard/SkyView/blob/main/docs/products/DOCKWALK.md)
-
----
-
-## Repo split
-
-| | This repo | [skyview-dockwalk](https://github.com/kbmillard/skyview-dockwalk) |
-|--|-----------|-------------------------------------------------------------------|
-| **Owns** | SwiftUI, offline queue, device config | Express API, migrations, portal worker, Railway |
-| **Supabase** | `jllqgothyavoqvhugrvf` (client) | `egasxwpnutwrqivwmufm` (server) |
+**Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
+**API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
+**Umbrella:** [DOCKWALK.md](https://github.com/kbmillard/SkyView/blob/main/docs/products/DOCKWALK.md)
 
 ---
 
@@ -26,10 +13,9 @@
 | Target | URL |
 |--------|-----|
 | Local (Simulator) | `http://localhost:8790` |
-| Local (device) | `http://<Mac-LAN-IP>:8790` |
 | **Railway production** | `https://dockwalk-api-production.up.railway.app` |
 
-Set in app: **More → API connection** (presets for Railway / localhost).
+**More → API connection** — presets + Save & Test.
 
 ---
 
@@ -37,64 +23,62 @@ Set in app: **More → API connection** (presets for Railway / localhost).
 
 | Area | Status |
 |------|--------|
-| **API connection** | Persisted URL/org/facility; Railway + localhost presets |
 | **Receive workflow** | Appointments, shipments, lines, manual receive POST |
-| **Offline queue** | Receiving events store full payload + original `idempotency_key` |
+| **Offline queue** | Receiving events + original `idempotency_key` |
 | **Manual replay** | **More → Debug → Replay receiving events** |
-| **Auto-replay receiving** | **OFF by default** (`FeatureFlags.autoReplayReceivingEventsEnabled`) — see below |
+| **Auto-replay receiving** | **More → Sync → Auto-replay receiving events** toggle (UserDefaults, **default OFF**, **no rebuild**) |
 | **Scanner / AI / payments / auth / direct Supabase** | **OFF** |
 
 ---
 
-## Latest delivery (receiving-event auto-replay)
+## Latest delivery (runtime auto-replay toggle)
 
 **What changed**
 
-- **`autoReplayReceivingEventsEnabled`** — default **`false`** (conservative; enable in `FeatureFlags.swift` for QA)
-- **`ReceivingEventReplayEngine`** — replays only `inbound.receiving_event` actions; preserves idempotency keys; duplicate API responses count as success; partial failure leaves failed items queued
-- **`ReceivingEventReplayCoordinator`** — in-flight guard + 30s throttle between auto attempts
-- **Auto triggers** (when flag ON + health OK + queue non-empty):
-  - App foreground
-  - Successful **Test API connection**
-  - Receive tab load after successful appointments fetch
-- **UI:** More → Sync shows queued receiving count, replaying state, last auto-replay summary; Receive banner shows queued count; API connection labels/monospace for long URL/UUIDs
-- **Manual Debug replay** unchanged
+- **`SyncPreferencesStore`** — `receivingEventAutoReplayEnabled` in UserDefaults (`DockWalk.receivingEventAutoReplayEnabled`), default **false**
+- **More → Sync** — Toggle **Auto-replay receiving events** with helper footer; shows queued receiving count, last auto-replay time/summary, replaying state
+- **`FeatureFlags`** — `receivingEventAutoReplayAvailable` (product gate); runtime toggle controls behavior (no `FeatureFlags.swift` edit for QA)
+- **Turn ON** with queued items: one safe replay if health OK + throttle allows; otherwise hint text for next health/foreground/Receive refresh
+- **Turn OFF** — stops auto attempts; queue unchanged
+- **Manual Debug replay** — unchanged; does not require toggle ON
 
 **Files (main)**
 
+- `Persistence/SyncPreferencesStore.swift`
+- `Persistence/ReceivingEventReplayCoordinator.swift`
 - `Core/FeatureFlags.swift`
-- `Persistence/ReceivingEventReplayEngine.swift`, `ReceivingEventReplayCoordinator.swift`
-- `Persistence/OfflineSyncStore.swift`
+- `Settings/SettingsView.swift`
 - `App/DockWalkApp.swift`
-- `Inbound/AppointmentsView.swift`, `Inbound/AppointmentsViewModel.swift`
-- `Settings/APIConnectionSettingsView.swift`, `Settings/SettingsView.swift`
-- `Debug/DebugPanelView.swift`
 - `DockWalkTests/DockWalkFoundationTests.swift`
+
+**Still off:** scanner, Gemini, payments, auth, direct Supabase.
 
 **Validation (2026-05-17)**
 
 ```bash
 cd apps/ios/dockwalk
-xcodebuild -project DockWalk.xcodeproj -scheme DockWalk \
-  -destination 'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO
+xcodebuild -project DockWalk.xcodeproj -scheme DockWalk -destination 'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO
 # BUILD SUCCEEDED
 
-xcodebuild -project DockWalk.xcodeproj -scheme DockWalk \
-  -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' test CODE_SIGNING_ALLOWED=NO
-# TEST SUCCEEDED — 19 tests
+xcodebuild -project DockWalk.xcodeproj -scheme DockWalk -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' test CODE_SIGNING_ALLOWED=NO
+# TEST SUCCEEDED — 24 tests
 ```
 
 **Limitations**
 
-- Auto-replay is **flag-off** until you flip `autoReplayReceivingEventsEnabled` to `true`.
-- **`inbound.start`** and **`exception`** queue kinds are never auto-replayed.
-- Throttle: at most one auto attempt per 30s (see `ReceivingEventReplayCoordinator.autoReplayMinimumInterval`).
+- Only **receiving events** auto-replay; `inbound.start` / `exception` never auto-replay.
+- 30s throttle between auto attempts (`ReceivingEventReplayCoordinator.autoReplayMinimumInterval`).
+- Toggle requires **offline sync** product gate (`FeatureFlags.offlineSyncEnabled`).
 
 ---
 
+## Prior delivery (8c443cb)
+
+Auto-replay engine (receiving-only, idempotency-safe, duplicate = success, in-flight + throttle). Triggers: foreground, health OK, Receive load. Was compile-time flag only.
+
 ## Prior delivery (313b861)
 
-Inbound lines UI, manual receive POST, Railway preset, offline queue, Debug manual replay — 15 tests.
+Inbound lines, manual receive POST, Railway preset, offline queue.
 
 ---
 
@@ -102,12 +86,11 @@ Inbound lines UI, manual receive POST, Railway preset, offline queue, Debug manu
 
 | Priority | Work |
 |----------|------|
-| P1 | UserDefaults toggle for auto-replay (no rebuild) |
-| P2 | Auth / mobile session when service defines it |
-| P3 | Live scanner; audit list read |
+| P1 | Auth / mobile session when service defines it |
+| P2 | Live scanner; audit list read |
 
 ---
 
 ## Cursor
 
-Backend truth: **ARCHITECT_RECAP**. iOS truth: **this file**.
+Backend: **ARCHITECT_RECAP**. iOS: **this file**.

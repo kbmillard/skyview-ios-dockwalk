@@ -5,6 +5,7 @@ struct DockWalkApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @State private var environment = AppEnvironment.shared
     @State private var syncStore = OfflineSyncStore.shared
+    @State private var syncPreferences = SyncPreferencesStore.shared
     @State private var replayCoordinator = ReceivingEventReplayCoordinator.shared
 
     var body: some Scene {
@@ -12,6 +13,7 @@ struct DockWalkApp: App {
             MainTabView()
                 .environment(environment)
                 .environment(syncStore)
+                .environment(syncPreferences)
                 .environment(replayCoordinator)
                 .onChange(of: scenePhase) { _, phase in
                     guard phase == .active else { return }

@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
+    @Environment(SyncPreferencesStore.self) private var syncPreferences
     @Environment(ReceivingEventReplayCoordinator.self) private var replayCoordinator
     @State private var showDebug = false
 
@@ -29,7 +30,15 @@ struct SettingsView: View {
                         .foregroundStyle(DockWalkTheme.textSecondary)
                 }
 
-                Section("Sync") {
+                Section {
+                    if FeatureFlags.isReceivingEventAutoReplayPermitted {
+                        Toggle("Auto-replay receiving events", isOn: autoReplayBinding)
+                    }
+                    if syncStore.pendingReceivingEventCount > 0 {
+                        Text("\(syncStore.pendingReceivingEventCount) receiving event(s) queued")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.warning)
+                    }
                     HStack {
                         Text("Status")
                         Spacer()
@@ -42,13 +51,13 @@ struct SettingsView: View {
                                 .font(DockWalkTheme.captionFont)
                         }
                     }
-                    if syncStore.pendingReceivingEventCount > 0 {
-                        Text("\(syncStore.pendingReceivingEventCount) receiving event(s) queued")
-                            .font(DockWalkTheme.captionFont)
-                            .foregroundStyle(DockWalkTheme.warning)
-                    }
                     if FeatureFlags.offlineSyncEnabled {
                         Text("\(syncStore.queuedActions.count) total queued action(s)")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                    }
+                    if let at = replayCoordinator.lastAutoReplayAt {
+                        Text("Last auto-replay: \(at.formatted(date: .abbreviated, time: .shortened))")
                             .font(DockWalkTheme.captionFont)
                             .foregroundStyle(DockWalkTheme.textSecondary)
                     }
@@ -61,6 +70,18 @@ struct SettingsView: View {
                             .font(DockWalkTheme.captionFont)
                             .foregroundStyle(DockWalkTheme.textSecondary)
                     }
+                    if let hint = replayCoordinator.pendingAutoReplayHint {
+                        Text(hint)
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                    }
+                } header: {
+                    Text("Sync")
+                } footer: {
+                    if FeatureFlags.isReceivingEventAutoReplayPermitted {
+                        Text("Replays only queued receiving events after connectivity returns. Other queue kinds are not replayed. Manual replay remains in Debug.")
+                            .font(DockWalkTheme.captionFont)
+                    }
                 }
 
                 Section("Feature flags") {
@@ -68,7 +89,6 @@ struct SettingsView: View {
                     flagRow("Payments / POS", enabled: FeatureFlags.paymentsEnabled)
                     flagRow("Live scanner", enabled: FeatureFlags.liveScannerEnabled)
                     flagRow("Offline sync", enabled: FeatureFlags.offlineSyncEnabled)
-                    flagRow("Auto-replay receiving", enabled: FeatureFlags.autoReplayReceivingEventsEnabled)
                     flagRow("Debug panel", enabled: FeatureFlags.debugPanelEnabled)
                 }
 
@@ -100,6 +120,25 @@ struct SettingsView: View {
         }
     }
 
+    private var autoReplayBinding: Binding<Bool> {
+        Binding(
+            get: { syncPreferences.receivingEventAutoReplayEnabled },
+            set: { newValue in
+                syncPreferences.setReceivingEventAutoReplayEnabled(newValue)
+                if newValue {
+                    Task {
+                        await replayCoordinator.handleAutoReplayEnabledByUser(
+                            environment: environment,
+                            syncStore: syncStore
+                        )
+                    }
+                } else {
+                    replayCoordinator.handleAutoReplayDisabledByUser()
+                }
+            }
+        )
+    }
+
     private func flagRow(_ title: String, enabled: Bool) -> some View {
         HStack {
             Text(title)
@@ -113,5 +152,6 @@ struct SettingsView: View {
     SettingsView()
         .environment(AppEnvironment.shared)
         .environment(OfflineSyncStore.shared)
+        .environment(SyncPreferencesStore.shared)
         .environment(ReceivingEventReplayCoordinator.shared)
 }
