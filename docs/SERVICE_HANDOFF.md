@@ -1,6 +1,6 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-17 (TestFlight **0.1.0 (2)** uploaded — export compliance plist, no product changes)
+**Last updated:** 2026-05-17 (Phase **1D** — online putaway task actions)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -44,7 +44,7 @@
 **Paste block for a new chat**
 
 ```text
-DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live — QA via More → API connection. TestFlight 0.1.0 (2) internal (DockStockers). Build only unless tests requested. Scanner / AI / payments / auth / direct Supabase / task writes OFF.
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Putaway assign/start/block/complete are online-only (no task offline queue). TestFlight 0.1.0 (2). Build only unless tests requested. Scanner / AI / payments / auth / direct Supabase / task cancel / task_action batch OFF.
 ```
 
 ---
@@ -152,11 +152,43 @@ Record outcomes here when known; then next iOS feature work is **scanner** (see 
 | **Batch replay** | `POST /api/sync/events` — `accepted` / `duplicate` dequeue |
 | **Auto-replay** | **More → Sync** (default **OFF**) |
 | **Manual replay** | **More → Debug** |
-| **Putaway** | **More → Putaway tasks** — read-only list + detail; shipment **View putaway tasks** |
+| **Putaway** | List + detail; **assign / start / block / complete** (online only) |
+| **Putaway offline** | **Not queued** — failed actions show “Not submitted”; retry same tap reuses idempotency key |
 | **Audit** | **More → Activity → Audit events** |
-| **TestFlight** | **0.1.0 (2)** uploaded — **DockStockers** (enable when processing done) |
+| **TestFlight** | **0.1.0 (2)** — **DockStockers** |
 | **Scanner / AI / payments / auth** | **OFF** |
-| **Task assign / complete** | **OFF** (API read-only in 1C) |
+| **Task cancel** | **OFF** (no API route exposed in app) |
+| **Task `task_action` batch sync** | **OFF** (service not live; receiving batch unchanged) |
+
+---
+
+## Latest delivery — Phase 1D putaway task actions (2026-05-17)
+
+**Scope:** Online task writes only. **No** product changes to receive replay, scanner, auth, or Supabase.
+
+| API (Railway) | iOS |
+|---------------|-----|
+| `POST /api/tasks/:id/assign` | Assign (pending, blocked) |
+| `POST /api/tasks/:id/start` | Start (pending, assigned, blocked) |
+| `POST /api/tasks/:id/block` | Block sheet → reason required (`reason_code: other`) |
+| `POST /api/tasks/:id/complete` | Confirm dialog → complete |
+
+- Fresh `ios-task-*` idempotency key per user tap; **same key** retained on transport retry for that tap.
+- `idempotent: true` → success banner, not error.
+- **409** `invalid_transition` → message + refresh task + list.
+- **Cancel** not shown (no dedicated cancel route).
+- **No** task actions in `OfflineSyncStore` or `POST /api/sync/events`.
+
+**Files:** `Networking/WarehouseTaskActionModels.swift`, `APIEndpoint.swift`, `APIClient.swift`, `Putaway/PutawayTaskDetailView.swift`, `PutawayTaskDetailViewModel.swift`, `PutawayTasksView.swift`, `DockWalkTests/DockWalkFoundationTests.swift`
+
+**Build:**
+
+```bash
+cd apps/ios/dockwalk && xcodegen generate
+xcodebuild -project DockWalk.xcodeproj -scheme DockWalk -destination 'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO
+```
+
+**Result:** **BUILD SUCCEEDED** (no archive; no version bump)
 
 ---
 
@@ -197,10 +229,11 @@ Inbound lines, receiving POST, offline queue, audit list, Railway QA defaults.
 
 | Priority | Work |
 |----------|------|
-| P1 | Confirm build **2** skips export-compliance quiz in Connect; enable on DockStockers |
-| P2 | Live scanner |
-| P3 | Putaway assign/complete when API adds writes |
+| P1 | TestFlight build **3** when ready to ship 1D to DockStockers |
+| P2 | Offline task-action queue after service adds `task_action` batch sync |
+| P3 | Live scanner |
 | P4 | Auth / mobile session |
+| P5 | Task cancel when API adds route |
 
 ---
 

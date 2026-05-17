@@ -16,6 +16,10 @@ enum APIEndpoint {
         offset: Int
     )
     case warehouseTask(taskId: String, orgId: String)
+    case warehouseTaskAssign(taskId: String)
+    case warehouseTaskStart(taskId: String)
+    case warehouseTaskBlock(taskId: String)
+    case warehouseTaskComplete(taskId: String)
     case syncEvents
     case inventoryItems
     case outboundOrders
@@ -31,6 +35,10 @@ enum APIEndpoint {
         case .auditEvents: return "/api/audit/events"
         case .warehouseTasks: return "/api/tasks"
         case .warehouseTask(let taskId, _): return "/api/tasks/\(taskId)"
+        case .warehouseTaskAssign(let taskId): return "/api/tasks/\(taskId)/assign"
+        case .warehouseTaskStart(let taskId): return "/api/tasks/\(taskId)/start"
+        case .warehouseTaskBlock(let taskId): return "/api/tasks/\(taskId)/block"
+        case .warehouseTaskComplete(let taskId): return "/api/tasks/\(taskId)/complete"
         case .syncEvents: return "/api/sync/events"
         case .inventoryItems: return "/api/inventory/items"
         case .outboundOrders: return "/api/outbound/orders"

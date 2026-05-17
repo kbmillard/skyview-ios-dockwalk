@@ -31,7 +31,9 @@ struct PutawayTasksView: View {
             await viewModel?.refresh()
         }
         .sheet(item: $selectedTask) { task in
-            PutawayTaskDetailSheet(task: task)
+            PutawayTaskDetailView(initialTask: task) {
+                Task { await viewModel?.refresh() }
+            }
         }
         .onAppear {
             if viewModel == nil {
@@ -61,7 +63,7 @@ struct PutawayTasksView: View {
                         label: mode == "live" ? "Live tasks" : "Stub API",
                         tone: mode == "live" ? .success : .neutral
                     )
-                    Text("Read-only — assign and complete are not available in this build.")
+                    Text("Tap a task for assign, start, block, or complete (online only).")
                         .font(DockWalkTheme.captionFont)
                         .foregroundStyle(DockWalkTheme.textSecondary)
                 }
@@ -157,109 +159,5 @@ struct PutawayTasksView: View {
         case "cancelled": return .neutral
         default: return .warning
         }
-    }
-}
-
-struct PutawayTaskDetailSheet: View {
-    @Environment(AppEnvironment.self) private var environment
-    let task: PutawayTaskItem
-    @State private var viewModel: PutawayTaskDetailViewModel?
-
-    var body: some View {
-        NavigationStack {
-            Group {
-                if let viewModel, viewModel.loadPhase == .loaded, let detail = viewModel.task {
-                    detailContent(detail, mode: viewModel.dataMode)
-                } else if let viewModel {
-                    LoadStateView(phase: viewModel.loadPhase) {
-                        Task { await viewModel.load() }
-                    }
-                } else {
-                    ProgressView()
-                }
-            }
-            .navigationTitle("Task detail")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
-                        dismissSheet()
-                    }
-                }
-            }
-            .onAppear {
-                if viewModel == nil {
-                    viewModel = PutawayTaskDetailViewModel(
-                        taskId: task.id,
-                        initialTask: task,
-                        environment: environment
-                    )
-                }
-            }
-            .task {
-                if viewModel == nil {
-                    viewModel = PutawayTaskDetailViewModel(
-                        taskId: task.id,
-                        initialTask: task,
-                        environment: environment
-                    )
-                }
-                await viewModel?.load()
-            }
-        }
-    }
-
-    @Environment(\.dismiss) private var dismiss
-
-    private func dismissSheet() {
-        dismiss()
-    }
-
-    @ViewBuilder
-    private func detailContent(_ detail: PutawayTaskItem, mode: String?) -> some View {
-        List {
-            if let mode {
-                Section {
-                    StatusChip(
-                        label: mode == "live" ? "Live task" : "Stub API",
-                        tone: mode == "live" ? .success : .neutral
-                    )
-                }
-            }
-
-            Section("SKU") {
-                LabeledContent("SKU", value: detail.sku)
-                LabeledContent("Description", value: detail.description)
-                LabeledContent("Quantity", value: "\(detail.quantity) \(detail.uom)")
-                LabeledContent("Status", value: detail.statusDisplay)
-            }
-
-            Section("Locations") {
-                LabeledContent("From", value: detail.fromLocationCode)
-                LabeledContent("To", value: detail.toLocationCode)
-            }
-
-            if detail.inboundShipmentId != nil {
-                Section("Inbound") {
-                    if let shipmentId = detail.inboundShipmentId {
-                        LabeledContent("Shipment ID", value: shipmentId)
-                            .font(.system(.body, design: .monospaced))
-                    }
-                }
-            }
-
-            if let created = detail.createdAt {
-                Section("Timestamps") {
-                    LabeledContent("Created", value: created.formatted(date: .abbreviated, time: .shortened))
-                }
-            }
-
-            Section {
-                Text("Read-only — no assign or complete actions in this build.")
-                    .font(DockWalkTheme.captionFont)
-                    .foregroundStyle(DockWalkTheme.textSecondary)
-            }
-        }
-        .listStyle(.insetGrouped)
     }
 }

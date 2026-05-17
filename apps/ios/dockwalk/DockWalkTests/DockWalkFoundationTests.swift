@@ -558,4 +558,77 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertTrue(ReceivingEventReplayEngine.isSuccessfulResponse(response))
         XCTAssertTrue(response.isIdempotentReplay)
     }
+
+    func testWarehouseTaskAssignEndpointPath() {
+        let url = APIEndpoint.warehouseTaskAssign(taskId: "task-uuid")
+            .url(base: URL(string: "https://dockwalk-api-production.up.railway.app")!)!
+        XCTAssertTrue(url.path.contains("/api/tasks/task-uuid/assign"))
+        XCTAssertFalse(url.absoluteString.contains("org_id="))
+    }
+
+    func testWarehouseTaskWriteResponseIdempotentDecoding() throws {
+        let json = """
+        {"mode":"live","idempotent":true,"item":{"id":"t1","task_type":"putaway","status":"assigned","quantity":1,"uom":"ea"}}
+        """.data(using: .utf8)!
+        let response = try JSONDecoder().decode(WarehouseTaskWriteResponse.self, from: json)
+        XCTAssertTrue(response.isIdempotentReplay)
+        XCTAssertEqual(response.item.status, "assigned")
+    }
+
+    func testTaskAssignRequestEncoding() throws {
+        let request = TaskAssignRequest(
+            orgId: "org-1",
+            assignedTo: "dockwalk-ios",
+            idempotencyKey: "ios-task-abcdef12",
+            deviceId: "dev-1",
+            notes: nil
+        )
+        let data = try JSONEncoder().encode(request)
+        let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        XCTAssertEqual(object?["org_id"] as? String, "org-1")
+        XCTAssertEqual(object?["assigned_to"] as? String, "dockwalk-ios")
+        XCTAssertEqual(object?["idempotency_key"] as? String, "ios-task-abcdef12")
+    }
+
+    func testPutawayTaskActionAvailabilityByStatus() {
+        XCTAssertEqual(
+            PutawayTaskActionAvailability.availableActions(for: "pending"),
+            [.assign, .start]
+        )
+        XCTAssertEqual(
+            PutawayTaskActionAvailability.availableActions(for: "in_progress"),
+            [.block, .complete]
+        )
+        XCTAssertTrue(PutawayTaskActionAvailability.availableActions(for: "completed").isEmpty)
+    }
+
+    func testWarehouseTaskActionErrorMappingConflict() {
+        let mapped = WarehouseTaskActionErrorMapping.map(
+            APIClientError.httpStatus(409, message: "invalid_transition")
+        )
+        XCTAssertTrue(mapped.isConflict)
+        XCTAssertFalse(mapped.preserveIdempotencyKey)
+    }
+
+    func testWarehouseTaskActionErrorMappingTransportPreservesKey() {
+        let mapped = WarehouseTaskActionErrorMapping.map(
+            APIClientError.transport(URLError(.notConnectedToInternet))
+        )
+        XCTAssertTrue(mapped.preserveIdempotencyKey)
+        XCTAssertFalse(mapped.isConflict)
+    }
+
+    func testTaskActionIdempotencyKeyFormat() {
+        let key = WarehouseTaskActionIdempotency.makeKey()
+        XCTAssertTrue(key.hasPrefix("ios-task-"))
+        XCTAssertGreaterThanOrEqual(key.count, 8)
+        XCTAssertLessThanOrEqual(key.count, 128)
+    }
+
+    func testOfflineSyncStoreDoesNotQueueTaskActions() {
+        let store = OfflineSyncStore(loadPersisted: false)
+        store.clearQueue()
+        XCTAssertEqual(store.queuedActions.filter { $0.kind.contains("task") }.count, 0)
+        XCTAssertEqual(OfflineSyncStore.receivingEventKind, "inbound.receiving_event")
+    }
 }

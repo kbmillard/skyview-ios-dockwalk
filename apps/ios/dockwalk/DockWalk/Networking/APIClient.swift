@@ -89,6 +89,22 @@ struct APIClient {
         try await get(.warehouseTask(taskId: id, orgId: orgId))
     }
 
+    func assignTask(taskId: String, body: TaskAssignRequest) async throws -> WarehouseTaskWriteResponse {
+        try await post(.warehouseTaskAssign(taskId: taskId), body: body)
+    }
+
+    func startTask(taskId: String, body: TaskStartRequest) async throws -> WarehouseTaskWriteResponse {
+        try await post(.warehouseTaskStart(taskId: taskId), body: body)
+    }
+
+    func blockTask(taskId: String, body: TaskBlockRequest) async throws -> WarehouseTaskWriteResponse {
+        try await post(.warehouseTaskBlock(taskId: taskId), body: body)
+    }
+
+    func completeTask(taskId: String, body: TaskCompleteRequest) async throws -> WarehouseTaskWriteResponse {
+        try await post(.warehouseTaskComplete(taskId: taskId), body: body)
+    }
+
     func postSyncEvents(_ envelope: SyncBatchEnvelope) async throws -> SyncBatchResponse {
         try await post(.syncEvents, body: envelope)
     }

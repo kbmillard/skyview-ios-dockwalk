@@ -32,6 +32,8 @@
 		697307A48E8324B72E2795BD /* LoadPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06B44D071E70EE2F7E60C975 /* LoadPhase.swift */; };
 		6E9432E5A56A2F4E15761641 /* ReceivingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C6F14CED858882E5331EA31 /* ReceivingViewModel.swift */; };
 		709FEFB4FB6C2EF3883EB2C0 /* OutboundViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6BD6174FDF1330B85CFAE17 /* OutboundViewModel.swift */; };
+		71AD215D6FACA5CE53BA48D9 /* PutawayTaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72181A510BDB097237BAC204 /* PutawayTaskDetailView.swift */; };
+		73E9FC37F4155133092E99E3 /* WarehouseTaskActionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7CA1D9E2AFB4B1A5DE83BA7 /* WarehouseTaskActionModels.swift */; };
 		78CED7C1E16F0EBD98B9FD36 /* StatusChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC6C7CCE993538213FF044D /* StatusChip.swift */; };
 		7E84CBC872675F0D988454F0 /* AppointmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B0D6FC114C221591F6DE4F /* AppointmentsView.swift */; };
 		7F69F3818A8B0E8E2D25417E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 02D72A64EC3A25E41E5A227A /* Assets.xcassets */; };
@@ -106,6 +108,7 @@
 		6CE8CBC58F1CE03FB3DDDEFE /* LoadStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadStateView.swift; sourceTree = "<group>"; };
 		6F46A38157C5CA497E2122A5 /* AppointmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppointmentsViewModel.swift; sourceTree = "<group>"; };
 		708BF8E60C9C166452BCDFA8 /* ShipmentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipmentDetailView.swift; sourceTree = "<group>"; };
+		72181A510BDB097237BAC204 /* PutawayTaskDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayTaskDetailView.swift; sourceTree = "<group>"; };
 		76E23B57D58AD0E4F88B0A59 /* InboundLineRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundLineRowView.swift; sourceTree = "<group>"; };
 		782030745B983A18F3FF47F5 /* DockWalkTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DockWalkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A978CBA08DF8B85851D865B /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
@@ -138,6 +141,7 @@
 		F39C4B1F3E1EE296F8007931 /* ExceptionsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExceptionsHomeView.swift; sourceTree = "<group>"; };
 		F41079A1C0A5A00229E859F7 /* ReceivingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingView.swift; sourceTree = "<group>"; };
 		F74EDB16DA0846024C4930E5 /* SyncQueuePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncQueuePersistence.swift; sourceTree = "<group>"; };
+		F7CA1D9E2AFB4B1A5DE83BA7 /* WarehouseTaskActionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarehouseTaskActionModels.swift; sourceTree = "<group>"; };
 		F880B64A0FC1079D74ED7640 /* PrimaryActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryActionButton.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -193,6 +197,7 @@
 		4595CFC0B8D62BFFAECCE600 /* Putaway */ = {
 			isa = PBXGroup;
 			children = (
+				72181A510BDB097237BAC204 /* PutawayTaskDetailView.swift */,
 				39FEA6B47A344516D5F3C8C2 /* PutawayTaskDetailViewModel.swift */,
 				7F574C040783ECE04C37D361 /* PutawayTasksView.swift */,
 				8E908910669A3F7A8FA57A2D /* PutawayTasksViewModel.swift */,
@@ -249,6 +254,7 @@
 				EA7D11F1805588CFF8E1CA17 /* AuditEventModels.swift */,
 				281BEBC8BDB0B78462A285DD /* ReceivingEventModels.swift */,
 				5D0622CE00814C219A8DFE74 /* SyncBatchModels.swift */,
+				F7CA1D9E2AFB4B1A5DE83BA7 /* WarehouseTaskActionModels.swift */,
 				C8BDD9812E0071A5A35E6B02 /* WarehouseTaskModels.swift */,
 			);
 			path = Networking;
@@ -487,6 +493,7 @@
 				E6D5FDD597F05971983C4AD7 /* OutboundModels.swift in Sources */,
 				709FEFB4FB6C2EF3883EB2C0 /* OutboundViewModel.swift in Sources */,
 				A34B01C7107D6BB29EE18384 /* PrimaryActionButton.swift in Sources */,
+				71AD215D6FACA5CE53BA48D9 /* PutawayTaskDetailView.swift in Sources */,
 				2223EC1464237444A8B678A8 /* PutawayTaskDetailViewModel.swift in Sources */,
 				B2BDAABAC52045B4D4993D27 /* PutawayTasksView.swift in Sources */,
 				159FDAC5C3D33C67A975FF36 /* PutawayTasksViewModel.swift in Sources */,
@@ -510,6 +517,7 @@
 				4E47A863500A2982A263522E /* SyncStatus.swift in Sources */,
 				8D21C1DD6F0D54D4785BBC4D /* TasksHomeView.swift in Sources */,
 				B62BB5725DA386A949C19199 /* TodayView.swift in Sources */,
+				73E9FC37F4155133092E99E3 /* WarehouseTaskActionModels.swift in Sources */,
 				BAA0A1AE9B419684378CBF24 /* WarehouseTaskModels.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
