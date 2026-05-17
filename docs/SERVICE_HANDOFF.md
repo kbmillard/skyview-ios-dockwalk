@@ -1,5 +1,7 @@
 # DockWalk iOS — service handoff
 
+**Last updated:** 2026-05-17 (iOS agent)
+
 **Canonical system state (API, Supabase service DB, workers, phases):**  
 [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)
 
@@ -44,6 +46,64 @@
 | **AI inspection** | Stub UI; `aiInspectionEnabled` off |
 | **Payments** | Stub; `paymentsEnabled` off |
 | **Auth** | None yet — dev org UUID in `AppEnvironment` |
+
+---
+
+## First delivery summary (iOS agent)
+
+**Repo:** [skyview-ios-dockwalk](https://github.com/kbmillard/skyview-ios-dockwalk) · **Commits:** `1cce9c8` (WMS foundation) → `2aedab6` (Phase 1A API wiring)
+
+### What shipped
+
+1. **Foundation** — SwiftUI shell with tabs Today / Receive / Ship / Inventory / More; design system; stub ViewModels for ship/inventory; feature flags (AI/payments/scanner off, offline sync on).
+2. **Phase 1A networking** — Live reads against local DockWalk API:
+   - `AppointmentsViewModel` → `GET /api/appointments?org_id={AppEnvironment.orgId}`
+   - `ReceivingViewModel` → `GET /api/inbound/shipments`, client-filtered by `appointment_id`
+   - DTOs in `Networking/APIModels.swift`, mapping in `Inbound/InboundAPIMapping.swift`
+3. **UX states** — `LoadPhase` + `LoadStateView` (loading / empty with API stub message / error + retry) on Receive list and Receiving shipments.
+4. **Offline queue** — `SyncQueuePersistence` writes `Application Support/DockWalk/dockwalk_sync_queue.json`; survives app restart.
+5. **Xcode** — `DockWalk.xcodeproj` via `apps/ios/dockwalk/project.yml` (XcodeGen).
+
+### Dev defaults (aligned with service seed)
+
+| Key | Value |
+|-----|--------|
+| `apiBaseURL` | `http://localhost:8790` |
+| `orgId` | `00000000-0000-4000-8000-000000000001` |
+| `facilityId` | `00000000-0000-4000-8000-000000000010` |
+
+### Validation (last run)
+
+```bash
+cd apps/ios/dockwalk
+xcodebuild -project DockWalk.xcodeproj -scheme DockWalk \
+  -destination 'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO
+# BUILD SUCCEEDED
+
+xcodebuild -project DockWalk.xcodeproj -scheme DockWalk \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' test CODE_SIGNING_ALLOWED=NO
+# 7 tests passed
+```
+
+### Operator notes
+
+- **Empty Receive list** with API up usually means `mode: "stub"` on the server (no Supabase) or no rows for the dev org — not an iOS bug. With **egas** seeded, curl the same `org_id` and you should see two appointments; pull-to-refresh on Receive.
+- **Receiving shipments** section shows inbound shipment headers for the appointment, not `inbound_lines` yet (no lines route on API).
+- **Simulator → Mac API:** use LAN IP in Settings/Debug if `localhost` fails on device.
+
+### Intentionally not started
+
+Live AVFoundation scanner, Gemini/cloud inspection, PaymentManager / PSP SDKs, Supabase direct reads from iOS (HTTP-only for Phase 1A lists), production Railway base URL, auth headers.
+
+### Suggested next iOS PR
+
+| Priority | Work |
+|----------|------|
+| P0 | Settings field for API base URL + org id (persisted, not hardcoded) |
+| P1 | Inbound **lines** when service exposes `GET /api/inbound/lines?shipment_id=` |
+| P1 | Replay offline queue to API when write routes exist |
+| P2 | Auth header / Supabase session when service defines mobile auth |
+| P3 | Live scanner behind `liveScannerEnabled` |
 
 ---
 
