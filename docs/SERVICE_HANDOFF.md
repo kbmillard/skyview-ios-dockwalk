@@ -1,6 +1,6 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-17 (TestFlight internal live · Phase 1C + first ship)
+**Last updated:** 2026-05-17 (TestFlight **0.1.0 (2)** uploaded — export compliance plist, no product changes)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -44,7 +44,7 @@
 **Paste block for a new chat**
 
 ```text
-DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live — QA via More → API connection. TestFlight 0.1.0 (1) internal (DockStockers). Build only unless tests requested. Scanner / AI / payments / auth / direct Supabase / task writes OFF.
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live — QA via More → API connection. TestFlight 0.1.0 (2) internal (DockStockers). Build only unless tests requested. Scanner / AI / payments / auth / direct Supabase / task writes OFF.
 ```
 
 ---
@@ -57,9 +57,10 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 |-----------|--------|
 | Phase 1C consumer (putaway list + batch sync replay) | **Shipped** (`906405d`) |
 | App icon 1024×1024 | **Shipped** (`dockwalkios.png` → `AppIcon.appiconset`) |
-| TestFlight **0.1.0 (1)** | **Uploaded + internal testing** |
-| Export compliance | Answered in Connect; **`ITSAppUsesNonExemptEncryption = false`** in Info.plist for **next** build |
-| Device QA | Today / Receive / More flows OK on TestFlight build |
+| TestFlight **0.1.0 (1)** | Superseded by build **2** (still installable until expired) |
+| TestFlight **0.1.0 (2)** | **Uploaded** 2026-05-17 — processing in App Store Connect |
+| Export compliance | **`ITSAppUsesNonExemptEncryption = false`** in app `Info.plist` (verified in archive) |
+| Device QA | Build 1: Today / Receive / More OK; build **2** same binaries + plist only |
 
 **App Store Connect**
 
@@ -80,6 +81,25 @@ xcodebuild -exportArchive -archivePath build/DockWalk.xcarchive \
 ```
 
 Bump **`CURRENT_PROJECT_VERSION`** / `CFBundleVersion` before each new TestFlight build.
+
+---
+
+## Latest delivery — TestFlight 0.1.0 (2) (2026-05-17)
+
+**Scope:** Release hygiene only — **no** new product features, scanner, AI, payments, auth, task writes, or Supabase client changes.
+
+| Step | Result |
+|------|--------|
+| `ITSAppUsesNonExemptEncryption` | `false` in `DockWalk/Resources/Info.plist` — confirmed in archived app |
+| Version | Marketing **0.1.0** · build **2** (`CFBundleVersion` + `project.yml` `CURRENT_PROJECT_VERSION`) |
+| Bundle ID | `io.skyprairie.dockwalk` (unchanged) |
+| Archive | **ARCHIVE SUCCEEDED** |
+| Export + upload | **EXPORT SUCCEEDED** · **Upload succeeded** (CLI, `ExportOptions.plist` destination `upload`) |
+| Export compliance quiz | Expect **skipped** on build 2 once processing completes (plist declares no non-exempt encryption) |
+
+**Files changed:** `Info.plist`, `project.yml`, `DockWalk.xcodeproj/project.pbxproj` (xcodegen)
+
+**After Connect processing:** enable build **2** on **DockStockers** (or rely on automatic latest for internal group).
 
 ---
 
@@ -116,7 +136,7 @@ Bump **`CURRENT_PROJECT_VERSION`** / `CFBundleVersion` before each new TestFligh
 | **Manual replay** | **More → Debug** |
 | **Putaway** | **More → Putaway tasks** — read-only list + detail; shipment **View putaway tasks** |
 | **Audit** | **More → Activity → Audit events** |
-| **TestFlight** | **0.1.0 (1)** internal — **DockStockers** |
+| **TestFlight** | **0.1.0 (2)** uploaded — **DockStockers** (enable when processing done) |
 | **Scanner / AI / payments / auth** | **OFF** |
 | **Task assign / complete** | **OFF** (API read-only in 1C) |
 
@@ -159,7 +179,7 @@ Inbound lines, receiving POST, offline queue, audit list, Railway QA defaults.
 
 | Priority | Work |
 |----------|------|
-| P1 | TestFlight **build 2** with encryption plist (skip Connect quiz) |
+| P1 | Confirm build **2** skips export-compliance quiz in Connect; enable on DockStockers |
 | P2 | Live scanner |
 | P3 | Putaway assign/complete when API adds writes |
 | P4 | Auth / mobile session |
