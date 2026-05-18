@@ -76,6 +76,7 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | Phase **1F.1** runtime toggle                        | Builds **5+**; **6** resets toggle **off** on first launch of new build                             |
 | Phase **1G** operational shell                       | In build **7** — Putaway tab, Today command center, More = admin only                               |
 | Phase **1H** WMS shell buildout                      | In build **7** — Inventory & Ship feel real; Today improved; no backend changes                      |
+| Phase **1I** WMS command center (Phase 1)            | On `main` — Inbound workflow, dock doors, putaway queue, stable data behavior                        |
 
 
 **App Store Connect**
@@ -100,7 +101,108 @@ Bump `**CURRENT_PROJECT_VERSION**` / `CFBundleVersion` before each new TestFligh
 
 ---
 
-## Latest delivery — Phase 1H WMS shell buildout (2026-05-18)
+## Latest delivery — Phase 1I WMS command center rebuild (Phase 1) (2026-05-18)
+
+**Scope:** Today command center restructure only. **No** Ship/Inventory deep rebuild, auth, payments, Gemini, Supabase client, TestFlight upload, or backend changes. Phase 2 will continue Ship and Inventory integration.
+
+### WMS command center structure
+
+Today is now organized around proper WMS workflow sections:
+
+**Sections:**
+1. **Inbound** — workflow status groups (scheduled, checked-in, staged, receiving)
+2. **Dock doors** — open/occupied status foundation
+3. **Putaway** — queue groups by status (staged, assigned, in-progress, blocked, complete)
+4. **Outbound** — foundation preview (deeper integration in Phase 2)
+5. **Inventory** — lookup entry point
+6. **System** — Sync, Activity, Scanner Lab (when enabled)
+
+### Inbound workflow model
+
+Inbound loads now display by operational status:
+- **Scheduled** — planned loads not yet arrived
+- **Checked In** — loads arrived onsite
+- **Staged** — loads assigned to dock door
+- **Receiving** — active receiving in progress
+
+Data sourced from `GET /api/appointments` with status inference from API status field.
+
+Each group shows count and links to Receive tab.
+
+### Dock door foundation
+
+Dock door status dashboard shows:
+- **Open doors** — available for assignment
+- **Occupied doors** — active receiving
+
+Uses stable local foundation data (no live API route yet). 4 doors shown: 1 occupied (APT-1002), 3 open.
+
+No fake writes. Intentional preview structure for operational awareness.
+
+### Putaway queue grouping
+
+Putaway tasks grouped by workflow status:
+- **Staged / Pending** — tasks awaiting assignment
+- **Assigned** — tasks assigned to worker
+- **In Progress** — active putaway work
+- **Blocked** — tasks with issues
+- **Complete** — finished tasks
+
+Data sourced from existing `GET /api/tasks?task_type=putaway` with grouping by status field.
+
+Shows top 4 groups on Today. Full queue on Putaway tab unchanged.
+
+Offline task-action queue alert prominent when count > 0.
+
+### Stable data behavior
+
+Fixed tab-switch data stability issues:
+- Dashboard loads once on first appearance, then only on pull-to-refresh
+- Uses `hasInitiallyLoaded` flag to prevent re-fetch on every tab switch
+- Caches data on error if previously loaded successfully
+- No automatic mutations on tab appearance
+- Explicit user actions (pull-to-refresh, tap) trigger refreshes
+
+View model expansion:
+- `TodayDashboardViewModel` now processes workflow groups
+- Returns `inboundGroups`, `putawayGroups`, `dockDoors`
+- Preserves existing data on error after initial load
+
+### Files created
+
+- `DockWalk/App/InboundWorkflowModels.swift` — InboundStatus, InboundLoad, InboundLoadGroup, DockDoorStatus, PutawayQueueGroup, PutawayQueueStatus models
+
+### Files modified
+
+- `DockWalk/App/TodayView.swift` — complete rebuild with WMS sections
+- `DockWalk/App/TodayDashboardViewModel.swift` — expanded to process workflow groups, stable caching behavior
+
+### Unchanged behavior
+
+- Receive flow still works (appointments → shipments → lines → receive)
+- Putaway flow still works (assign/start/block/complete + offline queue)
+- Offline queue + batch replay unchanged
+- Scanner flag gating unchanged
+- Activity/Sync unchanged
+- All existing tabs and navigation preserved
+
+### Deferred to Phase 2
+
+- Ship screen deeper workflow integration (pick/stage/load sections)
+- Inventory screen deeper integration (live API wiring if available)
+- Outbound write operations
+- Inventory adjustment writes
+- Dock door assignment writes
+
+**Build:** `xcodegen generate` + `xcodebuild build CODE_SIGNING_ALLOWED=NO` → **BUILD SUCCEEDED** (2026-05-18).
+
+**TestFlight:** Still **0.1.0 (7)** — Phase 1I on `main` not yet bundled.
+
+---
+
+## Phase 1H WMS shell buildout (2026-05-18)
+
+**Superseded by Phase 1I command center rebuild.**
 
 **Scope:** iOS UI/UX buildout only. **No** API routes, auth, payments, Gemini, Supabase client, TestFlight upload, or backend changes.
 

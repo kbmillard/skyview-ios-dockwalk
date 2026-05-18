@@ -44,6 +44,7 @@
 		71AD215D6FACA5CE53BA48D9 /* PutawayTaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72181A510BDB097237BAC204 /* PutawayTaskDetailView.swift */; };
 		73E9FC37F4155133092E99E3 /* WarehouseTaskActionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7CA1D9E2AFB4B1A5DE83BA7 /* WarehouseTaskActionModels.swift */; };
 		78CED7C1E16F0EBD98B9FD36 /* StatusChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC6C7CCE993538213FF044D /* StatusChip.swift */; };
+		7996E42A7A33EFE4AD179DF4 /* InboundWorkflowModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E15A8290CDB296BB353719 /* InboundWorkflowModels.swift */; };
 		7E84CBC872675F0D988454F0 /* AppointmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B0D6FC114C221591F6DE4F /* AppointmentsView.swift */; };
 		7F69F3818A8B0E8E2D25417E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 02D72A64EC3A25E41E5A227A /* Assets.xcassets */; };
 		85033374C13847844EEA83A0 /* ScannerPreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CC14C43A95FBC4ECF49497 /* ScannerPreferencesStore.swift */; };
@@ -167,6 +168,7 @@
 		D5B51550017A14A4F40C28C5 /* PutawayTabRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayTabRootView.swift; sourceTree = "<group>"; };
 		D788BFAC440441DC2075CD4E /* BarcodeScannerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerSheet.swift; sourceTree = "<group>"; };
 		E1CC14C43A95FBC4ECF49497 /* ScannerPreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerPreferencesStore.swift; sourceTree = "<group>"; };
+		E1E15A8290CDB296BB353719 /* InboundWorkflowModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundWorkflowModels.swift; sourceTree = "<group>"; };
 		E70B89B914B52C92BFE0B479 /* BarcodeCaptureCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeCaptureCoordinator.swift; sourceTree = "<group>"; };
 		EA7D11F1805588CFF8E1CA17 /* AuditEventModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuditEventModels.swift; sourceTree = "<group>"; };
 		EAEEAA7D36A3B4923A45D2FB /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
@@ -254,6 +256,7 @@
 			children = (
 				7CFF5D8A3AC0270EF1D616C6 /* AppTab.swift */,
 				8F9825520847293A864FC4C9 /* DockWalkApp.swift */,
+				E1E15A8290CDB296BB353719 /* InboundWorkflowModels.swift */,
 				EAEEAA7D36A3B4923A45D2FB /* MainTabView.swift */,
 				5821E4E58252DC4AC731F83A /* TodayDashboardViewModel.swift */,
 				B04A2CB30C4175FB8AE21139 /* TodayView.swift */,
@@ -541,6 +544,7 @@
 				A199E254249F362F47C3F03D /* InboundLineRowView.swift in Sources */,
 				58A5EC78C9570705C5057C13 /* InboundLineScanMatcher.swift in Sources */,
 				C002F18121A3EEA09B9F8073 /* InboundModels.swift in Sources */,
+				7996E42A7A33EFE4AD179DF4 /* InboundWorkflowModels.swift in Sources */,
 				D571070FE57A1BD038E38654 /* InspectionStubView.swift in Sources */,
 				991EEA386E0A466F0F41EF5B /* InventoryHomeView.swift in Sources */,
 				4A477263CAD9717F561A80CC /* InventoryModels.swift in Sources */,
