@@ -1,6 +1,6 @@
 # DockWalk iOS — 
 
-**Last updated:** 2026-05-18 (Phase **1H** WMS shell buildout on `main`; TestFlight **0.1.0 (6)** current)
+**Last updated:** 2026-05-18 (TestFlight **0.1.0 (7)** uploaded — Phase **1G** + **1H** WMS shell)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -53,7 +53,7 @@ DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + l
 
 ---
 
-## Summary (2026-05-17)
+## Summary (2026-05-18)
 
 DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle confirmed install after accepting the **DockStockers** internal invite (same Apple ID as App Store Connect). **LastLeg** TestFlight is unrelated — both apps can run side by side.
 
@@ -67,14 +67,15 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | TestFlight **0.1.0 (3)**                             | Superseded by build **4** — Phase **1D** + **1E**; smoke **passed**                                 |
 | TestFlight **0.1.0 (4)**                             | Superseded by build **5**                                                                           |
 | TestFlight **0.1.0 (5)**                             | Superseded by build **6**                                                                           |
-| TestFlight **0.1.0 (6)**                             | **Uploaded** 2026-05-17 — scanner-toggle reset on new `CFBundleVersion` (`11efe6c`)                 |
-| Export compliance                                    | `**ITSAppUsesNonExemptEncryption = false`** (build **6** archive)                                   |
+| TestFlight **0.1.0 (6)**                             | Superseded by build **7**                                                                           |
+| TestFlight **0.1.0 (7)**                             | **Uploaded** 2026-05-18 — Phase **1G** + **1H** WMS shell (`5c06010`)                               |
+| Export compliance                                    | `**ITSAppUsesNonExemptEncryption = false`** (build **7** archive)                                   |
 | Device QA                                            | Build **3** + **6** smoke **passed** (Receive, Putaway complete/block, Activity, Sync; scanner off) |
 | IA/copy cleanup                                      | In builds **4+** (`c8e53f4`)                                                                        |
 | Phase **1F** scanner                                 | In builds **4+** (`ce4dd48`); compile flag **off**                                                  |
 | Phase **1F.1** runtime toggle                        | Builds **5+**; **6** resets toggle **off** on first launch of new build                             |
-| Phase **1G** operational shell                       | On `main` — Putaway tab, Today command center, More = admin only                                    |
-| Phase **1H** WMS shell buildout                      | On `main` — Inventory & Ship feel real; Today improved; no backend changes                           |
+| Phase **1G** operational shell                       | In build **7** — Putaway tab, Today command center, More = admin only                               |
+| Phase **1H** WMS shell buildout                      | In build **7** — Inventory & Ship feel real; Today improved; no backend changes                      |
 
 
 **App Store Connect**
@@ -172,7 +173,7 @@ Bump `**CURRENT_PROJECT_VERSION**` / `CFBundleVersion` before each new TestFligh
 
 **Build:** `xcodegen generate` + `xcodebuild build CODE_SIGNING_ALLOWED=NO` → **BUILD SUCCEEDED** (2026-05-18).
 
-**TestFlight:** Still **0.1.0 (6)** — Phase 1H on `main` not yet bundled.
+**TestFlight:** Shipped in **0.1.0 (7)** (2026-05-18).
 
 ---
 
@@ -223,11 +224,60 @@ Bump `**CURRENT_PROJECT_VERSION**` / `CFBundleVersion` before each new TestFligh
 
 **Build:** `xcodegen generate` + `xcodebuild build CODE_SIGNING_ALLOWED=NO` → **BUILD SUCCEEDED** (2026-05-18).
 
-**TestFlight:** Still **0.1.0 (6)** until a bundled **0.1.0 (7)** (1G + scanner dismiss fixes).
+**TestFlight:** Shipped in **0.1.0 (7)** (2026-05-18).
+
+---
+
+## TestFlight 0.1.0 (7) (2026-05-18)
+
+**Scope:** Phase **1G** + **1H** WMS shell bundled release. Includes Putaway tab, Today command center, Inventory & Ship operational foundations with intentional structure. Scanner foundation present but controlled (compile flag **off**, runtime toggle available in Debug). **No** backend/API changes, auth, payments, Gemini, direct Supabase, or task cancel.
+
+
+| Item                 | Detail                                                                |
+| -------------------- | --------------------------------------------------------------------- |
+| Marketing version    | **0.1.0** (unchanged)                                                 |
+| Build                | **7**                                                                 |
+| Bundle ID            | `io.skyprairie.dockwalk`                                              |
+| Compile scanner flag | `liveScannerEnabled` **false**                                        |
+| Default for testers  | Scanner **hidden** (no Scanner Lab / scan buttons)                    |
+| Per-device QA        | More → **Open debug panel** → **Enable scanner on this device**       |
+| Camera plist         | `NSCameraUsageDescription` present                                    |
+| Export compliance    | `ITSAppUsesNonExemptEncryption = false`                               |
+| Archive              | **ARCHIVE SUCCEEDED**                                                 |
+| Export/upload        | **EXPORT SUCCEEDED** — Upload succeeded (processing)                  |
+
+
+**Includes:**
+- **Phase 1G:** Putaway first-class tab, Today command center (Receive/Putaway/Sync/Activity cards), More = admin/debug only
+- **Phase 1H:** Inventory surface (location lookup, search, recent movement, cycle count structure), Ship surface (Pick/Stage/Load command cards, sectioned by operational stage), Today "Inventory & outbound" section
+- **IA/copy cleanup:** Accurate queue messaging, operational entry points from Today
+- **Scanner foundation:** Phase 1F + 1F.1 — AVFoundation spike, Debug runtime toggle, auto-dismiss when toggled off, build-scoped reset
+- **Stable workflows:** Receive (appointments → shipments → lines), Putaway (assign/start/block/complete), offline queue + batch replay (`POST /api/sync/events`)
+
+**Still OFF:** AI/Gemini, OCR cloud, image upload, payments, auth, direct Supabase, task cancel. No backend/service repo edits.
+
+**Why build 7:** Bundles complete WMS shell (Phase 1G + 1H) — app now feels like an enterprise-grade warehouse system with Today hub, Receive, Putaway, Inventory preview, and Ship preview. Ready for device smoke testing before deeper feature integration.
+
+### Build 7 device smoke checklist (Kyle)
+
+
+| Area           | Test                                                                                     |
+| -------------- | ---------------------------------------------------------------------------------------- |
+| Today          | Command center loads appointment + putaway counts; cards link to Receive/Putaway/More    |
+| Receive        | Appointments → shipments → lines → receive 1 / custom qty                                |
+| Putaway        | Task list loads; tap task → assign/start/block/complete (online + offline queue)         |
+| Inventory      | Preview loads; location lookup opens modal; search filters items; recent movement visible |
+| Ship           | Preview loads; Pick/Stage cards visible; sectioned by Loading/Picking/Closeout           |
+| Activity       | Audit events load from API                                                               |
+| Sync           | Empty state / queued count; manual replay from Debug                                     |
+| Scanner        | Hidden by default; Debug toggle → Scanner Lab appears on Today; toggle off → UI dismisses |
+| Offline queue  | Airplane mode → receive/putaway action → **Queued for sync** → restore → replay works    |
 
 ---
 
 ## TestFlight 0.1.0 (6) (2026-05-17)
+
+**Superseded by build 7.**
 
 **Scope:** Scanner-toggle **safety / hygiene** release only. Includes `**11efe6c`**: on first launch of a new `CFBundleVersion`, internal scanner toggle resets **off** (fixes build **5** carrying `UserDefaults` across TestFlight update). **No** new product features, service changes, or scanner workflow expansion.
 
@@ -526,7 +576,7 @@ Inbound lines, receiving POST, offline queue, audit list, Railway QA defaults.
 
 | Priority | Work                                                                                         |
 | -------- | -------------------------------------------------------------------------------------------- |
-| P1       | **TestFlight 0.1.0 (7)** — bundle 1G + 1H shell with scanner dismiss fixes (`a94ce11` / `b52686d`) |
+| P1       | Device smoke **TestFlight 0.1.0 (7)** — verify WMS shell on device (see checklist above)     |
 | P2       | Scanner device QA (Debug toggle); then deepen Receive/Putaway scan workflow                  |
 | P3       | Inventory: wire live API routes if available (`GET /api/inventory/items`, `/locations`)      |
 | P4       | Ship: wire live API routes when available (outbound orders, pick/stage writes)               |
