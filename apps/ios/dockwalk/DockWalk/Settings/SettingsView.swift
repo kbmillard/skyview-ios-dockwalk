@@ -57,9 +57,15 @@ struct SettingsView: View {
                         }
                     }
                     if FeatureFlags.offlineSyncEnabled {
-                        Text("\(syncStore.queuedActions.count) total queued action(s)")
-                            .font(DockWalkTheme.captionFont)
-                            .foregroundStyle(DockWalkTheme.textSecondary)
+                        if syncStore.pendingSyncableCount == 0 {
+                            Text("No queued actions.")
+                                .font(DockWalkTheme.captionFont)
+                                .foregroundStyle(DockWalkTheme.textSecondary)
+                        } else {
+                            Text("\(syncStore.queuedActions.count) total queued action(s)")
+                                .font(DockWalkTheme.captionFont)
+                                .foregroundStyle(DockWalkTheme.textSecondary)
+                        }
                     }
                     if let at = replayCoordinator.lastAutoReplayAt {
                         Text("Last auto-replay: \(at.formatted(date: .abbreviated, time: .shortened))")
@@ -106,16 +112,15 @@ struct SettingsView: View {
                     NavigationLink("Audit events") {
                         ActivityView()
                     }
-                    NavigationLink("Putaway tasks") {
-                        PutawayTasksView()
-                    }
-                    Text("Read-only audit trail and putaway task list from the DockWalk API.")
+                    Text("Read-only audit trail from the DockWalk API.")
                         .font(DockWalkTheme.captionFont)
                         .foregroundStyle(DockWalkTheme.textSecondary)
                 }
 
                 Section("Modules") {
-                    NavigationLink("Putaway tasks") { TasksHomeView() }
+                    NavigationLink("Putaway tasks") {
+                        PutawayTasksView()
+                    }
                     NavigationLink("Exceptions") { ExceptionsHomeView() }
                     NavigationLink("Inspection (stub)") { InspectionStubView() }
                 }

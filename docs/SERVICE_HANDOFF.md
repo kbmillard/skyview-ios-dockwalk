@@ -61,7 +61,8 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | TestFlight **0.1.0 (2)** | Superseded by build **3** (plist-only hygiene) |
 | TestFlight **0.1.0 (3)** | **Uploaded** 2026-05-17 — Phase **1D** + **1E** (putaway writes + offline task-action replay) |
 | Export compliance | **`ITSAppUsesNonExemptEncryption = false`** in app `Info.plist` (verified in archive build 3) |
-| Device QA | Build 3 smoke pending in Connect (see checklist below) |
+| Device QA | Build **3** smoke **passed** (online/offline putaway, receive, activity, sync) |
+| IA/copy cleanup (post–build 3) | **Shipped** on `main` after smoke — one Putaway path, accurate copy |
 
 **App Store Connect**
 
@@ -85,7 +86,22 @@ Bump **`CURRENT_PROJECT_VERSION`** / `CFBundleVersion` before each new TestFligh
 
 ---
 
-## Latest delivery — TestFlight 0.1.0 (3) (2026-05-17)
+## Latest delivery — IA/copy cleanup (post–TestFlight 3 smoke)
+
+**Scope:** Navigation and copy only — **no** API/behavior changes, **no** new TestFlight build.
+
+| Change | Detail |
+|--------|--------|
+| Putaway entry | **More → Modules → Putaway tasks** only (removed duplicate under Activity) |
+| Activity | **Audit events** only; footer no longer mentions putaway |
+| Putaway copy | Accurate online + offline queue messaging (list + task detail) |
+| Sync empty state | **No queued actions.** when queue is empty |
+
+**Next product build:** Phase **1F** scanner spike (feature flag).
+
+---
+
+## TestFlight 0.1.0 (3) (2026-05-17)
 
 **Scope:** Ship **Phase 1D + 1E** to internal TestFlight. **No** scanner, AI, payments, auth, direct Supabase, or task cancel.
 
@@ -264,8 +280,8 @@ Inbound lines, receiving POST, offline queue, audit list, Railway QA defaults.
 
 | Priority | Work |
 |----------|------|
-| P1 | Device smoke on TestFlight **0.1.0 (3)** (putaway online/offline, receive, sync) |
-| P2 | Live scanner (Phase 1F) |
+| P1 | **DockWalk iOS Phase 1F** — scanner spike behind `liveScannerEnabled` |
+| P2 | TestFlight **0.1.0 (4)** when scanner slice is ready for DockStockers |
 | P4 | Auth / mobile session |
 | P5 | Task cancel when API adds route |
 

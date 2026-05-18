@@ -145,7 +145,7 @@ struct PutawayTaskDetailView: View {
                 ForEach(actions) { action in
                     actionButton(viewModel, action: action, taskStatus: detail.status)
                 }
-                Text("Online only — task actions are not queued offline. Cancel is not available yet.")
+                Text("Actions sync when online. If connection fails, they queue for sync (More → Sync or Debug replay). Cancel is not available yet.")
                     .font(DockWalkTheme.captionFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
             }

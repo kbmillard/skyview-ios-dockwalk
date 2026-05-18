@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Entry from **More → Putaway tasks** — delegates to the shared putaway list.
+/// Legacy wrapper — prefer `PutawayTasksView()` from **More → Modules → Putaway tasks**.
 struct TasksHomeView: View {
     var body: some View {
         PutawayTasksView()

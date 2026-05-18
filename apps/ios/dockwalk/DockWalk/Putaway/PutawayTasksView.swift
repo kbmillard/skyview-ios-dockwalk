@@ -63,7 +63,7 @@ struct PutawayTasksView: View {
                         label: mode == "live" ? "Live tasks" : "Stub API",
                         tone: mode == "live" ? .success : .neutral
                     )
-                    Text("Tap a task for assign, start, block, or complete (online only).")
+                    Text("Tap a task for assign, start, block, or complete. Online actions sync immediately; if connection fails, actions queue for sync.")
                         .font(DockWalkTheme.captionFont)
                         .foregroundStyle(DockWalkTheme.textSecondary)
                 }
