@@ -11,6 +11,12 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section {
+                    Text("Facility, sync, API, and debug tools. Day-to-day work lives on Today, Receive, and Putaway.")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                }
+
                 Section("Facility") {
                     LabeledContent("Name", value: environment.facilityName)
                     LabeledContent("Facility ID", value: environment.facilityId)
@@ -96,28 +102,12 @@ struct SettingsView: View {
                         if FeatureFlags.isReceivingEventAutoReplayPermitted {
                             Text(
                                 FeatureFlags.syncBatchReplayEnabled
-                                    ? "Replay uses POST /api/sync/events (batch) for receiving events and putaway task actions. Accepted and duplicate clear the queue; rejected task actions stay queued. Manual replay remains in Debug."
-                                    : "Replays queued receiving events one at a time. Task actions require batch sync. Manual replay remains in Debug."
+                                    ? "Replay uses POST /api/sync/events (batch) for receiving events and putaway task actions. Manual replay is in Debug."
+                                    : "Replays queued receiving events one at a time. Task actions require batch sync. Manual replay is in Debug."
                             )
                             .font(DockWalkTheme.captionFont)
                         }
                     }
-                }
-
-                Section("Feature flags") {
-                    flagRow("AI inspection", enabled: FeatureFlags.aiInspectionEnabled)
-                    flagRow("Payments / POS", enabled: FeatureFlags.paymentsEnabled)
-                    flagRow("Live scanner (compile)", enabled: FeatureFlags.liveScannerEnabled)
-                    flagRow("Scanner on device", enabled: scannerPreferences.isScannerActive)
-                    if scannerPreferences.isScannerActive {
-                        Button("Turn off scanner on this device", role: .destructive) {
-                            scannerPreferences.setInternalScannerEnabled(false)
-                        }
-                        .font(DockWalkTheme.captionFont)
-                    }
-                    flagRow("Offline sync", enabled: FeatureFlags.offlineSyncEnabled)
-                    flagRow("Batch sync replay", enabled: FeatureFlags.syncBatchReplayEnabled)
-                    flagRow("Debug panel", enabled: FeatureFlags.debugPanelEnabled)
                 }
 
                 Section("Activity") {
@@ -129,24 +119,35 @@ struct SettingsView: View {
                         .foregroundStyle(DockWalkTheme.textSecondary)
                 }
 
-                Section("Modules") {
-                    NavigationLink("Putaway tasks") {
-                        PutawayTasksView()
-                    }
-                    if scannerPreferences.isScannerActive {
+                if scannerPreferences.isScannerActive {
+                    Section("Scanner (QA)") {
                         NavigationLink("Scanner Lab") {
                             ScannerLabView()
                         }
+                        Button("Turn off scanner on this device", role: .destructive) {
+                            scannerPreferences.setInternalScannerEnabled(false)
+                        }
+                        .font(DockWalkTheme.captionFont)
                     }
-                    NavigationLink("Exceptions") { ExceptionsHomeView() }
-                    NavigationLink("Inspection (stub)") { InspectionStubView() }
+                }
+
+                Section("Feature flags") {
+                    flagRow("AI inspection", enabled: FeatureFlags.aiInspectionEnabled)
+                    flagRow("Payments / POS", enabled: FeatureFlags.paymentsEnabled)
+                    flagRow("Live scanner (compile)", enabled: FeatureFlags.liveScannerEnabled)
+                    flagRow("Scanner on device", enabled: scannerPreferences.isScannerActive)
+                    flagRow("Offline sync", enabled: FeatureFlags.offlineSyncEnabled)
+                    flagRow("Batch sync replay", enabled: FeatureFlags.syncBatchReplayEnabled)
+                    flagRow("Debug panel", enabled: FeatureFlags.debugPanelEnabled)
                 }
 
                 if FeatureFlags.debugPanelEnabled {
-                    Section {
+                    Section("Debug") {
                         Button("Open debug panel") {
                             showDebug = true
                         }
+                        NavigationLink("Exceptions (stub)") { ExceptionsHomeView() }
+                        NavigationLink("Inspection (stub)") { InspectionStubView() }
                     }
                 }
             }

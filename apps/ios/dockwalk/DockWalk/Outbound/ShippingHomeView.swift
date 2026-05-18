@@ -9,6 +9,10 @@ struct ShippingHomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
+                    FoundationAreaBanner(
+                        title: "Outbound foundation",
+                        detail: "Staging, load verification, and closeout will ship in a later release. Sample data below is for layout preview only — not live dock workflow."
+                    )
                     outboundSummary
                     if scannerPreferences.isScannerActive {
                         PrimaryActionButton(title: "Scan Load", systemImage: "barcode.viewfinder") {
@@ -80,7 +84,7 @@ struct ShippingHomeView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Closeout")
                     .font(DockWalkTheme.headlineFont)
-                Text("End-of-shift trailer verification and BOL sign-off will live here. Stub only in foundation build.")
+                Text("End-of-shift trailer verification and BOL sign-off will live here in a future release.")
                     .font(DockWalkTheme.bodyFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
             }

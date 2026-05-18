@@ -1,6 +1,6 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-17 (TestFlight **0.1.0 (6)** uploaded — scanner-toggle reset on new build; `11efe6c`)
+**Last updated:** 2026-05-18 (Phase **1G** operational app shell on `main`; TestFlight **0.1.0 (6)** current)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -44,7 +44,7 @@
 **Paste block for a new chat**
 
 ```text
-DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. TestFlight 0.1.0 (6); scanner OFF each new build; Debug toggle for per-device QA only. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Tabs: Today / Receive / Putaway / Ship / More. TestFlight 0.1.0 (6). Scanner Debug-gated. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
 ```
 
 ---
@@ -68,6 +68,7 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | IA/copy cleanup | In builds **4+** (`c8e53f4`) |
 | Phase **1F** scanner | In builds **4+** (`ce4dd48`); compile flag **off** |
 | Phase **1F.1** runtime toggle | Builds **5+**; **6** resets toggle **off** on first launch of new build |
+| Phase **1G** operational shell | On `main` — Putaway tab, Today command center, More = admin only |
 
 **App Store Connect**
 
@@ -91,7 +92,52 @@ Bump **`CURRENT_PROJECT_VERSION`** / `CFBundleVersion` before each new TestFligh
 
 ---
 
-## Latest delivery — TestFlight 0.1.0 (6) (2026-05-17)
+## Latest delivery — Phase 1G operational app shell (2026-05-18)
+
+**Scope:** iOS navigation / IA only. **No** API routes, auth, payments, Gemini, Supabase client, or TestFlight upload.
+
+### Tab bar (5)
+
+| Tab | Role |
+|-----|------|
+| **Today** | Command center — cards for Receive, Putaway, Sync, Activity; Ship/Inventory previews |
+| **Receive** | Appointments → shipments → lines (unchanged API behavior) |
+| **Putaway** | First-class putaway list + task detail (was buried under More → Modules) |
+| **Ship** | Outbound foundation preview (intentional placeholder) |
+| **More** | Facility, API, Sync, Activity audit, Debug, feature flags; Scanner Lab when enabled |
+
+**Inventory** is not a tab (5-tab limit). Reach it from **Today → Inventory** (foundation preview).
+
+### Moved out of More
+
+- **Putaway tasks** → **Putaway** tab
+- Operational entry points → **Today** cards
+
+### Still in More
+
+- API connection, Sync (+ auto-replay), Activity audit
+- Debug panel (+ manual replay, scanner QA toggle)
+- Feature flags, facility info
+- Scanner Lab (only when `isScannerActive`)
+- Exceptions / Inspection stubs under Debug
+
+### Today dashboard
+
+- Loads appointment count + putaway task total (existing list/task APIs, `limit: 1` for pagination total)
+- Shows offline queue hints from `OfflineSyncStore`
+- Pull to refresh
+
+### Unchanged behavior
+
+- Receive / putaway writes, offline `task_action` queue, batch replay, scanner flag gating
+
+**Build:** `xcodegen generate` + `xcodebuild build CODE_SIGNING_ALLOWED=NO` → **BUILD SUCCEEDED** (2026-05-18).
+
+**TestFlight:** Still **0.1.0 (6)** until a bundled **0.1.0 (7)** (1G + scanner dismiss fixes).
+
+---
+
+## TestFlight 0.1.0 (6) (2026-05-17)
 
 **Scope:** Scanner-toggle **safety / hygiene** release only. Includes **`11efe6c`**: on first launch of a new `CFBundleVersion`, internal scanner toggle resets **off** (fixes build **5** carrying `UserDefaults` across TestFlight update). **No** new product features, service changes, or scanner workflow expansion.
 
@@ -363,10 +409,9 @@ Inbound lines, receiving POST, offline queue, audit list, Railway QA defaults.
 
 | Priority | Work |
 |----------|------|
-| P1 | **Build 6 smoke passed** (2026-05-17) — stable flows with scanner off |
-| P2 | Optional **build 7** — scanner dismiss fix + putaway in-progress copy (`a94ce11`, `b52686d`) |
-| P3 | Scanner device QA on build **6/7** (Debug toggle); then Receive/Putaway scan workflow |
-| P4 | Offline putaway queue smoke if not yet run on build **6** |
+| P1 | **TestFlight 0.1.0 (7)** — bundle 1G shell + `a94ce11` / `b52686d` fixes |
+| P2 | Scanner device QA (Debug toggle); then Receive/Putaway scan workflow |
+| P3 | Auth / mobile session |
 | P4 | Auth / mobile session |
 | P5 | Task cancel when API adds route |
 

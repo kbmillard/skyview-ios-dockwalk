@@ -15,6 +15,9 @@ struct ReceivingView: View {
         ZStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
+                    Text("Open an inbound shipment below to view lines and record receive quantities.")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
                     summaryCard
                     actionButtons
 

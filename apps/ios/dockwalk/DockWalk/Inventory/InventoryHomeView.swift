@@ -9,6 +9,10 @@ struct InventoryHomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
+                    FoundationAreaBanner(
+                        title: "Inventory foundation",
+                        detail: "On-hand lookup and cycle count will expand in a later release. Sample SKUs below are for layout preview — not live inventory control."
+                    )
                     searchField
                     if scannerPreferences.isScannerActive {
                         PrimaryActionButton(title: "Scan Item", systemImage: "barcode.viewfinder") {

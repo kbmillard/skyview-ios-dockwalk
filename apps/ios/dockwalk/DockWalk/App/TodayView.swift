@@ -4,31 +4,39 @@ struct TodayView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
+    @Binding var selectedTab: AppTab
 
+    @State private var dashboard = TodayDashboardViewModel()
     @State private var showScanner = false
-    @State private var selectedTab: TodayQuickAction?
-
-    private enum TodayQuickAction: String, Identifiable {
-        case receiving, scan, ship
-        var id: String { rawValue }
-    }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
                     header
-                    metricsRow
-                    syncCard
-                    quickActions
+                    operationalSection
+                    foundationSection
                 }
                 .padding(DockWalkTheme.screenPadding)
             }
             .background(DockWalkTheme.background)
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.large)
+            .refreshable {
+                await dashboard.refresh()
+            }
+            .task(id: environment.configRevision) {
+                await dashboard.refresh()
+            }
             .sheet(isPresented: $showScanner) {
-                ScannerLabView()
+                NavigationStack {
+                    ScannerLabView()
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Done") { showScanner = false }
+                            }
+                        }
+                }
             }
             .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showScanner)
         }
@@ -42,73 +50,159 @@ struct TodayView: View {
             Text(environment.facilityName)
                 .font(DockWalkTheme.subtitleFont)
                 .foregroundStyle(DockWalkTheme.textSecondary)
-            StatusChip(
-                label: environment.userRole.displayName,
-                tone: .neutral
-            )
+            StatusChip(label: environment.userRole.displayName, tone: .neutral)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var metricsRow: some View {
-        HStack(spacing: 12) {
-            metricCard(title: "Receiving", value: "4", subtitle: "appointments")
-            metricCard(title: "Outbound", value: "6", subtitle: "loads")
-            metricCard(title: "Cycle", value: "—", subtitle: "counts")
-        }
-    }
-
-    private func metricCard(title: String, value: String, subtitle: String) -> some View {
-        SectionCard {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(DockWalkTheme.captionFont)
-                    .foregroundStyle(DockWalkTheme.textSecondary)
-                Text(value)
-                    .font(.system(size: 28, weight: .semibold, design: .rounded))
-                Text(subtitle)
-                    .font(DockWalkTheme.captionFont)
-                    .foregroundStyle(DockWalkTheme.textSecondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
-    private var syncCard: some View {
-        SectionCard {
-            HStack {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Sync")
-                        .font(DockWalkTheme.headlineFont)
-                    Text(syncStore.status.label)
-                        .font(DockWalkTheme.bodyFont)
-                        .foregroundStyle(DockWalkTheme.textSecondary)
-                }
-                Spacer()
-                StatusChip(label: syncStore.status.chipLabel, tone: syncStore.status.chipTone)
-            }
-        }
-    }
-
-    private var quickActions: some View {
+    private var operationalSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Quick actions")
+            Text("Dock work")
                 .font(DockWalkTheme.headlineFont)
 
-            PrimaryActionButton(title: "Start Receiving", systemImage: "arrow.down.doc.fill") {
-                selectedTab = .receiving
+            OperationalDestinationCard(
+                title: "Receive",
+                subtitle: receiveSubtitle,
+                systemImage: "arrow.down.to.line",
+                statusLabel: receiveStatusLabel,
+                statusTone: receiveStatusTone
+            ) {
+                selectedTab = .receive
+            }
+
+            OperationalDestinationCard(
+                title: "Putaway",
+                subtitle: putawaySubtitle,
+                systemImage: "arrow.left.arrow.right.square",
+                statusLabel: putawayStatusLabel,
+                statusTone: .info
+            ) {
+                selectedTab = .putaway
+            }
+
+            OperationalDestinationCard(
+                title: "Sync",
+                subtitle: syncSubtitle,
+                systemImage: "arrow.triangle.2.circlepath",
+                statusLabel: syncStore.status.chipLabel,
+                statusTone: syncStore.status.chipTone
+            ) {
+                selectedTab = .more
+            }
+
+            NavigationLink {
+                ActivityView()
+            } label: {
+                OperationalDestinationCard(
+                    title: "Activity",
+                    subtitle: "Audit trail from the DockWalk API.",
+                    systemImage: "list.bullet.rectangle"
+                )
             }
 
             if scannerPreferences.isScannerActive {
-                PrimaryActionButton(title: "Scan Item", systemImage: "barcode.viewfinder", style: .secondary) {
+                OperationalDestinationCard(
+                    title: "Scanner Lab",
+                    subtitle: "Barcode and QR capture for dock labels (QA).",
+                    systemImage: "barcode.viewfinder",
+                    statusLabel: "On",
+                    statusTone: .success
+                ) {
                     showScanner = true
                 }
             }
+        }
+    }
 
-            PrimaryActionButton(title: "Ship Order", systemImage: "truck.box.fill", style: .secondary) {
+    private var foundationSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Coming next")
+                .font(DockWalkTheme.headlineFont)
+
+            OperationalDestinationCard(
+                title: "Ship",
+                subtitle: "Outbound loads, staging, and closeout — foundation preview on the Ship tab.",
+                systemImage: "arrow.up.to.line",
+                statusLabel: "Preview",
+                statusTone: .neutral
+            ) {
                 selectedTab = .ship
             }
+
+            NavigationLink {
+                InventoryHomeView()
+            } label: {
+                OperationalDestinationCard(
+                    title: "Inventory",
+                    subtitle: "On-hand lookup and cycle count — foundation preview.",
+                    systemImage: "shippingbox.fill",
+                    statusLabel: "Preview",
+                    statusTone: .neutral
+                )
+            }
         }
+    }
+
+    private var receiveSubtitle: String {
+        switch dashboard.loadPhase {
+        case .loaded:
+            if let count = dashboard.appointmentCount {
+                return "\(count) appointment(s) on the Receive tab — open a shipment to record lines."
+            }
+            return "Open the Receive tab to work appointments and shipments."
+        case .error(let message):
+            return message
+        default:
+            return "Inbound appointments and shipment receiving."
+        }
+    }
+
+    private var receiveStatusLabel: String? {
+        if syncStore.pendingReceivingEventCount > 0 {
+            return "\(syncStore.pendingReceivingEventCount) queued"
+        }
+        if case .loaded = dashboard.loadPhase, let count = dashboard.appointmentCount {
+            return "\(count) apt"
+        }
+        return nil
+    }
+
+    private var receiveStatusTone: StatusChip.Tone {
+        syncStore.pendingReceivingEventCount > 0 ? .warning : .info
+    }
+
+    private var putawaySubtitle: String {
+        if syncStore.pendingTaskActionCount > 0 {
+            return "\(syncStore.pendingTaskActionCount) putaway action(s) queued — open Putaway or replay from More."
+        }
+        switch dashboard.loadPhase {
+        case .loaded:
+            if let count = dashboard.putawayTaskCount {
+                return "\(count) task(s) on the Putaway tab — assign, start, block, or complete."
+            }
+            return "Warehouse putaway tasks for this facility."
+        case .error:
+            return "Putaway tasks — pull to refresh counts."
+        default:
+            return "Warehouse putaway tasks for this facility."
+        }
+    }
+
+    private var putawayStatusLabel: String? {
+        if syncStore.pendingTaskActionCount > 0 {
+            return "\(syncStore.pendingTaskActionCount) queued"
+        }
+        if case .loaded = dashboard.loadPhase, let count = dashboard.putawayTaskCount {
+            return "\(count) tasks"
+        }
+        return nil
+    }
+
+    private var syncSubtitle: String {
+        if syncStore.pendingSyncableCount == 0 {
+            return "No queued actions. Open More for sync settings and Debug replay."
+        }
+        return "\(syncStore.pendingSyncableCount) action(s) queued — More → Sync or Debug replay."
     }
 
     private var greeting: String {
@@ -122,7 +216,8 @@ struct TodayView: View {
 }
 
 #Preview {
-    TodayView()
+    TodayView(selectedTab: .constant(.today))
         .environment(AppEnvironment.shared)
         .environment(OfflineSyncStore.shared)
+        .environment(ScannerPreferencesStore.shared)
 }

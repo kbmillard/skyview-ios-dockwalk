@@ -158,7 +158,7 @@ struct ShipmentDetailView: View {
         case .queuedOffline:
             VStack(alignment: .leading, spacing: 6) {
                 StatusChip(label: "Queued offline", tone: .warning)
-                Text("Saved locally with the same idempotency key. Replay from Debug or enable auto-replay in Sync.")
+                Text("Saved locally with the same idempotency key. Replay from More → Debug or enable auto-replay under More → Sync.")
                     .font(DockWalkTheme.captionFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
             }
@@ -178,6 +178,9 @@ struct ShipmentDetailView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Lines")
                     .font(DockWalkTheme.headlineFont)
+                Text("Each line shows expected, received, and remaining qty. Tap Receive 1 or set Receive now then submit above.")
+                    .font(DockWalkTheme.captionFont)
+                    .foregroundStyle(DockWalkTheme.textSecondary)
                 ForEach(viewModel.lines) { line in
                     InboundLineRowView(
                         line: line,

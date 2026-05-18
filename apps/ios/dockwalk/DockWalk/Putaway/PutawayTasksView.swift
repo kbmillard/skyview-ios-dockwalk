@@ -2,15 +2,22 @@ import SwiftUI
 
 struct PutawayTasksView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(OfflineSyncStore.self) private var syncStore
     @State private var viewModel: PutawayTasksViewModel?
     @State private var selectedTask: PutawayTaskItem?
 
     private let inboundShipmentId: String?
     private let navigationTitle: String
 
-    init(inboundShipmentId: String? = nil) {
+    init(inboundShipmentId: String? = nil, isOperationalTabRoot: Bool = false) {
         self.inboundShipmentId = inboundShipmentId
-        self.navigationTitle = inboundShipmentId == nil ? "Putaway tasks" : "Putaway for shipment"
+        if let inboundShipmentId {
+            self.navigationTitle = "Putaway for shipment"
+        } else if isOperationalTabRoot {
+            self.navigationTitle = "Putaway"
+        } else {
+            self.navigationTitle = "Putaway tasks"
+        }
     }
 
     var body: some View {
@@ -26,7 +33,7 @@ struct PutawayTasksView: View {
             }
         }
         .navigationTitle(navigationTitle)
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(inboundShipmentId == nil ? .large : .inline)
         .refreshable {
             await viewModel?.refresh()
         }
@@ -63,9 +70,14 @@ struct PutawayTasksView: View {
                         label: mode == "live" ? "Live tasks" : "Stub API",
                         tone: mode == "live" ? .success : .neutral
                     )
-                    Text("Tap a task for assign, start, block, or complete. Online actions sync immediately; if connection fails, actions queue for sync.")
+                    Text("Tap a task to assign, start, block, or complete. Actions sync online; transport failures queue for More → Sync or Debug replay.")
                         .font(DockWalkTheme.captionFont)
                         .foregroundStyle(DockWalkTheme.textSecondary)
+                    if syncStore.pendingTaskActionCount > 0 {
+                        Text("\(syncStore.pendingTaskActionCount) putaway action(s) queued for sync.")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.warning)
+                    }
                 }
             }
 
