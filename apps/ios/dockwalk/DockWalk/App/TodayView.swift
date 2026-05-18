@@ -116,31 +116,39 @@ struct TodayView: View {
 
     private var foundationSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Coming next")
+            Text("Inventory & outbound")
                 .font(DockWalkTheme.headlineFont)
-
-            OperationalDestinationCard(
-                title: "Ship",
-                subtitle: "Outbound loads, staging, and closeout — foundation preview on the Ship tab.",
-                systemImage: "arrow.up.to.line",
-                statusLabel: "Preview",
-                statusTone: .neutral
-            ) {
-                selectedTab = .ship
-            }
 
             NavigationLink {
                 InventoryHomeView()
             } label: {
                 OperationalDestinationCard(
                     title: "Inventory",
-                    subtitle: "On-hand lookup and cycle count — foundation preview.",
+                    subtitle: inventorySubtitle,
                     systemImage: "shippingbox.fill",
-                    statusLabel: "Preview",
+                    statusLabel: inventoryStatusLabel,
                     statusTone: .neutral
                 )
             }
+
+            OperationalDestinationCard(
+                title: "Ship",
+                subtitle: "Pick, stage, load verification, and closeout for outbound loads.",
+                systemImage: "arrow.up.to.line",
+                statusLabel: "Preview",
+                statusTone: .neutral
+            ) {
+                selectedTab = .ship
+            }
         }
+    }
+    
+    private var inventorySubtitle: String {
+        "Location lookup, on-hand search, cycle count — foundation preview."
+    }
+    
+    private var inventoryStatusLabel: String? {
+        "Preview"
     }
 
     private var receiveSubtitle: String {

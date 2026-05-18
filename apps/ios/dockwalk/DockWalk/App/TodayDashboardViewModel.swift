@@ -5,6 +5,7 @@ import Observation
 final class TodayDashboardViewModel {
     private(set) var appointmentCount: Int?
     private(set) var putawayTaskCount: Int?
+    private(set) var inventoryItemCount: Int?
     private(set) var loadPhase: LoadPhase = .idle
 
     private let environment: AppEnvironment
@@ -30,16 +31,20 @@ final class TodayDashboardViewModel {
                 limit: 1,
                 offset: 0
             )
-
+            
             let appointments = try await appointmentsResponse
             let tasks = try await tasksResponse
 
             appointmentCount = appointments.items.count
             putawayTaskCount = tasks.pagination.total
+            
+            inventoryItemCount = nil
+            
             loadPhase = .loaded
         } catch {
             appointmentCount = nil
             putawayTaskCount = nil
+            inventoryItemCount = nil
             loadPhase = .error(message: userFacingError(error))
         }
     }

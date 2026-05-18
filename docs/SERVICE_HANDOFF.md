@@ -1,6 +1,6 @@
-# DockWalk iOS — service handoff
+# DockWalk iOS — 
 
-**Last updated:** 2026-05-18 (Phase **1G** operational app shell on `main`; TestFlight **0.1.0 (6)** current)
+**Last updated:** 2026-05-18 (Phase **1H** WMS shell buildout on `main`; TestFlight **0.1.0 (6)** current)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -20,26 +20,30 @@
 
 **Repo layout**
 
-| What | Path |
-|------|------|
-| Git root / Cursor workspace | `skyview-ios-dockwalk` |
-| Xcode project | `apps/ios/dockwalk/DockWalk.xcodeproj` |
+
+| What                                     | Path                                        |
+| ---------------------------------------- | ------------------------------------------- |
+| Git root / Cursor workspace              | `skyview-ios-dockwalk`                      |
+| Xcode project                            | `apps/ios/dockwalk/DockWalk.xcodeproj`      |
 | Regenerate project after new Swift files | `cd apps/ios/dockwalk && xcodegen generate` |
+
 
 **Do not edit** sibling `skyview-dockwalk` (API/service) unless the task explicitly says so. Service is **green on Railway prod** — do not re-debug or replace API behavior for normal iOS work.
 
 **Railway QA defaults (device config)**
 
-| Key | UUID |
-|-----|------|
-| Org | `00000000-0000-4000-8000-000000000001` |
+
+| Key      | UUID                                   |
+| -------- | -------------------------------------- |
+| Org      | `00000000-0000-4000-8000-000000000001` |
 | Facility | `00000000-0000-4000-8000-000000000010` |
+
 
 **Operator**
 
-- Validate with **`xcodebuild build`** or **archive** — do **not** run `xcodebuild test` unless Kyle asks.
+- Validate with `**xcodebuild build`** or **archive** — do **not** run `xcodebuild test` unless Kyle asks.
 - Commit + push to `origin` when a coherent chunk is done (unless asked not to).
-- **Ship / Inventory tabs** are still placeholders — don’t assume full WMS is done.
+- **Ship / Inventory** are operational foundation previews with intentional structure — full workflows & API integration still pending.
 
 **Paste block for a new chat**
 
@@ -53,26 +57,29 @@ DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + l
 
 DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle confirmed install after accepting the **DockStockers** internal invite (same Apple ID as App Store Connect). **LastLeg** TestFlight is unrelated — both apps can run side by side.
 
-| Milestone | Status |
-|-----------|--------|
-| Phase 1C consumer (putaway list + batch sync replay) | **Shipped** (`906405d`) |
-| App icon 1024×1024 | **Shipped** (`dockwalkios.png` → `AppIcon.appiconset`) |
-| TestFlight **0.1.0 (1)** | Superseded by build **2** (still installable until expired) |
-| TestFlight **0.1.0 (2)** | Superseded by build **3** (plist-only hygiene) |
-| TestFlight **0.1.0 (3)** | Superseded by build **4** — Phase **1D** + **1E**; smoke **passed** |
-| TestFlight **0.1.0 (4)** | Superseded by build **5** |
-| TestFlight **0.1.0 (5)** | Superseded by build **6** |
-| TestFlight **0.1.0 (6)** | **Uploaded** 2026-05-17 — scanner-toggle reset on new `CFBundleVersion` (`11efe6c`) |
-| Export compliance | **`ITSAppUsesNonExemptEncryption = false`** (build **6** archive) |
-| Device QA | Build **3** + **6** smoke **passed** (Receive, Putaway complete/block, Activity, Sync; scanner off) |
-| IA/copy cleanup | In builds **4+** (`c8e53f4`) |
-| Phase **1F** scanner | In builds **4+** (`ce4dd48`); compile flag **off** |
-| Phase **1F.1** runtime toggle | Builds **5+**; **6** resets toggle **off** on first launch of new build |
-| Phase **1G** operational shell | On `main` — Putaway tab, Today command center, More = admin only |
+
+| Milestone                                            | Status                                                                                              |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Phase 1C consumer (putaway list + batch sync replay) | **Shipped** (`906405d`)                                                                             |
+| App icon 1024×1024                                   | **Shipped** (`dockwalkios.png` → `AppIcon.appiconset`)                                              |
+| TestFlight **0.1.0 (1)**                             | Superseded by build **2** (still installable until expired)                                         |
+| TestFlight **0.1.0 (2)**                             | Superseded by build **3** (plist-only hygiene)                                                      |
+| TestFlight **0.1.0 (3)**                             | Superseded by build **4** — Phase **1D** + **1E**; smoke **passed**                                 |
+| TestFlight **0.1.0 (4)**                             | Superseded by build **5**                                                                           |
+| TestFlight **0.1.0 (5)**                             | Superseded by build **6**                                                                           |
+| TestFlight **0.1.0 (6)**                             | **Uploaded** 2026-05-17 — scanner-toggle reset on new `CFBundleVersion` (`11efe6c`)                 |
+| Export compliance                                    | `**ITSAppUsesNonExemptEncryption = false`** (build **6** archive)                                   |
+| Device QA                                            | Build **3** + **6** smoke **passed** (Receive, Putaway complete/block, Activity, Sync; scanner off) |
+| IA/copy cleanup                                      | In builds **4+** (`c8e53f4`)                                                                        |
+| Phase **1F** scanner                                 | In builds **4+** (`ce4dd48`); compile flag **off**                                                  |
+| Phase **1F.1** runtime toggle                        | Builds **5+**; **6** resets toggle **off** on first launch of new build                             |
+| Phase **1G** operational shell                       | On `main` — Putaway tab, Today command center, More = admin only                                    |
+| Phase **1H** WMS shell buildout                      | On `main` — Inventory & Ship feel real; Today improved; no backend changes                           |
+
 
 **App Store Connect**
 
-- **App:** DockWalk · bundle **`io.skyprairie.dockwalk`** (not `.tests`)
+- **App:** DockWalk · bundle `**io.skyprairie.dockwalk`** (not `.tests`)
 - **SKU:** internal Connect ID only (e.g. `dockwalk`) — not warehouse SKU
 - **Internal group:** DockStockers
 - **API:** `https://dockwalk-api-production.up.railway.app` (default in app)
@@ -88,23 +95,106 @@ xcodebuild -exportArchive -archivePath build/DockWalk.xcarchive \
   -exportPath build/export -exportOptionsPlist ExportOptions.plist -allowProvisioningUpdates
 ```
 
-Bump **`CURRENT_PROJECT_VERSION`** / `CFBundleVersion` before each new TestFlight build.
+Bump `**CURRENT_PROJECT_VERSION**` / `CFBundleVersion` before each new TestFlight build.
 
 ---
 
-## Latest delivery — Phase 1G operational app shell (2026-05-18)
+## Latest delivery — Phase 1H WMS shell buildout (2026-05-18)
+
+**Scope:** iOS UI/UX buildout only. **No** API routes, auth, payments, Gemini, Supabase client, TestFlight upload, or backend changes.
+
+### Today command center improvements
+
+- Appointment count now uses items count directly (no pagination for appointments)
+- Putaway task count still uses pagination total
+- Improved "Inventory & outbound" section naming
+- Better operational context for dock work vs preview features
+
+### Inventory surface — real module feel
+
+**New files:**
+- `DockWalk/Inventory/LocationLookupView.swift` — location-based item lookup
+
+**Enhanced:**
+- Location lookup card (tap to search by bin/aisle/zone)
+- Improved search field with header
+- Better empty states for search results
+- Recent movement section (links to Activity audit trail)
+- Enhanced item cards with on-hand/reserved/available breakdown
+- Cycle count section with intentional empty state
+
+**Models:**
+- Added `InventoryMovement` struct (SKU, from/to locations, quantity, timestamp)
+- ViewModel now includes `recentMovements` preview data
+
+**UX:**
+- Scanner button only when scanner is active
+- Clear foundation banner explaining preview vs full control
+- Location lookup sheet modal
+- Visual hierarchy: command → search → items → movement → cycle count
+
+### Ship/Outbound surface — real operational structure
+
+**Enhanced:**
+- Pick, Stage, Load operational command cards
+- Summary metrics: active loads, staged count, picking count
+- Sectioned by operational stage: Loading / Picking & Staged / Closeout
+- Better empty states for each section
+- Door and carton counts for each order
+
+**ViewModel:**
+- Computed properties for filtered lists (`loadingOrders`, `pickingAndStagedOrders`, `readyToCloseOrders`)
+- Counts for summary cards (`activeLoadsCount`, `stagedCount`, `pickingCount`)
+
+**UX:**
+- Scanner button only when scanner is active
+- Intentional empty states explaining what will appear
+- Clear status chips for order states
+- Foundation banner explaining preview structure
+
+### Receive & Putaway — unchanged behavior
+
+- No changes to Receive or Putaway workflows
+- Offline queue, batch replay, scanner gating unchanged
+
+### Scanner — remains feature-controlled
+
+- Consistent scanner button behavior across Inventory, Ship, Receive, Putaway
+- Only shown when `scannerPreferences.isScannerActive`
+- Scanner Lab still available from Today when enabled
+
+### Backend & API — zero changes
+
+- No new API routes
+- No changes to existing endpoints
+- No Supabase migrations
+- No Railway service changes
+
+**Build:** `xcodegen generate` + `xcodebuild build CODE_SIGNING_ALLOWED=NO` → **BUILD SUCCEEDED** (2026-05-18).
+
+**TestFlight:** Still **0.1.0 (6)** — Phase 1H on `main` not yet bundled.
+
+---
+
+## Phase 1G operational app shell (2026-05-18)
+
+**Superseded by Phase 1H.**
+
+**Original scope:** iOS navigation / IA only. **No** API routes, auth, payments, Gemini, Supabase client, or TestFlight upload.
 
 **Scope:** iOS navigation / IA only. **No** API routes, auth, payments, Gemini, Supabase client, or TestFlight upload.
 
 ### Tab bar (5)
 
-| Tab | Role |
-|-----|------|
-| **Today** | Command center — cards for Receive, Putaway, Sync, Activity; Ship/Inventory previews |
-| **Receive** | Appointments → shipments → lines (unchanged API behavior) |
-| **Putaway** | First-class putaway list + task detail (was buried under More → Modules) |
-| **Ship** | Outbound foundation preview (intentional placeholder) |
-| **More** | Facility, API, Sync, Activity audit, Debug, feature flags; Scanner Lab when enabled |
+
+| Tab         | Role                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------ |
+| **Today**   | Command center — cards for Receive, Putaway, Sync, Activity; Ship/Inventory previews |
+| **Receive** | Appointments → shipments → lines (unchanged API behavior)                            |
+| **Putaway** | First-class putaway list + task detail (was buried under More → Modules)             |
+| **Ship**    | Outbound foundation preview (intentional placeholder)                                |
+| **More**    | Facility, API, Sync, Activity audit, Debug, feature flags; Scanner Lab when enabled  |
+
 
 **Inventory** is not a tab (5-tab limit). Reach it from **Today → Inventory** (foundation preview).
 
@@ -139,21 +229,23 @@ Bump **`CURRENT_PROJECT_VERSION`** / `CFBundleVersion` before each new TestFligh
 
 ## TestFlight 0.1.0 (6) (2026-05-17)
 
-**Scope:** Scanner-toggle **safety / hygiene** release only. Includes **`11efe6c`**: on first launch of a new `CFBundleVersion`, internal scanner toggle resets **off** (fixes build **5** carrying `UserDefaults` across TestFlight update). **No** new product features, service changes, or scanner workflow expansion.
+**Scope:** Scanner-toggle **safety / hygiene** release only. Includes `**11efe6c`**: on first launch of a new `CFBundleVersion`, internal scanner toggle resets **off** (fixes build **5** carrying `UserDefaults` across TestFlight update). **No** new product features, service changes, or scanner workflow expansion.
 
-| Item | Detail |
-|------|--------|
-| Marketing version | **0.1.0** (unchanged) |
-| Build | **6** |
-| Bundle ID | `io.skyprairie.dockwalk` |
-| Compile scanner flag | `liveScannerEnabled` **false** |
-| Default for testers | Scanner **hidden** (no Scanner Lab / scan buttons) |
-| Per-device QA | More → **Open debug panel** → **Enable scanner on this device** |
-| Toggle persistence | **Within same build** only; **new build → off** on first launch |
-| Camera plist | `NSCameraUsageDescription` present |
-| Export compliance | `ITSAppUsesNonExemptEncryption = false` |
-| Archive | **ARCHIVE SUCCEEDED** |
-| Export/upload | **EXPORT SUCCEEDED** — Upload succeeded (processing) |
+
+| Item                 | Detail                                                          |
+| -------------------- | --------------------------------------------------------------- |
+| Marketing version    | **0.1.0** (unchanged)                                           |
+| Build                | **6**                                                           |
+| Bundle ID            | `io.skyprairie.dockwalk`                                        |
+| Compile scanner flag | `liveScannerEnabled` **false**                                  |
+| Default for testers  | Scanner **hidden** (no Scanner Lab / scan buttons)              |
+| Per-device QA        | More → **Open debug panel** → **Enable scanner on this device** |
+| Toggle persistence   | **Within same build** only; **new build → off** on first launch |
+| Camera plist         | `NSCameraUsageDescription` present                              |
+| Export compliance    | `ITSAppUsesNonExemptEncryption = false`                         |
+| Archive              | **ARCHIVE SUCCEEDED**                                           |
+| Export/upload        | **EXPORT SUCCEEDED** — Upload succeeded (processing)            |
+
 
 **Still OFF:** AI/Gemini, OCR cloud, image upload, payments, auth, direct Supabase, task cancel. No backend/service repo edits.
 
@@ -161,13 +253,15 @@ Bump **`CURRENT_PROJECT_VERSION`** / `CFBundleVersion` before each new TestFligh
 
 ### Build 6 device smoke (2026-05-17, Kyle)
 
-| Area | Result |
-|------|--------|
-| Receive | **Pass** |
-| Putaway | **Pass** — dev tasks were **in_progress** → **Complete** + **Block** (not Assign/Start); complete qty defaults to **1** (dialog shows task qty e.g. 10 as context) |
-| Activity | **Pass** |
-| Sync | **Pass** |
-| Scanner | Hidden by default; Debug toggle QA separate |
+
+| Area     | Result                                                                                                                                                             |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Receive  | **Pass**                                                                                                                                                           |
+| Putaway  | **Pass** — dev tasks were **in_progress** → **Complete** + **Block** (not Assign/Start); complete qty defaults to **1** (dialog shows task qty e.g. 10 as context) |
+| Activity | **Pass**                                                                                                                                                           |
+| Sync     | **Pass**                                                                                                                                                           |
+| Scanner  | Hidden by default; Debug toggle QA separate                                                                                                                        |
+
 
 ---
 
@@ -179,14 +273,16 @@ Superseded by build **6**. Phase **1F.1** Debug toggle; toggle could persist acr
 
 ## Phase 1F.1 — Runtime internal scanner toggle
 
-| Item | Detail |
-|------|--------|
-| Compile flag | `FeatureFlags.liveScannerEnabled` stays **`false`** |
-| Runtime toggle | Debug panel → **Enable scanner on this device** |
-| Persistence | `DockWalk.internalScannerEnabled` — survives restarts; **resets off** on each new `CFBundleVersion` (TestFlight build bump) |
-| Effective gate | `scannerPreferences.isScannerActive` (= compile **or** internal) |
-| More → Feature flags | Shows **Scanner on device** effective state |
-| TestFlight | **0.1.0 (6)** — toggle resets off on new build; Debug-only enable |
+
+| Item                 | Detail                                                                                                                      |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Compile flag         | `FeatureFlags.liveScannerEnabled` stays `**false`**                                                                         |
+| Runtime toggle       | Debug panel → **Enable scanner on this device**                                                                             |
+| Persistence          | `DockWalk.internalScannerEnabled` — survives restarts; **resets off** on each new `CFBundleVersion` (TestFlight build bump) |
+| Effective gate       | `scannerPreferences.isScannerActive` (= compile **or** internal)                                                            |
+| More → Feature flags | Shows **Scanner on device** effective state                                                                                 |
+| TestFlight           | **0.1.0 (6)** — toggle resets off on new build; Debug-only enable                                                           |
+
 
 **Do not** deepen Receive/Putaway scanner workflow until QA passes on device camera.
 
@@ -196,18 +292,20 @@ Superseded by build **6**. Phase **1F.1** Debug toggle; toggle could persist acr
 
 **Scope:** Native barcode foundation only. **No** Gemini, OCR cloud, image upload, payments, auth, Supabase client writes, or new Railway routes.
 
-| Item | Detail |
-|------|--------|
-| Feature flag | `FeatureFlags.liveScannerEnabled` — default **`false`** |
-| When **off** | No scanner buttons on Today / Receive / Ship / Inventory; no Scanner Lab link |
-| When **on** | **More → Modules → Scanner Lab**; optional **Scan line** on shipment detail; **Scan label** on putaway detail (context only) |
-| Framework | **AVFoundation** metadata (`AVCaptureMetadataOutput`) |
-| Types | QR, Code 128, Code 39, EAN-13, EAN-8, UPC-E, PDF417 |
-| Permission | `NSCameraUsageDescription` in `Info.plist` |
-| Simulator | Manual entry fallback; camera preview hidden when unavailable |
-| Dedup | ~2s cooldown per identical scan value |
-| Receive integration | Scan → match line **SKU** → **Receive 1** |
-| Putaway integration | Scan → display scanned code context only (no auto-complete) |
+
+| Item                | Detail                                                                                                                       |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Feature flag        | `FeatureFlags.liveScannerEnabled` — default `**false`**                                                                      |
+| When **off**        | No scanner buttons on Today / Receive / Ship / Inventory; no Scanner Lab link                                                |
+| When **on**         | **More → Modules → Scanner Lab**; optional **Scan line** on shipment detail; **Scan label** on putaway detail (context only) |
+| Framework           | **AVFoundation** metadata (`AVCaptureMetadataOutput`)                                                                        |
+| Types               | QR, Code 128, Code 39, EAN-13, EAN-8, UPC-E, PDF417                                                                          |
+| Permission          | `NSCameraUsageDescription` in `Info.plist`                                                                                   |
+| Simulator           | Manual entry fallback; camera preview hidden when unavailable                                                                |
+| Dedup               | ~2s cooldown per identical scan value                                                                                        |
+| Receive integration | Scan → match line **SKU** → **Receive 1**                                                                                    |
+| Putaway integration | Scan → display scanned code context only (no auto-complete)                                                                  |
+
 
 **Build:** `xcodegen generate` + `xcodebuild -project DockWalk.xcodeproj -scheme DockWalk -destination 'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO` → **BUILD SUCCEEDED** (2026-05-17).
 
@@ -219,12 +317,14 @@ Superseded by build **6**. Phase **1F.1** Debug toggle; toggle could persist acr
 
 **Scope:** Navigation and copy only — **no** API/behavior changes, **no** new TestFlight build.
 
-| Change | Detail |
-|--------|--------|
-| Putaway entry | **More → Modules → Putaway tasks** only (removed duplicate under Activity) |
-| Activity | **Audit events** only; footer no longer mentions putaway |
-| Putaway copy | Accurate online + offline queue messaging (list + task detail) |
-| Sync empty state | **No queued actions.** when queue is empty |
+
+| Change           | Detail                                                                     |
+| ---------------- | -------------------------------------------------------------------------- |
+| Putaway entry    | **More → Modules → Putaway tasks** only (removed duplicate under Activity) |
+| Activity         | **Audit events** only; footer no longer mentions putaway                   |
+| Putaway copy     | Accurate online + offline queue messaging (list + task detail)             |
+| Sync empty state | **No queued actions.** when queue is empty                                 |
+
 
 **Shipped in TestFlight build 4.**
 
@@ -234,21 +334,25 @@ Superseded by build **6**. Phase **1F.1** Debug toggle; toggle could persist acr
 
 **Scope:** Ship **Phase 1D + 1E** to internal TestFlight. **No** scanner, AI, payments, auth, direct Supabase, or task cancel.
 
-| Included in build | Behavior |
-|-------------------|----------|
-| **Phase 1D** | Putaway assign / start / block / complete (online direct routes) |
-| **Phase 1E** | Offline `task_action` queue + `POST /api/sync/events` batch replay |
-| **Phase 1C** | Receive offline queue + receiving batch replay (unchanged) |
 
-| Step | Result |
-|------|--------|
-| `ITSAppUsesNonExemptEncryption` | `false` in `Info.plist` — confirmed in archived app (`CFBundleVersion` **3**) |
-| Version | Marketing **0.1.0** · build **3** |
-| Bundle ID | `io.skyprairie.dockwalk` (unchanged) |
-| Archive | **ARCHIVE SUCCEEDED** |
-| Export + upload | **EXPORT SUCCEEDED** · **Upload succeeded** (`ExportOptions.plist` → `upload`) |
-| Local IPA | Upload destination consumed package; no long-lived IPA kept in repo (standard CLI upload flow) |
-| Export compliance quiz | Expect **skipped** (plist `ITSAppUsesNonExemptEncryption` = false) |
+| Included in build | Behavior                                                           |
+| ----------------- | ------------------------------------------------------------------ |
+| **Phase 1D**      | Putaway assign / start / block / complete (online direct routes)   |
+| **Phase 1E**      | Offline `task_action` queue + `POST /api/sync/events` batch replay |
+| **Phase 1C**      | Receive offline queue + receiving batch replay (unchanged)         |
+
+
+
+| Step                            | Result                                                                                         |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `ITSAppUsesNonExemptEncryption` | `false` in `Info.plist` — confirmed in archived app (`CFBundleVersion` **3**)                  |
+| Version                         | Marketing **0.1.0** · build **3**                                                              |
+| Bundle ID                       | `io.skyprairie.dockwalk` (unchanged)                                                           |
+| Archive                         | **ARCHIVE SUCCEEDED**                                                                          |
+| Export + upload                 | **EXPORT SUCCEEDED** · **Upload succeeded** (`ExportOptions.plist` → `upload`)                 |
+| Local IPA                       | Upload destination consumed package; no long-lived IPA kept in repo (standard CLI upload flow) |
+| Export compliance quiz          | Expect **skipped** (plist `ITSAppUsesNonExemptEncryption` = false)                             |
+
 
 **Git:** `ca70c40` + build bump commit on `main`
 
@@ -269,12 +373,14 @@ Superseded by build **6**. Phase **1F.1** Debug toggle; toggle could persist acr
 
 ### Build 2 verification pass (2026-05-17, commit `11b7734`)
 
-| Check | Result |
-|-------|--------|
-| Git | Clean except `dockwalkios.jpeg` — **gitignored** (do not commit; app icon = `AppIcon.appiconset`) |
-| Repo build metadata | `CFBundleVersion` **2**, `ITSAppUsesNonExemptEncryption` **false** in target `Info.plist` |
-| Local `xcodebuild build` | **BUILD SUCCEEDED** (no new archive/upload) |
-| App Store Connect API from agent | **Not queried** (no ASC issuer in local fastlane env) |
+
+| Check                            | Result                                                                                            |
+| -------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Git                              | Clean except `dockwalkios.jpeg` — **gitignored** (do not commit; app icon = `AppIcon.appiconset`) |
+| Repo build metadata              | `CFBundleVersion` **2**, `ITSAppUsesNonExemptEncryption` **false** in target `Info.plist`         |
+| Local `xcodebuild build`         | **BUILD SUCCEEDED** (no new archive/upload)                                                       |
+| App Store Connect API from agent | **Not queried** (no ASC issuer in local fastlane env)                                             |
+
 
 **Kyle — confirm in App Store Connect (TestFlight):**
 
@@ -289,10 +395,12 @@ Record outcomes here when known; then next iOS feature work is **scanner** (see 
 
 ## API base URLs
 
-| Target | URL |
-|--------|-----|
-| **Railway production (iOS QA default)** | **https://dockwalk-api-production.up.railway.app** |
-| Local (Simulator) | `http://localhost:8790` |
+
+| Target                                  | URL                                                                                                  |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Railway production (iOS QA default)** | **[https://dockwalk-api-production.up.railway.app](https://dockwalk-api-production.up.railway.app)** |
+| Local (Simulator)                       | `http://localhost:8790`                                                                              |
+
 
 **More → API connection** — presets, Save & Test, **Reset to Railway QA** / **Reset to local API**.
 
@@ -300,10 +408,12 @@ Record outcomes here when known; then next iOS feature work is **scanner** (see 
 
 ## Supabase split (do not conflate)
 
-| Project | Ref | Use on iOS |
-|---------|-----|------------|
-| Service (API) | `egasxwpnutwrqivwmufm` | **Never** — no service-role key on device |
-| iOS client | `jllqgothyavoqvhugrvf` | App Connect / client SDK only (if used later) |
+
+| Project       | Ref                    | Use on iOS                                    |
+| ------------- | ---------------------- | --------------------------------------------- |
+| Service (API) | `egasxwpnutwrqivwmufm` | **Never** — no service-role key on device     |
+| iOS client    | `jllqgothyavoqvhugrvf` | App Connect / client SDK only (if used later) |
+
 
 **Receiving writes:** Railway API only. No direct Supabase inserts from iOS.
 
@@ -311,37 +421,41 @@ Record outcomes here when known; then next iOS feature work is **scanner** (see 
 
 ## iOS-only status
 
-| Area | Status |
-|------|--------|
-| **Receive** | Appointments → shipments → lines → **Receive 1** / custom qty |
-| **Offline queue** | Full payload + `idempotency_key` |
-| **Batch replay** | `POST /api/sync/events` — `accepted` / `duplicate` dequeue |
-| **Auto-replay** | **More → Sync** (default **OFF**) |
-| **Manual replay** | **More → Debug** |
-| **Putaway** | List + detail; **assign / start / block / complete** |
-| **Putaway online** | Direct `POST /api/tasks/:id/*` (happy path) |
-| **Putaway offline** | Transport failure → **`task_action` queue** → batch replay; **409/400/404** not queued |
-| **Task batch replay** | `POST /api/sync/events` — `accepted` / `duplicate` dequeue; **`rejected` stays queued** |
-| **Audit** | **More → Activity → Audit events** |
-| **TestFlight** | **0.1.0 (3)** uploaded — **DockStockers** (enable after processing) |
-| **Scanner / AI / payments / auth** | **OFF** |
-| **Task cancel** | **OFF** (no API route exposed in app) |
+
+| Area                               | Status                                                                                  |
+| ---------------------------------- | --------------------------------------------------------------------------------------- |
+| **Receive**                        | Appointments → shipments → lines → **Receive 1** / custom qty                           |
+| **Offline queue**                  | Full payload + `idempotency_key`                                                        |
+| **Batch replay**                   | `POST /api/sync/events` — `accepted` / `duplicate` dequeue                              |
+| **Auto-replay**                    | **More → Sync** (default **OFF**)                                                       |
+| **Manual replay**                  | **More → Debug**                                                                        |
+| **Putaway**                        | List + detail; **assign / start / block / complete**                                    |
+| **Putaway online**                 | Direct `POST /api/tasks/:id/*` (happy path)                                             |
+| **Putaway offline**                | Transport failure → `**task_action` queue** → batch replay; **409/400/404** not queued  |
+| **Task batch replay**              | `POST /api/sync/events` — `accepted` / `duplicate` dequeue; `**rejected` stays queued** |
+| **Audit**                          | **More → Activity → Audit events**                                                      |
+| **TestFlight**                     | **0.1.0 (3)** uploaded — **DockStockers** (enable after processing)                     |
+| **Scanner / AI / payments / auth** | **OFF**                                                                                 |
+| **Task cancel**                    | **OFF** (no API route exposed in app)                                                   |
+
 
 ---
 
 ## Latest delivery — Phase 1E offline task-action queue (2026-05-16)
 
-**Scope:** Queue putaway task actions on transport failure; replay via **`task_action`** batch sync. Receiving replay unchanged.
+**Scope:** Queue putaway task actions on transport failure; replay via `**task_action`** batch sync. Receiving replay unchanged.
 
-| Path | Behavior |
-|------|----------|
-| Online | Direct assign / start / block / complete (`org_id` + `idempotency_key` + `device_id`) |
-| Offline / transport | Enqueue `task_action` with **same** `idempotency_key` as failed direct call |
-| Replay | `POST /api/sync/events` — mixed batches with receiving events (up to **50** events) |
-| `accepted` / `duplicate` | Dequeue task action |
-| `rejected` | Keep queued; store `lastError` on queue row |
-| `409` on direct route | No queue; refresh task |
-| Auto-replay | **More → Sync** (default **OFF**) — receiving + task actions when enabled |
+
+| Path                     | Behavior                                                                              |
+| ------------------------ | ------------------------------------------------------------------------------------- |
+| Online                   | Direct assign / start / block / complete (`org_id` + `idempotency_key` + `device_id`) |
+| Offline / transport      | Enqueue `task_action` with **same** `idempotency_key` as failed direct call           |
+| Replay                   | `POST /api/sync/events` — mixed batches with receiving events (up to **50** events)   |
+| `accepted` / `duplicate` | Dequeue task action                                                                   |
+| `rejected`               | Keep queued; store `lastError` on queue row                                           |
+| `409` on direct route    | No queue; refresh task                                                                |
+| Auto-replay              | **More → Sync** (default **OFF**) — receiving + task actions when enabled             |
+
 
 **Files:** `Networking/TaskActionSyncModels.swift`, `SyncBatchModels.swift`, `Persistence/SyncBatchReplayEngine.swift`, `OfflineSyncStore.swift`, `ReceivingEventReplayCoordinator.swift`, `Putaway/PutawayTaskDetailViewModel.swift`, `Settings/SettingsView.swift`, `Debug/DebugPanelView.swift`, `DockWalkTests/DockWalkFoundationTests.swift`
 
@@ -353,12 +467,14 @@ Record outcomes here when known; then next iOS feature work is **scanner** (see 
 
 **Scope:** Online task writes only. **No** product changes to receive replay, scanner, auth, or Supabase.
 
-| API (Railway) | iOS |
-|---------------|-----|
-| `POST /api/tasks/:id/assign` | Assign (pending, blocked) |
-| `POST /api/tasks/:id/start` | Start (pending, assigned, blocked) |
-| `POST /api/tasks/:id/block` | Block sheet — preset `reason_code` + details |
+
+| API (Railway)                  | iOS                                                                          |
+| ------------------------------ | ---------------------------------------------------------------------------- |
+| `POST /api/tasks/:id/assign`   | Assign (pending, blocked)                                                    |
+| `POST /api/tasks/:id/start`    | Start (pending, assigned, blocked)                                           |
+| `POST /api/tasks/:id/block`    | Block sheet — preset `reason_code` + details                                 |
 | `POST /api/tasks/:id/complete` | Confirm dialog → `quantity_completed` default **1** (shows task qty context) |
+
 
 - List filters: **all**, pending, assigned, in_progress, **blocked**, completed, cancelled.
 - Dock-friendly **PrimaryActionButton** actions (“Assign to me”, “Resume” when blocked).
@@ -407,16 +523,19 @@ Inbound lines, receiving POST, offline queue, audit list, Railway QA defaults.
 
 ## Suggested next iOS work
 
-| Priority | Work |
-|----------|------|
-| P1 | **TestFlight 0.1.0 (7)** — bundle 1G shell + `a94ce11` / `b52686d` fixes |
-| P2 | Scanner device QA (Debug toggle); then Receive/Putaway scan workflow |
-| P3 | Auth / mobile session |
-| P4 | Auth / mobile session |
-| P5 | Task cancel when API adds route |
+
+| Priority | Work                                                                                         |
+| -------- | -------------------------------------------------------------------------------------------- |
+| P1       | **TestFlight 0.1.0 (7)** — bundle 1G + 1H shell with scanner dismiss fixes (`a94ce11` / `b52686d`) |
+| P2       | Scanner device QA (Debug toggle); then deepen Receive/Putaway scan workflow                  |
+| P3       | Inventory: wire live API routes if available (`GET /api/inventory/items`, `/locations`)      |
+| P4       | Ship: wire live API routes when available (outbound orders, pick/stage writes)               |
+| P5       | Auth / mobile session                                                                        |
+| P6       | Task cancel when API adds route                                                              |
+
 
 ---
 
 ## Cursor
 
-Backend: **ARCHITECT_RECAP** + **api-foundation** + **sync-contract**. iOS: **this file**. **`DOCKWALK.md`** umbrella snapshot is manual.
+Backend: **ARCHITECT_RECAP** + **api-foundation** + **sync-contract**. iOS: **this file**. `**DOCKWALK.md`** umbrella snapshot is manual.

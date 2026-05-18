@@ -6,6 +6,7 @@ final class InventoryViewModel {
     var searchQuery = ""
     private(set) var items: [InventoryItem] = []
     private(set) var cycleCounts: [CycleCountTask] = []
+    private(set) var recentMovements: [InventoryMovement] = []
 
     init() {
         loadStubData()
@@ -29,6 +30,26 @@ final class InventoryViewModel {
             InventoryItem(id: "inv-2", sku: "SKU-99201", description: "Drums — chemical", location: "C-04-01", onHand: 36, reserved: 0),
             InventoryItem(id: "inv-3", sku: "SKU-22018", description: "Pallet — mixed retail", location: "B-08-02", onHand: 120, reserved: 24),
         ]
+        
+        recentMovements = [
+            InventoryMovement(
+                id: "mv-1",
+                sku: "SKU-44102",
+                fromLocation: "RECV-STAGE",
+                toLocation: "A-12-03",
+                quantity: 48,
+                timestamp: Date().addingTimeInterval(-3600)
+            ),
+            InventoryMovement(
+                id: "mv-2",
+                sku: "SKU-22018",
+                fromLocation: "RECV-STAGE",
+                toLocation: "B-08-02",
+                quantity: 24,
+                timestamp: Date().addingTimeInterval(-7200)
+            ),
+        ]
+        
         cycleCounts = [
             CycleCountTask(id: "cc-1", zone: "Zone A", locationsRemaining: 14),
             CycleCountTask(id: "cc-2", zone: "Zone C — hazmat", locationsRemaining: 6),
