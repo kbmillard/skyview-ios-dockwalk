@@ -64,7 +64,7 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | TestFlight **0.1.0 (5)** | Superseded by build **6** |
 | TestFlight **0.1.0 (6)** | **Uploaded** 2026-05-17 — scanner-toggle reset on new `CFBundleVersion` (`11efe6c`) |
 | Export compliance | **`ITSAppUsesNonExemptEncryption = false`** (build **6** archive) |
-| Device QA | Build **3** smoke **passed**; build **6** smoke after Connect processing |
+| Device QA | Build **3** + **6** smoke **passed** (Receive, Putaway complete/block, Activity, Sync; scanner off) |
 | IA/copy cleanup | In builds **4+** (`c8e53f4`) |
 | Phase **1F** scanner | In builds **4+** (`ce4dd48`); compile flag **off** |
 | Phase **1F.1** runtime toggle | Builds **5+**; **6** resets toggle **off** on first launch of new build |
@@ -112,6 +112,16 @@ Bump **`CURRENT_PROJECT_VERSION`** / `CFBundleVersion` before each new TestFligh
 **Still OFF:** AI/Gemini, OCR cloud, image upload, payments, auth, direct Supabase, task cancel. No backend/service repo edits.
 
 **Why build 6:** Build **5** correctly persisted Debug scanner toggle across TestFlight update; build **6** ensures every new build starts with scanner off until explicitly re-enabled in Debug.
+
+### Build 6 device smoke (2026-05-17, Kyle)
+
+| Area | Result |
+|------|--------|
+| Receive | **Pass** |
+| Putaway | **Pass** — dev tasks were **in_progress** → **Complete** + **Block** (not Assign/Start); complete qty defaults to **1** (dialog shows task qty e.g. 10 as context) |
+| Activity | **Pass** |
+| Sync | **Pass** |
+| Scanner | Hidden by default; Debug toggle QA separate |
 
 ---
 
@@ -353,9 +363,10 @@ Inbound lines, receiving POST, offline queue, audit list, Railway QA defaults.
 
 | Priority | Work |
 |----------|------|
-| P1 | Enable build **6** on DockStockers; smoke stable flows (scanner off after update) |
-| P2 | Scanner device QA via Debug toggle on build **6** |
-| P3 | Deeper Receive/Putaway scanner workflow (after camera QA) |
+| P1 | **Build 6 smoke passed** (2026-05-17) — stable flows with scanner off |
+| P2 | Optional **build 7** — scanner dismiss fix + putaway in-progress copy (`a94ce11`, `b52686d`) |
+| P3 | Scanner device QA on build **6/7** (Debug toggle); then Receive/Putaway scan workflow |
+| P4 | Offline putaway queue smoke if not yet run on build **6** |
 | P4 | Auth / mobile session |
 | P5 | Task cancel when API adds route |
 
