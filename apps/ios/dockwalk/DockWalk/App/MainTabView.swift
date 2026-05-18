@@ -6,7 +6,7 @@ struct MainTabView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            TodayView(selectedTab: $selectedTab)
+            TodayDashboard(selectedTab: $selectedTab)
                 .tabItem {
                     Label("Today", systemImage: "sun.max.fill")
                 }
@@ -36,7 +36,7 @@ struct MainTabView: View {
                 }
                 .tag(AppTab.more)
         }
-        .tint(DockWalkTheme.accent)
+        .tint(Tokens.Color.Accent.horizon)
         .id(scannerPreferences.revision)
     }
 }
