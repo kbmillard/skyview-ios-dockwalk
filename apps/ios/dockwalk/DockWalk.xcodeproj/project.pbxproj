@@ -32,6 +32,7 @@
 		4E47A863500A2982A263522E /* SyncStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954E5D3B5DFA985D13CB5C57 /* SyncStatus.swift */; };
 		4E5288E0A5CD4D173EFC9F64 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A978CBA08DF8B85851D865B /* AppEnvironment.swift */; };
 		4EDE38AE14BBEC13A45B1834 /* TaskActionSyncModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84310D5C5A731CF4ACF91256 /* TaskActionSyncModels.swift */; };
+		4EE7BA148319D9D884A2D392 /* ScannerPresentationModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE32604A781EC1C015AD6E1C /* ScannerPresentationModifiers.swift */; };
 		52E5427771D1EC9359E42BB6 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B782D5EF4D98C01F04189DE /* APIClient.swift */; };
 		58A5EC78C9570705C5057C13 /* InboundLineScanMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A334CD8FFB4CD54CFCF39226 /* InboundLineScanMatcher.swift */; };
 		60E98D57E8259E48BD1E804E /* DeviceConfigurationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F6D71C779925A575BDE126 /* DeviceConfigurationStore.swift */; };
@@ -157,6 +158,7 @@
 		E70B89B914B52C92BFE0B479 /* BarcodeCaptureCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeCaptureCoordinator.swift; sourceTree = "<group>"; };
 		EA7D11F1805588CFF8E1CA17 /* AuditEventModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuditEventModels.swift; sourceTree = "<group>"; };
 		EAEEAA7D36A3B4923A45D2FB /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		EE32604A781EC1C015AD6E1C /* ScannerPresentationModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerPresentationModifiers.swift; sourceTree = "<group>"; };
 		EF38FA4B54C294D6EA9BC63A /* InspectionStubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectionStubView.swift; sourceTree = "<group>"; };
 		F39C4B1F3E1EE296F8007931 /* ExceptionsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExceptionsHomeView.swift; sourceTree = "<group>"; };
 		F41079A1C0A5A00229E859F7 /* ReceivingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingView.swift; sourceTree = "<group>"; };
@@ -360,6 +362,7 @@
 				A334CD8FFB4CD54CFCF39226 /* InboundLineScanMatcher.swift */,
 				8D90BE312D849ADACC8B8D1F /* ScannerLabView.swift */,
 				86CDC4C1E70C8852D4C2171E /* ScannerPlaceholderView.swift */,
+				EE32604A781EC1C015AD6E1C /* ScannerPresentationModifiers.swift */,
 				B064FBBBC798F261B1320467 /* ScanResult.swift */,
 				A77863CE8E996111DE3FD0AF /* ScanResultCard.swift */,
 			);
@@ -543,6 +546,7 @@
 				45951DCE304BB29E1E4636AD /* ScannerLabView.swift in Sources */,
 				0A003A8CA0C7A5B3967E586E /* ScannerPlaceholderView.swift in Sources */,
 				85033374C13847844EEA83A0 /* ScannerPreferencesStore.swift in Sources */,
+				4EE7BA148319D9D884A2D392 /* ScannerPresentationModifiers.swift in Sources */,
 				42F8C15BEA548A45A95AE82D /* SectionCard.swift in Sources */,
 				242BBC24606D08440C837235 /* SettingsView.swift in Sources */,
 				F10B4730F25A2DBECFBF5D42 /* ShipmentDetailView.swift in Sources */,

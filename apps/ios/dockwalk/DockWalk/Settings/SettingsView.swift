@@ -90,13 +90,17 @@ struct SettingsView: View {
                 } header: {
                     Text("Sync")
                 } footer: {
-                    if FeatureFlags.isReceivingEventAutoReplayPermitted {
-                        Text(
-                            FeatureFlags.syncBatchReplayEnabled
-                                ? "Replay uses POST /api/sync/events (batch) for receiving events and putaway task actions. Accepted and duplicate clear the queue; rejected task actions stay queued. Manual replay remains in Debug."
-                                : "Replays queued receiving events one at a time. Task actions require batch sync. Manual replay remains in Debug."
-                        )
-                        .font(DockWalkTheme.captionFont)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Auto-replay is for offline queue sync only — not the barcode scanner.")
+                            .font(DockWalkTheme.captionFont)
+                        if FeatureFlags.isReceivingEventAutoReplayPermitted {
+                            Text(
+                                FeatureFlags.syncBatchReplayEnabled
+                                    ? "Replay uses POST /api/sync/events (batch) for receiving events and putaway task actions. Accepted and duplicate clear the queue; rejected task actions stay queued. Manual replay remains in Debug."
+                                    : "Replays queued receiving events one at a time. Task actions require batch sync. Manual replay remains in Debug."
+                            )
+                            .font(DockWalkTheme.captionFont)
+                        }
                     }
                 }
 
@@ -105,6 +109,12 @@ struct SettingsView: View {
                     flagRow("Payments / POS", enabled: FeatureFlags.paymentsEnabled)
                     flagRow("Live scanner (compile)", enabled: FeatureFlags.liveScannerEnabled)
                     flagRow("Scanner on device", enabled: scannerPreferences.isScannerActive)
+                    if scannerPreferences.isScannerActive {
+                        Button("Turn off scanner on this device", role: .destructive) {
+                            scannerPreferences.setInternalScannerEnabled(false)
+                        }
+                        .font(DockWalkTheme.captionFont)
+                    }
                     flagRow("Offline sync", enabled: FeatureFlags.offlineSyncEnabled)
                     flagRow("Batch sync replay", enabled: FeatureFlags.syncBatchReplayEnabled)
                     flagRow("Debug panel", enabled: FeatureFlags.debugPanelEnabled)

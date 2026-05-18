@@ -3,6 +3,7 @@ import SwiftUI
 
 /// Scanner sandbox when `ScannerPreferencesStore.isScannerActive`. Not a production workflow.
 struct ScannerLabView: View {
+    @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @State private var permission: CameraPermissionState = .notDetermined
     @State private var lastScan: ScanResult?
     @State private var manualCode = ""
@@ -38,6 +39,7 @@ struct ScannerLabView: View {
         .onDisappear {
             stopCamera()
         }
+        .exitIfScannerInactive(scannerPreferences)
     }
 
     @ViewBuilder

@@ -25,6 +25,7 @@ struct ShippingHomeView: View {
             .sheet(isPresented: $showScanner) {
                 ScannerLabView()
             }
+            .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showScanner)
         }
     }
 

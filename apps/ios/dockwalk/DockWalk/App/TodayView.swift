@@ -30,6 +30,7 @@ struct TodayView: View {
             .sheet(isPresented: $showScanner) {
                 ScannerLabView()
             }
+            .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showScanner)
         }
     }
 

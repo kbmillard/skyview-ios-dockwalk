@@ -46,6 +46,7 @@ struct ReceivingView: View {
         .sheet(isPresented: $showScanner) {
             ScannerLabView()
         }
+        .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showScanner)
         .task(id: environment.configRevision) {
             await viewModel.load()
         }

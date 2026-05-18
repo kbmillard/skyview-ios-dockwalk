@@ -28,7 +28,7 @@ struct DebugPanelView: View {
                     Text("Scanner (internal QA)")
                 } footer: {
                     Text(
-                        "Shows Scanner Lab and scan buttons on this device only. Persists across app restarts until you turn it off or install a new TestFlight build (each build starts with scanner off). Other DockStockers are unaffected."
+                        "Shows Scanner Lab and scan buttons on this device only. Turn off here (or More → Turn off scanner) and leave Scanner Lab — scan UI closes automatically. Not the same as Auto-replay under Sync."
                     )
                     .font(DockWalkTheme.captionFont)
                 }

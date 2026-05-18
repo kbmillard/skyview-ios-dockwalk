@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct MainTabView: View {
+    @Environment(ScannerPreferencesStore.self) private var scannerPreferences
+
     var body: some View {
         TabView {
             TodayView()
@@ -29,6 +31,7 @@ struct MainTabView: View {
                 }
         }
         .tint(DockWalkTheme.accent)
+        .id(scannerPreferences.revision)
     }
 }
 

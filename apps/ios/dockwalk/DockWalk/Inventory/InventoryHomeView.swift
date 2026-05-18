@@ -25,6 +25,7 @@ struct InventoryHomeView: View {
             .sheet(isPresented: $showScanner) {
                 ScannerLabView()
             }
+            .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showScanner)
         }
     }
 

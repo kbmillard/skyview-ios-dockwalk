@@ -3,6 +3,7 @@ import SwiftUI
 /// Reusable scanner sheet; uses the same capture + manual path as Scanner Lab.
 struct BarcodeScannerSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(ScannerPreferencesStore.self) private var scannerPreferences
 
     let title: String
     let onScan: (ScanResult) -> Void
@@ -40,6 +41,7 @@ struct BarcodeScannerSheet: View {
             }
             .task { await refreshPermission() }
             .onDisappear { stopCamera() }
+            .exitIfScannerInactive(scannerPreferences)
         }
     }
 
