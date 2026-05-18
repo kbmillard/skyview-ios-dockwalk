@@ -124,7 +124,7 @@ Superseded by build **5**. IA/copy + Phase **1F** scanner (compile flag off).
 |------|--------|
 | Compile flag | `FeatureFlags.liveScannerEnabled` stays **`false`** |
 | Runtime toggle | Debug panel → **Enable scanner on this device** |
-| Persistence | `ScannerPreferencesStore` / `DockWalk.internalScannerEnabled` |
+| Persistence | `DockWalk.internalScannerEnabled` — survives restarts; **resets off** on each new `CFBundleVersion` (TestFlight build bump) |
 | Effective gate | `scannerPreferences.isScannerActive` (= compile **or** internal) |
 | More → Feature flags | Shows **Scanner on device** effective state |
 | TestFlight | **0.1.0 (5)** includes 1F.1; toggle still Debug-only |

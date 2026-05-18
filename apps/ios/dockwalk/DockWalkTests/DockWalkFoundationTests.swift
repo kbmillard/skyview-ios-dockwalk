@@ -936,6 +936,40 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertTrue(ScannerPreferencesStore.loadInternalScannerEnabled(using: defaults))
     }
 
+    func testInternalScannerResetsWhenAppBuildChanges() {
+        let suite = "DockWalkTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            XCTFail("Could not create test defaults suite")
+            return
+        }
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        defaults.set("4", forKey: "DockWalk.internalScannerScopedBuild")
+        defaults.set(true, forKey: "DockWalk.internalScannerEnabled")
+
+        ScannerPreferencesStore.applyBuildScopedResetIfNeeded(defaults: defaults, currentBuild: "5")
+        XCTAssertFalse(ScannerPreferencesStore.loadInternalScannerEnabled(using: defaults))
+
+        let store = ScannerPreferencesStore(defaults: defaults, bundleVersion: "5")
+        XCTAssertFalse(store.internalScannerEnabled)
+        XCTAssertFalse(store.isScannerActive)
+    }
+
+    func testInternalScannerPersistsWithinSameBuild() {
+        let suite = "DockWalkTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            XCTFail("Could not create test defaults suite")
+            return
+        }
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        defaults.set("5", forKey: "DockWalk.internalScannerScopedBuild")
+        defaults.set(true, forKey: "DockWalk.internalScannerEnabled")
+
+        ScannerPreferencesStore.applyBuildScopedResetIfNeeded(defaults: defaults, currentBuild: "5")
+        XCTAssertTrue(ScannerPreferencesStore.loadInternalScannerEnabled(using: defaults))
+    }
+
     func testInboundLineScanMatcherMatchesSKU() {
         let lines = [
             InboundLineItem(

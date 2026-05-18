@@ -7,6 +7,8 @@ final class ScannerPreferencesStore {
     static let shared = ScannerPreferencesStore()
 
     private static let internalScannerKey = "DockWalk.internalScannerEnabled"
+    /// When `CFBundleVersion` changes, internal scanner QA resets to **off** (TestFlight updates keep UserDefaults).
+    private static let scopedBuildKey = "DockWalk.internalScannerScopedBuild"
 
     private let defaults: UserDefaults
 
@@ -26,9 +28,21 @@ final class ScannerPreferencesStore {
         FeatureFlags.liveScannerEnabled || internalScannerEnabled
     }
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, bundleVersion: String? = nil) {
         self.defaults = defaults
+        let build = bundleVersion ?? (Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0")
+        Self.applyBuildScopedResetIfNeeded(defaults: defaults, currentBuild: build)
         self.internalScannerEnabled = Self.loadInternalScannerEnabled(using: defaults)
+    }
+
+    /// Resets internal scanner to off on first launch of a new app build (per device).
+    static func applyBuildScopedResetIfNeeded(
+        defaults: UserDefaults = .standard,
+        currentBuild: String = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
+    ) {
+        guard defaults.string(forKey: scopedBuildKey) != currentBuild else { return }
+        defaults.set(currentBuild, forKey: scopedBuildKey)
+        defaults.set(false, forKey: internalScannerKey)
     }
 
     static func loadInternalScannerEnabled(using defaults: UserDefaults = .standard) -> Bool {
