@@ -73,31 +73,24 @@ struct RootTabView: View {
     // MARK: - Custom Tab Bar
     
     private var customTabBar: some View {
-        ZStack {
-            // Tab bar background
-            VStack(spacing: 0) {
-                Divider()
-                    .frame(height: 0.5)
-                    .background(Tokens.Color.Divider.hairline)
-                
-                HStack(spacing: 0) {
-                    tabBarItem(for: .today)
-                    Spacer()
-                    Spacer() // Extra space for floating scan disc
-                    Spacer()
-                    tabBarItem(for: .me)
-                }
-                .padding(.horizontal, Tokens.Space.xl)
-                .frame(height: Tokens.TapTarget.minimum)
-                .background(Tokens.Color.Surface.card)
-            }
+        VStack(spacing: 0) {
+            // Floating scan disc above tab bar
+            floatingScanDisc
+                .offset(y: Tokens.TapTarget.scanDisc / 2 + Tokens.Space.xs)
             
-            // Floating scan disc (center, half-overlapping tab bar)
-            VStack {
+            // Tab bar
+            Divider()
+                .frame(height: 0.5)
+                .background(Tokens.Color.Divider.hairline)
+            
+            HStack(spacing: 0) {
+                tabBarItem(for: .today)
                 Spacer()
-                floatingScanDisc
-                    .offset(y: -Tokens.TapTarget.scanDisc / 2)
+                tabBarItem(for: .me)
             }
+            .padding(.horizontal, Tokens.Space.xl)
+            .frame(height: Tokens.TapTarget.minimum)
+            .background(Tokens.Color.Surface.card)
         }
         .ignoresSafeArea(.keyboard)
     }
