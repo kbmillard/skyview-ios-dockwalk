@@ -154,6 +154,15 @@ struct PutawayTaskDetailView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Actions")
                     .font(DockWalkTheme.headlineFont)
+                if detail.status == "in_progress" {
+                    Text("Already in progress — use Complete or Block (Assign/Start are only for pending or assigned tasks).")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                } else if detail.status == "assigned" {
+                    Text("Assigned — use Start or Block.")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                }
                 if scannerPreferences.isScannerActive {
                     PrimaryActionButton(title: "Scan label", systemImage: "barcode.viewfinder", style: .secondary) {
                         showLabelScanner = true
