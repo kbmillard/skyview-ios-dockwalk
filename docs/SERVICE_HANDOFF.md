@@ -1,6 +1,6 @@
 # DockWalk iOS — 
 
-**Last updated:** 2026-05-18 (TestFlight **0.1.0 (7)** uploaded — Phase **1G** + **1H** WMS shell)
+**Last updated:** 2026-05-18 (Phase **2** Ship & Inventory deep integration — on `main`)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -43,7 +43,7 @@
 
 - Validate with `**xcodebuild build`** or **archive** — do **not** run `xcodebuild test` unless Kyle asks.
 - Commit + push to `origin` when a coherent chunk is done (unless asked not to).
-- **Ship / Inventory** are operational foundation previews with intentional structure — full workflows & API integration still pending.
+- **Ship / Inventory** have full workflow structure with job cards and stable foundation data — live API integration & write operations still pending.
 
 **Paste block for a new chat**
 
@@ -76,7 +76,8 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | Phase **1F.1** runtime toggle                        | Builds **5+**; **6** resets toggle **off** on first launch of new build                             |
 | Phase **1G** operational shell                       | In build **7** — Putaway tab, Today command center, More = admin only                               |
 | Phase **1H** WMS shell buildout                      | In build **7** — Inventory & Ship feel real; Today improved; no backend changes                      |
-| Phase **1I** WMS command center (Phase 1)            | On `main` — Inbound workflow, dock doors, putaway queue, stable data behavior                        |
+| Phase **1I** WMS command center (Phase 1)            | Shipped on `main` (`0fc4a00`) — Inbound workflow, dock doors, putaway queue, stable data behavior   |
+| Phase **2** Ship & Inventory deep integration       | On `main` — Full workflow, job cards, scanner integration, Today summaries, stable foundation data  |
 
 
 **App Store Connect**
@@ -101,9 +102,144 @@ Bump `**CURRENT_PROJECT_VERSION**` / `CFBundleVersion` before each new TestFligh
 
 ---
 
-## Latest delivery — Phase 1I WMS command center rebuild (Phase 1) (2026-05-18)
+## Latest delivery — Phase 2: Ship & Inventory Deep Integration (2026-05-18)
 
-**Scope:** Today command center restructure only. **No** Ship/Inventory deep rebuild, auth, payments, Gemini, Supabase client, TestFlight upload, or backend changes. Phase 2 will continue Ship and Inventory integration.
+**Scope:** Ship and Inventory workflow expansion with dock-worker friendly UX. **No** auth, payments, Gemini, direct Supabase, task cancel, new backend routes, TestFlight upload, or version bump. Uses stable local foundation data. All existing flows (Receive, Putaway, offline queue) remain working.
+
+### Ship/Outbound deep integration
+
+**Full workflow model:**
+- `OutboundOrderStatus` expanded: `readyToPick`, `picking`, `picked`, `staged`, `loading`, `shipped`
+- Job cards now include: order number, customer, line count, carton count, priority (standard/urgent), ship date, assigned worker, door assignment
+- `OutboundOrder` model expanded with: `orderNumber`, `lineCount`, `priority`, `shipDate`, `assignedTo`
+- New `OrderPriority` enum with display styling
+- New `OutboundWorkflowGroup` for organizing orders by status
+
+**ShippingHomeView restructure:**
+- **Workflow summary** — ready to pick, picking, loading counts in unified card
+- **Ready to pick** — orders awaiting assignment, job card format
+- **Picking** — active picking + picked orders grouped
+- **Staged for loading** — orders staged at dock doors
+- **Loading now** — active loading operations
+- **Job cards** show: order #, customer, priority badge (urgent), line count, carton count, door, assigned worker, ship date
+- Scanner integration: toolbar button (top-right) when scanner enabled — feels accessible, not hidden
+- Foundation notice at bottom explaining stable local data, pending full write operations
+- **No fake writes** — all data from `OutboundViewModel` stub data (6 orders across all statuses)
+
+**OutboundViewModel expansion:**
+- Computed properties: `readyToPickOrders`, `pickingOrders`, `pickedOrders`, `stagedOrders`, `loadingOrders`, `shippedOrders`, `activeWorkOrders`
+- `workflowGroups` array for Today integration
+- Stub data includes realistic: order numbers (SO-####), priorities, ship dates, assignments
+
+### Inventory deep integration
+
+**InventoryHomeView restructure:**
+- **Inventory summary** — SKU count, total on-hand units, reserved units in unified card
+- **Quick actions** — location lookup as prominent card (not buried)
+- **Search inventory** — enhanced with result count chip
+- **On-hand items** — improved card layout with clearer on-hand/reserved/available breakdown
+- **Recent movement** — shows SKU transfers between locations
+- **Cycle count** — structured cycle count tasks display
+- Scanner integration: toolbar button (top-right) when scanner enabled — consistent with Ship
+- Foundation notice at bottom explaining stable local data
+- **No fake writes** — all data from stub `InventoryViewModel`
+
+**InventoryViewModel expansion:**
+- New computed properties: `totalOnHandUnits`, `totalReservedUnits`, `totalAvailableUnits`
+- Search result count for filtered items
+- Stub data unchanged (3 items, 2 movements, 2 cycle count tasks)
+
+### Today integration
+
+**Outbound section:**
+- Changed from placeholder text to actual summary card
+- Shows: ready to pick count, picking count, loading count
+- Tappable card navigates to Ship tab
+- Reflects real outbound state from dashboard
+
+**Inventory section:**
+- Changed from simple navigation link to summary card
+- Shows: SKU count, total on-hand units
+- Tappable card navigates to Inventory view
+- Reflects real inventory state from dashboard
+
+**TodayDashboardViewModel expansion:**
+- New properties: `readyToPickCount`, `pickingCount`, `loadingCount` (outbound)
+- New properties: `inventorySkuCount`, `inventoryTotalUnits` (inventory)
+- `loadFoundationSummaryData()` populates from `OutboundViewModel` and `InventoryViewModel` stub data
+- Data loads once on init, stable across tab switches
+
+### Scanner integration philosophy
+
+**Toolbar placement:**
+- Ship and Inventory now use toolbar button (top-right) instead of inline button
+- Feels "close at hand" like a camera — always visible when scanner enabled
+- Consistent positioning across all work surfaces
+- Still uses `FeatureFlags.liveScannerEnabled` (compile-time) + `ScannerPreferencesStore` (runtime toggle)
+- `dismissScannerSheetWhenInactive` modifier ensures scanner dismisses when toggle disabled
+
+**Scanner is not a feature to the worker** — it's a tool. The feature is "fewer steps" and "knowing what needs done next."
+
+### Stable data behavior
+
+- No API routes added: `.inventoryItems` and `.outboundOrders` endpoints defined in `APIEndpoint.swift` but not implemented in `APIClient.swift`
+- All Ship data: stable stub data from `OutboundViewModel` (6 orders)
+- All Inventory data: stable stub data from `InventoryViewModel` (3 items)
+- Today summaries: loaded once on init, no tab-switch mutations
+- No refresh storms, no accidental server state changes
+- Pull-to-refresh works normally for live data (appointments, tasks)
+
+### What stayed off
+
+- AI/Gemini inspection routes
+- Payments
+- Auth
+- Direct Supabase client calls
+- Task cancel feature
+- New backend routes (endpoints stubbed only)
+- Fake writes (no inventory decrement, no pick/stage/ship writes, no closeout)
+- Label/BOL generation
+- TestFlight upload
+- Version/build bump
+
+### Build validation
+
+```bash
+cd apps/ios/dockwalk
+xcodegen generate  # Succeeded
+xcodebuild -project DockWalk.xcodeproj -scheme DockWalk \
+  -destination 'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO
+# BUILD SUCCEEDED (4.9s)
+```
+
+### Files changed
+
+**New:**
+- None (all changes to existing files)
+
+**Modified:**
+- `DockWalk/Outbound/OutboundModels.swift` — expanded `OutboundOrderStatus` to 6 states, added `OrderPriority`, `OutboundWorkflowGroup`
+- `DockWalk/Outbound/OutboundViewModel.swift` — expanded with full workflow computed properties, `workflowGroups`, richer stub data (6 orders)
+- `DockWalk/Outbound/ShippingHomeView.swift` — complete rebuild: workflow summary, job cards, section-by-section workflow, toolbar scanner
+- `DockWalk/Inventory/InventoryViewModel.swift` — added `totalOnHandUnits`, `totalReservedUnits`, `totalAvailableUnits`
+- `DockWalk/Inventory/InventoryHomeView.swift` — restructured: inventory summary card, quick actions, enhanced search, toolbar scanner, foundation notice
+- `DockWalk/App/TodayDashboardViewModel.swift` — added outbound/inventory summary properties, `loadFoundationSummaryData()`
+- `DockWalk/App/TodayView.swift` — rebuilt outbound and inventory sections to show real summaries instead of placeholders
+- `docs/SERVICE_HANDOFF.md` — this update
+
+**Existing flows unchanged:**
+- Receive 1/custom qty — working
+- Putaway assign/start/block/complete — working
+- Offline task_action queue + batch replay — working
+- Activity log — working
+- Sync status — working
+- Scanner flag behavior (compile + runtime toggle) — working
+
+---
+
+## Phase 1I delivery — WMS command center rebuild (Phase 1) (2026-05-18)
+
+**Scope:** Today command center restructure only. **No** Ship/Inventory deep rebuild, auth, payments, Gemini, Supabase client, TestFlight upload, or backend changes. Phase 2 continued Ship and Inventory integration.
 
 ### WMS command center structure
 

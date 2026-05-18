@@ -11,6 +11,15 @@ final class TodayDashboardViewModel {
     private(set) var putawayGroups: [PutawayQueueGroup] = []
     private(set) var totalPutawayTasks: Int = 0
     
+    // Outbound summary (foundation data)
+    private(set) var readyToPickCount: Int = 0
+    private(set) var pickingCount: Int = 0
+    private(set) var loadingCount: Int = 0
+    
+    // Inventory summary (foundation data)
+    private(set) var inventorySkuCount: Int = 0
+    private(set) var inventoryTotalUnits: Int = 0
+    
     // Load state
     private(set) var loadPhase: LoadPhase = .idle
     private var hasLoadedOnce = false
@@ -19,6 +28,7 @@ final class TodayDashboardViewModel {
 
     init(environment: AppEnvironment = .shared) {
         self.environment = environment
+        loadFoundationSummaryData()
     }
 
     func refresh() async {
@@ -137,6 +147,21 @@ final class TodayDashboardViewModel {
             DockDoorStatus(id: "door-3", doorNumber: "Door 3", status: .open, assignedLoad: nil),
             DockDoorStatus(id: "door-4", doorNumber: "Door 4", status: .open, assignedLoad: nil),
         ]
+    }
+    
+    private func loadFoundationSummaryData() {
+        // Load stable outbound summary from foundation data
+        // This matches the stub data in OutboundViewModel
+        let outboundViewModel = OutboundViewModel()
+        readyToPickCount = outboundViewModel.readyToPickCount
+        pickingCount = outboundViewModel.pickingCount
+        loadingCount = outboundViewModel.activeLoadsCount
+        
+        // Load stable inventory summary from foundation data
+        // This matches the stub data in InventoryViewModel
+        let inventoryViewModel = InventoryViewModel()
+        inventorySkuCount = inventoryViewModel.items.count
+        inventoryTotalUnits = inventoryViewModel.totalOnHandUnits
     }
 
     private func userFacingError(_ error: Error) -> String {

@@ -276,15 +276,50 @@ struct TodayView: View {
                 }
             }
             
-            SectionCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Pick, stage, load, and closeout")
-                        .font(DockWalkTheme.bodyFont)
-                    Text("Outbound workflow structure ready — full integration in Phase 2.")
-                        .font(DockWalkTheme.captionFont)
-                        .foregroundStyle(DockWalkTheme.textSecondary)
+            Button {
+                selectedTab = .ship
+            } label: {
+                SectionCard {
+                    HStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Ready to pick")
+                                .font(DockWalkTheme.captionFont)
+                                .foregroundStyle(DockWalkTheme.textSecondary)
+                            Text("\(dashboard.readyToPickCount)")
+                                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                        }
+                        
+                        Divider()
+                            .frame(height: 40)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Picking")
+                                .font(DockWalkTheme.captionFont)
+                                .foregroundStyle(DockWalkTheme.textSecondary)
+                            Text("\(dashboard.pickingCount)")
+                                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                        }
+                        
+                        Divider()
+                            .frame(height: 40)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Loading")
+                                .font(DockWalkTheme.captionFont)
+                                .foregroundStyle(DockWalkTheme.textSecondary)
+                            Text("\(dashboard.loadingCount)")
+                                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                        }
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                    }
                 }
             }
+            .buttonStyle(.plain)
         }
     }
     
@@ -292,26 +327,45 @@ struct TodayView: View {
     
     private var inventorySection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Inventory")
-                .font(DockWalkTheme.headlineFont)
+            HStack {
+                Text("Inventory")
+                    .font(DockWalkTheme.headlineFont)
+                Spacer()
+                NavigationLink {
+                    InventoryHomeView()
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("Open Inventory")
+                            .font(DockWalkTheme.captionFont)
+                        Image(systemName: "chevron.right")
+                            .font(.caption2)
+                    }
+                    .foregroundStyle(DockWalkTheme.accent)
+                }
+            }
             
             NavigationLink {
                 InventoryHomeView()
             } label: {
                 SectionCard {
-                    HStack {
-                        Image(systemName: "shippingbox.fill")
-                            .font(.title2)
-                            .foregroundStyle(DockWalkTheme.accent)
-                            .frame(width: 32)
-                        
+                    HStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Location lookup & cycle count")
-                                .font(DockWalkTheme.headlineFont)
-                                .foregroundStyle(DockWalkTheme.textPrimary)
-                            Text("On-hand search, movement history, count structure.")
+                            Text("SKUs")
                                 .font(DockWalkTheme.captionFont)
                                 .foregroundStyle(DockWalkTheme.textSecondary)
+                            Text("\(dashboard.inventorySkuCount)")
+                                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                        }
+                        
+                        Divider()
+                            .frame(height: 40)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("On hand")
+                                .font(DockWalkTheme.captionFont)
+                                .foregroundStyle(DockWalkTheme.textSecondary)
+                            Text("\(dashboard.inventoryTotalUnits)")
+                                .font(.system(size: 24, weight: .semibold, design: .rounded))
                         }
                         
                         Spacer()

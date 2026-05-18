@@ -10,31 +10,36 @@ struct InventoryHomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
-                    FoundationAreaBanner(
-                        title: "Inventory foundation",
-                        detail: "Location lookup, on-hand search, and cycle count structure ready. Full inventory control and adjustments will expand in a later release."
-                    )
+                    inventorySummary
                     
-                    commandSection
+                    quickActions
                     
                     searchField
-                    
-                    if scannerPreferences.isScannerActive {
-                        PrimaryActionButton(title: "Scan Item", systemImage: "barcode.viewfinder") {
-                            showScanner = true
-                        }
-                    }
                     
                     itemsSection
                     
                     recentMovementSection
                     
                     cycleCountSection
+                    
+                    foundationNotice
                 }
                 .padding(DockWalkTheme.screenPadding)
             }
             .background(DockWalkTheme.background)
             .navigationTitle("Inventory")
+            .toolbar {
+                if scannerPreferences.isScannerActive {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showScanner = true
+                        } label: {
+                            Image(systemName: "barcode.viewfinder")
+                                .font(.body.weight(.semibold))
+                        }
+                    }
+                }
+            }
             .sheet(isPresented: $showScanner) {
                 NavigationStack {
                     ScannerLabView()
@@ -59,8 +64,49 @@ struct InventoryHomeView: View {
         }
     }
     
-    private var commandSection: some View {
-        VStack(spacing: 12) {
+    private var inventorySummary: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Inventory summary")
+                .font(DockWalkTheme.headlineFont)
+            
+            HStack(spacing: 12) {
+                SectionCard {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("SKUs on hand")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                        Text("\(viewModel.items.count)")
+                            .font(.system(size: 28, weight: .semibold, design: .rounded))
+                    }
+                }
+                SectionCard {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Total units")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                        Text("\(viewModel.totalOnHandUnits)")
+                            .font(.system(size: 28, weight: .semibold, design: .rounded))
+                    }
+                }
+                SectionCard {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Reserved")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                        Text("\(viewModel.totalReservedUnits)")
+                            .font(.system(size: 28, weight: .semibold, design: .rounded))
+                            .foregroundStyle(DockWalkTheme.warning)
+                    }
+                }
+            }
+        }
+    }
+    
+    private var quickActions: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Quick actions")
+                .font(DockWalkTheme.headlineFont)
+            
             HStack(spacing: 12) {
                 Button {
                     showLocationLookup = true
@@ -68,12 +114,13 @@ struct InventoryHomeView: View {
                     SectionCard {
                         HStack {
                             Image(systemName: "mappin.and.ellipse")
-                                .font(.title2)
+                                .font(.title3)
                                 .foregroundStyle(DockWalkTheme.accent)
+                                .frame(width: 28)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Location lookup")
-                                    .font(DockWalkTheme.headlineFont)
-                                Text("Find items by bin")
+                                    .font(DockWalkTheme.bodyFont)
+                                Text("Find by bin")
                                     .font(DockWalkTheme.captionFont)
                                     .foregroundStyle(DockWalkTheme.textSecondary)
                             }
@@ -108,8 +155,14 @@ struct InventoryHomeView: View {
 
     private var itemsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("On-hand items")
-                .font(DockWalkTheme.headlineFont)
+            HStack {
+                Text("On-hand items")
+                    .font(DockWalkTheme.headlineFont)
+                Spacer()
+                if !viewModel.searchQuery.isEmpty, !viewModel.filteredItems.isEmpty {
+                    StatusChip(label: "\(viewModel.filteredItems.count) found", tone: .info)
+                }
+            }
             
             if viewModel.filteredItems.isEmpty && !viewModel.searchQuery.isEmpty {
                 SectionCard {
@@ -126,50 +179,54 @@ struct InventoryHomeView: View {
                 }
             } else {
                 ForEach(viewModel.filteredItems) { item in
-                    SectionCard {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text(item.sku)
-                                    .font(.system(.body, design: .monospaced).weight(.semibold))
-                                Spacer()
-                                if item.reserved > 0 {
-                                    StatusChip(label: "Reserved", tone: .warning)
-                                }
-                            }
-                            Text(item.description)
-                                .font(DockWalkTheme.bodyFont)
-                                .foregroundStyle(DockWalkTheme.textPrimary)
-                            Label(item.location, systemImage: "mappin.and.ellipse")
+                    itemCard(item)
+                }
+            }
+        }
+    }
+    
+    private func itemCard(_ item: InventoryItem) -> some View {
+        SectionCard {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(item.sku)
+                        .font(.system(.body, design: .monospaced).weight(.semibold))
+                    Spacer()
+                    if item.reserved > 0 {
+                        StatusChip(label: "Reserved", tone: .warning)
+                    }
+                }
+                Text(item.description)
+                    .font(DockWalkTheme.bodyFont)
+                    .foregroundStyle(DockWalkTheme.textPrimary)
+                Label(item.location, systemImage: "mappin.and.ellipse")
+                    .font(DockWalkTheme.captionFont)
+                    .foregroundStyle(DockWalkTheme.textSecondary)
+                Divider()
+                HStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("On hand")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                        Text("\(item.onHand)")
+                            .font(.system(.body, design: .rounded).weight(.semibold))
+                    }
+                    if item.reserved > 0 {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Reserved")
                                 .font(DockWalkTheme.captionFont)
                                 .foregroundStyle(DockWalkTheme.textSecondary)
-                            Divider()
-                            HStack(spacing: 20) {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("On hand")
-                                        .font(DockWalkTheme.captionFont)
-                                        .foregroundStyle(DockWalkTheme.textSecondary)
-                                    Text("\(item.onHand)")
-                                        .font(.system(.body, design: .rounded).weight(.semibold))
-                                }
-                                if item.reserved > 0 {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Reserved")
-                                            .font(DockWalkTheme.captionFont)
-                                            .foregroundStyle(DockWalkTheme.textSecondary)
-                                        Text("\(item.reserved)")
-                                            .font(.system(.body, design: .rounded).weight(.semibold))
-                                            .foregroundStyle(DockWalkTheme.warning)
-                                    }
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Available")
-                                            .font(DockWalkTheme.captionFont)
-                                            .foregroundStyle(DockWalkTheme.textSecondary)
-                                        Text("\(item.onHand - item.reserved)")
-                                            .font(.system(.body, design: .rounded).weight(.semibold))
-                                            .foregroundStyle(DockWalkTheme.success)
-                                    }
-                                }
-                            }
+                            Text("\(item.reserved)")
+                                .font(.system(.body, design: .rounded).weight(.semibold))
+                                .foregroundStyle(DockWalkTheme.warning)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Available")
+                                .font(DockWalkTheme.captionFont)
+                                .foregroundStyle(DockWalkTheme.textSecondary)
+                            Text("\(item.onHand - item.reserved)")
+                                .font(.system(.body, design: .rounded).weight(.semibold))
+                                .foregroundStyle(DockWalkTheme.success)
                         }
                     }
                 }
@@ -181,37 +238,46 @@ struct InventoryHomeView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Recent movement")
                 .font(DockWalkTheme.headlineFont)
-            ForEach(viewModel.recentMovements) { movement in
-                NavigationLink {
-                    ActivityView()
-                } label: {
-                    SectionCard {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(movement.sku)
-                                    .font(.system(.body, design: .monospaced).weight(.semibold))
-                                HStack(spacing: 8) {
-                                    Label(movement.fromLocation, systemImage: "arrow.right")
-                                    Text(movement.toLocation)
-                                }
-                                .font(DockWalkTheme.captionFont)
-                                .foregroundStyle(DockWalkTheme.textSecondary)
-                                Text(movement.timestamp.formatted(date: .abbreviated, time: .shortened))
+            
+            if viewModel.recentMovements.isEmpty {
+                SectionCard {
+                    Text("No recent movement.")
+                        .font(DockWalkTheme.bodyFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                }
+            } else {
+                ForEach(viewModel.recentMovements) { movement in
+                    NavigationLink {
+                        ActivityView()
+                    } label: {
+                        SectionCard {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(movement.sku)
+                                        .font(.system(.body, design: .monospaced).weight(.semibold))
+                                    HStack(spacing: 8) {
+                                        Label(movement.fromLocation, systemImage: "arrow.right")
+                                        Text(movement.toLocation)
+                                    }
                                     .font(DockWalkTheme.captionFont)
                                     .foregroundStyle(DockWalkTheme.textSecondary)
+                                    Text(movement.timestamp.formatted(date: .abbreviated, time: .shortened))
+                                        .font(DockWalkTheme.captionFont)
+                                        .foregroundStyle(DockWalkTheme.textSecondary)
+                                }
+                                Spacer()
+                                Text("\(movement.quantity)")
+                                    .font(.system(.title3, design: .rounded).weight(.semibold))
+                                    .foregroundStyle(DockWalkTheme.textSecondary)
                             }
-                            Spacer()
-                            Text("\(movement.quantity)")
-                                .font(.system(.title3, design: .rounded).weight(.semibold))
-                                .foregroundStyle(DockWalkTheme.textSecondary)
                         }
                     }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
+                Text("Full movement history available in Activity audit trail.")
+                    .font(DockWalkTheme.captionFont)
+                    .foregroundStyle(DockWalkTheme.textSecondary)
             }
-            Text("Full movement history available in Activity audit trail.")
-                .font(DockWalkTheme.captionFont)
-                .foregroundStyle(DockWalkTheme.textSecondary)
         }
     }
 
@@ -219,6 +285,7 @@ struct InventoryHomeView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Cycle count")
                 .font(DockWalkTheme.headlineFont)
+            
             if viewModel.cycleCounts.isEmpty {
                 SectionCard {
                     VStack(alignment: .leading, spacing: 8) {
@@ -248,8 +315,25 @@ struct InventoryHomeView: View {
             }
         }
     }
+    
+    private var foundationNotice: some View {
+        SectionCard {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "info.circle.fill")
+                        .foregroundStyle(DockWalkTheme.accent)
+                    Text("Inventory foundation — stable local data")
+                        .font(DockWalkTheme.bodyFont.weight(.semibold))
+                }
+                Text("Location lookup, on-hand search, and cycle count structure ready. Full inventory control, adjustments, and live API integration will expand in a later release.")
+                    .font(DockWalkTheme.captionFont)
+                    .foregroundStyle(DockWalkTheme.textSecondary)
+            }
+        }
+    }
 }
 
 #Preview {
     InventoryHomeView()
+        .environment(ScannerPreferencesStore.shared)
 }

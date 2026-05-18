@@ -9,31 +9,34 @@ struct ShippingHomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
-                    FoundationAreaBanner(
-                        title: "Outbound foundation",
-                        detail: "Pick, stage, load, and closeout structure ready. Full outbound workflows and inventory decrement will expand in a later release."
-                    )
+                    workflowSummary
                     
-                    outboundSummary
-                    
-                    if scannerPreferences.isScannerActive {
-                        PrimaryActionButton(title: "Scan Load", systemImage: "barcode.viewfinder") {
-                            showScanner = true
-                        }
-                    }
-                    
-                    outboundCommandSection
-                    
-                    activeLoadsSection
+                    readyToPickSection
                     
                     pickingSection
                     
-                    closeoutSection
+                    stagedSection
+                    
+                    loadingSection
+                    
+                    foundationNotice
                 }
                 .padding(DockWalkTheme.screenPadding)
             }
             .background(DockWalkTheme.background)
             .navigationTitle("Ship")
+            .toolbar {
+                if scannerPreferences.isScannerActive {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showScanner = true
+                        } label: {
+                            Image(systemName: "barcode.viewfinder")
+                                .font(.body.weight(.semibold))
+                        }
+                    }
+                }
+            }
             .sheet(isPresented: $showScanner) {
                 NavigationStack {
                     ScannerLabView()
@@ -48,91 +51,138 @@ struct ShippingHomeView: View {
         }
     }
 
-    private var outboundSummary: some View {
-        HStack(spacing: 12) {
-            SectionCard {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Active loads")
-                        .font(DockWalkTheme.captionFont)
-                        .foregroundStyle(DockWalkTheme.textSecondary)
-                    Text("\(viewModel.activeLoadsCount)")
-                        .font(.system(size: 32, weight: .semibold, design: .rounded))
+    private var workflowSummary: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Outbound summary")
+                .font(DockWalkTheme.headlineFont)
+            
+            HStack(spacing: 12) {
+                SectionCard {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Ready to pick")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                        Text("\(viewModel.readyToPickCount)")
+                            .font(.system(size: 28, weight: .semibold, design: .rounded))
+                    }
                 }
-            }
-            SectionCard {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Staged")
-                        .font(DockWalkTheme.captionFont)
-                        .foregroundStyle(DockWalkTheme.textSecondary)
-                    Text("\(viewModel.stagedCount)")
-                        .font(.system(size: 32, weight: .semibold, design: .rounded))
+                SectionCard {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Picking")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                        Text("\(viewModel.pickingCount)")
+                            .font(.system(size: 28, weight: .semibold, design: .rounded))
+                    }
                 }
-            }
-            SectionCard {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Picking")
-                        .font(DockWalkTheme.captionFont)
-                        .foregroundStyle(DockWalkTheme.textSecondary)
-                    Text("\(viewModel.pickingCount)")
-                        .font(.system(size: 32, weight: .semibold, design: .rounded))
+                SectionCard {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Loading")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                        Text("\(viewModel.activeLoadsCount)")
+                            .font(.system(size: 28, weight: .semibold, design: .rounded))
+                    }
                 }
             }
         }
     }
     
-    private var outboundCommandSection: some View {
+    private var readyToPickSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Operations")
-                .font(DockWalkTheme.headlineFont)
+            HStack {
+                Text("Ready to pick")
+                    .font(DockWalkTheme.headlineFont)
+                Spacer()
+                if !viewModel.readyToPickOrders.isEmpty {
+                    StatusChip(label: "\(viewModel.readyToPickCount)", tone: .neutral)
+                }
+            }
             
-            HStack(spacing: 12) {
-                Button {
-                } label: {
-                    SectionCard {
-                        HStack {
-                            Image(systemName: "cart")
-                                .font(.title2)
-                                .foregroundStyle(DockWalkTheme.accent)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Pick")
-                                    .font(DockWalkTheme.headlineFont)
-                                Text("Start wave")
-                                    .font(DockWalkTheme.captionFont)
-                                    .foregroundStyle(DockWalkTheme.textSecondary)
-                            }
-                            Spacer()
-                        }
+            if viewModel.readyToPickOrders.isEmpty {
+                SectionCard {
+                    VStack(spacing: 8) {
+                        Image(systemName: "cart")
+                            .font(.largeTitle)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                        Text("No orders ready to pick")
+                            .font(DockWalkTheme.bodyFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
                 }
-                .buttonStyle(.plain)
-                
-                Button {
-                } label: {
-                    SectionCard {
-                        HStack {
-                            Image(systemName: "square.stack.3d.up")
-                                .font(.title2)
-                                .foregroundStyle(DockWalkTheme.accent)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Stage")
-                                    .font(DockWalkTheme.headlineFont)
-                                Text("Assign door")
-                                    .font(DockWalkTheme.captionFont)
-                                    .foregroundStyle(DockWalkTheme.textSecondary)
-                            }
-                            Spacer()
-                        }
-                    }
+            } else {
+                ForEach(viewModel.readyToPickOrders) { order in
+                    jobCard(order)
                 }
-                .buttonStyle(.plain)
             }
         }
     }
-
-    private var activeLoadsSection: some View {
+    
+    private var pickingSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Loading")
-                .font(DockWalkTheme.headlineFont)
+            HStack {
+                Text("Picking")
+                    .font(DockWalkTheme.headlineFont)
+                Spacer()
+                if viewModel.pickingCount > 0 {
+                    StatusChip(label: "\(viewModel.pickingCount)", tone: .info)
+                }
+            }
+            
+            if viewModel.pickingOrders.isEmpty && viewModel.pickedOrders.isEmpty {
+                SectionCard {
+                    Text("No orders in picking status.")
+                        .font(DockWalkTheme.bodyFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                }
+            } else {
+                ForEach(viewModel.pickingOrders) { order in
+                    jobCard(order)
+                }
+                ForEach(viewModel.pickedOrders) { order in
+                    jobCard(order)
+                }
+            }
+        }
+    }
+    
+    private var stagedSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Staged for loading")
+                    .font(DockWalkTheme.headlineFont)
+                Spacer()
+                if viewModel.stagedCount > 0 {
+                    StatusChip(label: "\(viewModel.stagedCount)", tone: .neutral)
+                }
+            }
+            
+            if viewModel.stagedOrders.isEmpty {
+                SectionCard {
+                    Text("No orders staged.")
+                        .font(DockWalkTheme.bodyFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                }
+            } else {
+                ForEach(viewModel.stagedOrders) { order in
+                    jobCard(order)
+                }
+            }
+        }
+    }
+    
+    private var loadingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Loading now")
+                    .font(DockWalkTheme.headlineFont)
+                Spacer()
+                if viewModel.activeLoadsCount > 0 {
+                    StatusChip(label: "\(viewModel.activeLoadsCount)", tone: .warning)
+                }
+            }
             
             if viewModel.loadingOrders.isEmpty {
                 SectionCard {
@@ -149,95 +199,74 @@ struct ShippingHomeView: View {
                 }
             } else {
                 ForEach(viewModel.loadingOrders) { order in
-                    SectionCard {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text(order.customer)
-                                    .font(DockWalkTheme.headlineFont)
-                                Spacer()
-                                StatusChip(label: order.status.displayName, tone: order.status.chipTone)
-                            }
-                            HStack(spacing: 16) {
-                                Label(order.door, systemImage: "door.right.hand.open")
-                                Label("\(order.cartonCount) cartons", systemImage: "shippingbox")
-                            }
-                            .font(DockWalkTheme.captionFont)
-                            .foregroundStyle(DockWalkTheme.textSecondary)
-                        }
-                    }
+                    jobCard(order)
                 }
             }
         }
     }
     
-    private var pickingSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Picking & staged")
-                .font(DockWalkTheme.headlineFont)
-            
-            if viewModel.pickingAndStagedOrders.isEmpty {
-                SectionCard {
-                    Text("No orders in picking or staged status.")
-                        .font(DockWalkTheme.bodyFont)
-                        .foregroundStyle(DockWalkTheme.textSecondary)
-                }
-            } else {
-                ForEach(viewModel.pickingAndStagedOrders) { order in
-                    SectionCard {
-                        HStack(alignment: .top) {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(order.customer)
-                                    .font(DockWalkTheme.headlineFont)
-                                if !order.door.isEmpty {
-                                    Label(order.door, systemImage: "door.right.hand.open")
-                                }
-                                Label("\(order.cartonCount) cartons", systemImage: "shippingbox")
+    private func jobCard(_ order: OutboundOrder) -> some View {
+        SectionCard {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 8) {
+                            Text(order.orderNumber)
+                                .font(.system(.body, design: .monospaced).weight(.semibold))
+                            if order.priority == .urgent {
+                                StatusChip(label: "Urgent", tone: .warning)
                             }
-                            .font(DockWalkTheme.captionFont)
-                            .foregroundStyle(DockWalkTheme.textSecondary)
-                            Spacer()
-                            StatusChip(label: order.status.displayName, tone: order.status.chipTone)
                         }
+                        Text(order.customer)
+                            .font(DockWalkTheme.headlineFont)
                     }
+                    Spacer()
+                    StatusChip(label: order.status.displayName, tone: order.status.chipTone)
+                }
+                
+                HStack(spacing: 16) {
+                    Label("\(order.lineCount) lines", systemImage: "list.bullet")
+                    Label("\(order.cartonCount) cartons", systemImage: "shippingbox")
+                    if !order.door.isEmpty {
+                        Label(order.door, systemImage: "door.right.hand.open")
+                    }
+                }
+                .font(DockWalkTheme.captionFont)
+                .foregroundStyle(DockWalkTheme.textSecondary)
+                
+                if let assignedTo = order.assignedTo {
+                    HStack {
+                        Image(systemName: "person.fill")
+                        Text(assignedTo)
+                    }
+                    .font(DockWalkTheme.captionFont)
+                    .foregroundStyle(DockWalkTheme.accent)
+                }
+                
+                if let shipDate = order.shipDate {
+                    HStack {
+                        Image(systemName: "calendar")
+                        Text("Ship: \(shipDate.formatted(date: .abbreviated, time: .omitted))")
+                    }
+                    .font(DockWalkTheme.captionFont)
+                    .foregroundStyle(DockWalkTheme.textSecondary)
                 }
             }
         }
     }
-
-    private var closeoutSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Closeout")
-                .font(DockWalkTheme.headlineFont)
-            
-            if viewModel.readyToCloseOrders.isEmpty {
-                SectionCard {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("No loads ready for closeout")
-                            .font(DockWalkTheme.bodyFont)
-                        Text("Loads ready for trailer verification and BOL sign-off will appear here.")
-                            .font(DockWalkTheme.captionFont)
-                            .foregroundStyle(DockWalkTheme.textSecondary)
-                    }
+    
+    private var foundationNotice: some View {
+        SectionCard {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "info.circle.fill")
+                        .foregroundStyle(DockWalkTheme.accent)
+                    Text("Outbound foundation — stable local data")
+                        .font(DockWalkTheme.bodyFont.weight(.semibold))
                 }
-            } else {
-                ForEach(viewModel.readyToCloseOrders) { order in
-                    SectionCard {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(order.customer)
-                                    .font(DockWalkTheme.headlineFont)
-                                HStack(spacing: 16) {
-                                    Label(order.door, systemImage: "door.right.hand.open")
-                                    Label("\(order.cartonCount) cartons", systemImage: "shippingbox")
-                                }
-                                .font(DockWalkTheme.captionFont)
-                                .foregroundStyle(DockWalkTheme.textSecondary)
-                            }
-                            Spacer()
-                            StatusChip(label: order.status.displayName, tone: order.status.chipTone)
-                        }
-                    }
-                }
+                Text("Pick, stage, load workflow structure ready. Full outbound write operations, inventory decrement, and label/BOL generation will expand in a later release.")
+                    .font(DockWalkTheme.captionFont)
+                    .foregroundStyle(DockWalkTheme.textSecondary)
             }
         }
     }
@@ -245,4 +274,5 @@ struct ShippingHomeView: View {
 
 #Preview {
     ShippingHomeView()
+        .environment(ScannerPreferencesStore.shared)
 }

@@ -23,6 +23,18 @@ final class InventoryViewModel {
                 || $0.location.lowercased().contains(query)
         }
     }
+    
+    var totalOnHandUnits: Int {
+        items.reduce(0) { $0 + $1.onHand }
+    }
+    
+    var totalReservedUnits: Int {
+        items.reduce(0) { $0 + $1.reserved }
+    }
+    
+    var totalAvailableUnits: Int {
+        totalOnHandUnits - totalReservedUnits
+    }
 
     private func loadStubData() {
         items = [
