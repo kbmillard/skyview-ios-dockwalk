@@ -1,6 +1,6 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-17 (Phase **1F** scanner spike + IA/copy `c8e53f4`; TestFlight **0.1.0 (3)** current tester build)
+**Last updated:** 2026-05-17 (TestFlight **0.1.0 (4)** uploaded — IA/copy `c8e53f4` + scanner `ce4dd48`, scanner **off** by default)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -44,7 +44,7 @@
 **Paste block for a new chat**
 
 ```text
-DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Putaway 1D/1E on TestFlight 0.1.0 (3). Scanner: liveScannerEnabled default OFF; Scanner Lab on main when ON. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. TestFlight 0.1.0 (4) current; scanner on main but liveScannerEnabled OFF for testers. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
 ```
 
 ---
@@ -59,11 +59,12 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | App icon 1024×1024 | **Shipped** (`dockwalkios.png` → `AppIcon.appiconset`) |
 | TestFlight **0.1.0 (1)** | Superseded by build **2** (still installable until expired) |
 | TestFlight **0.1.0 (2)** | Superseded by build **3** (plist-only hygiene) |
-| TestFlight **0.1.0 (3)** | **Uploaded** 2026-05-17 — Phase **1D** + **1E** (putaway writes + offline task-action replay) |
-| Export compliance | **`ITSAppUsesNonExemptEncryption = false`** in app `Info.plist` (verified in archive build 3) |
-| Device QA | Build **3** smoke **passed** (online/offline putaway, receive, activity, sync) |
-| IA/copy cleanup (post–build 3) | **Shipped** (`c8e53f4`) — one Putaway path, accurate copy |
-| Phase **1F** scanner spike | **Shipped** on `main` — AVFoundation, flag-gated, default **off** |
+| TestFlight **0.1.0 (3)** | Superseded by build **4** — Phase **1D** + **1E**; smoke **passed** |
+| TestFlight **0.1.0 (4)** | **Uploaded** 2026-05-17 — IA/copy + Phase **1F** scanner (hidden); stable **1D/1E** |
+| Export compliance | **`ITSAppUsesNonExemptEncryption = false`** in app `Info.plist` (build **4** archive) |
+| Device QA | Build **3** smoke **passed**; build **4** smoke pending after Connect processing |
+| IA/copy cleanup | In build **4** (`c8e53f4`) — one Putaway path, accurate copy |
+| Phase **1F** scanner spike | In build **4** (`ce4dd48`) — AVFoundation; **`liveScannerEnabled = false`** for testers |
 
 **App Store Connect**
 
@@ -87,9 +88,30 @@ Bump **`CURRENT_PROJECT_VERSION`** / `CFBundleVersion` before each new TestFligh
 
 ---
 
-## Latest delivery — Phase 1F scanner spike (2026-05-17)
+## Latest delivery — TestFlight 0.1.0 (4) (2026-05-17)
 
-**Scope:** Native barcode foundation only. **No** Gemini, OCR cloud, image upload, payments, auth, Supabase client writes, or new Railway routes. **No** TestFlight upload (build **3** remains current for DockStockers until build **4**).
+**Scope:** Internal TestFlight only. Packages **IA/copy** (`c8e53f4`) + **Phase 1F scanner** (`ce4dd48`) on top of stable **1D/1E**. **No** new product features beyond version bump. Scanner **hidden** for DockStockers (`liveScannerEnabled = false`).
+
+| Item | Detail |
+|------|--------|
+| Marketing version | **0.1.0** (unchanged) |
+| Build | **4** (`CURRENT_PROJECT_VERSION` + `CFBundleVersion`) |
+| Bundle ID | `io.skyprairie.dockwalk` |
+| Scanner flag | `liveScannerEnabled` **false** — no Scanner Lab, no scan buttons in tester build |
+| Camera plist | `NSCameraUsageDescription` present (for future flag-on QA) |
+| Export compliance | `ITSAppUsesNonExemptEncryption = false` |
+| Archive | **ARCHIVE SUCCEEDED** |
+| Export/upload | **EXPORT SUCCEEDED** — Upload succeeded (App Store Connect processing) |
+
+**Still OFF:** AI/Gemini, OCR cloud, image upload, payments, auth, direct Supabase, task cancel.
+
+**Next decision:** focused scanner QA build with flag **ON**, or runtime internal scanner toggle — **not** deeper workflow integration until chosen.
+
+---
+
+## Phase 1F scanner spike (reference)
+
+**Scope:** Native barcode foundation only. **No** Gemini, OCR cloud, image upload, payments, auth, Supabase client writes, or new Railway routes.
 
 | Item | Detail |
 |------|--------|
@@ -121,7 +143,7 @@ Bump **`CURRENT_PROJECT_VERSION`** / `CFBundleVersion` before each new TestFligh
 | Putaway copy | Accurate online + offline queue messaging (list + task detail) |
 | Sync empty state | **No queued actions.** when queue is empty |
 
-**Next product build:** Phase **1F** scanner spike (feature flag).
+**Shipped in TestFlight build 4.**
 
 ---
 
@@ -304,8 +326,9 @@ Inbound lines, receiving POST, offline queue, audit list, Railway QA defaults.
 
 | Priority | Work |
 |----------|------|
-| P1 | TestFlight **0.1.0 (4)** — ship 1F scanner + IA/copy (`liveScannerEnabled` can stay off for testers) |
-| P2 | **1F.1** — deeper Receive/Putaway scanner workflow or runtime feature toggle |
+| P1 | Build **4** smoke on DockStockers after Connect processing |
+| P2 | Scanner QA — rebuild with `liveScannerEnabled = true` **or** runtime internal toggle |
+| P3 | **1F.1** — deeper Receive/Putaway scanner workflow (after QA) |
 | P4 | Auth / mobile session |
 | P5 | Task cancel when API adds route |
 
