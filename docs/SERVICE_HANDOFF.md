@@ -1,6 +1,6 @@
 # DockWalk iOS — 
 
-**Last updated:** 2026-05-18 (Phase **2** Ship & Inventory deep integration — on `main`)
+**Last updated:** 2026-05-18 (TestFlight **0.1.0 (7)** uploaded — Phase **1G+1H+1I+2** complete WMS shell)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -68,7 +68,7 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | TestFlight **0.1.0 (4)**                             | Superseded by build **5**                                                                           |
 | TestFlight **0.1.0 (5)**                             | Superseded by build **6**                                                                           |
 | TestFlight **0.1.0 (6)**                             | Superseded by build **7**                                                                           |
-| TestFlight **0.1.0 (7)**                             | **Uploaded** 2026-05-18 — Phase **1G** + **1H** WMS shell (`5c06010`)                               |
+| TestFlight **0.1.0 (7)**                             | **Uploaded** 2026-05-18 — Phase **1G+1H+1I+2** complete WMS shell (`c9a84c2`)                       |
 | Export compliance                                    | `**ITSAppUsesNonExemptEncryption = false`** (build **7** archive)                                   |
 | Device QA                                            | Build **3** + **6** smoke **passed** (Receive, Putaway complete/block, Activity, Sync; scanner off) |
 | IA/copy cleanup                                      | In builds **4+** (`c8e53f4`)                                                                        |
@@ -76,8 +76,8 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | Phase **1F.1** runtime toggle                        | Builds **5+**; **6** resets toggle **off** on first launch of new build                             |
 | Phase **1G** operational shell                       | In build **7** — Putaway tab, Today command center, More = admin only                               |
 | Phase **1H** WMS shell buildout                      | In build **7** — Inventory & Ship feel real; Today improved; no backend changes                      |
-| Phase **1I** WMS command center (Phase 1)            | Shipped on `main` (`0fc4a00`) — Inbound workflow, dock doors, putaway queue, stable data behavior   |
-| Phase **2** Ship & Inventory deep integration       | On `main` — Full workflow, job cards, scanner integration, Today summaries, stable foundation data  |
+| Phase **1I** WMS command center (Phase 1)            | In build **7** (`0fc4a00`) — Inbound workflow, dock doors, putaway queue, stable data behavior      |
+| Phase **2** Ship & Inventory deep integration       | In build **7** (`c9a84c2`) — Full workflow, job cards, scanner integration, Today summaries         |
 
 
 **App Store Connect**
