@@ -11,7 +11,7 @@ struct DockWalkApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainTabView()
+            RootTabView()
                 .environment(environment)
                 .environment(syncStore)
                 .environment(syncPreferences)

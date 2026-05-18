@@ -76,6 +76,16 @@ enum SyncBatchEventRecord: Encodable, Equatable {
         }
     }
 
+    /// Canonical type string for this event, matching encoding keys
+    var type: String {
+        switch self {
+        case .receiving:
+            return Self.receivingEventType
+        case .taskAction:
+            return Self.taskActionEventType
+        }
+    }
+
     private enum CodingKeys: String, CodingKey {
         case type
         case eventType = "event_type"
@@ -185,3 +195,4 @@ struct SyncBatchResponse: Decodable, Equatable {
     let results: [SyncBatchResultItem]
     let summary: SyncBatchSummary
 }
+
