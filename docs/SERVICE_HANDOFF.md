@@ -1,6 +1,6 @@
 # DockWalk iOS — service handoff
 
-**Last updated:** 2026-05-17 (TestFlight **0.1.0 (5)** uploaded — 1F.1 Debug scanner toggle; compile flag still **off**)
+**Last updated:** 2026-05-17 (TestFlight **0.1.0 (6)** uploaded — scanner-toggle reset on new build; `11efe6c`)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -44,7 +44,7 @@
 **Paste block for a new chat**
 
 ```text
-DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. TestFlight 0.1.0 (5); scanner hidden by default — Debug → Enable scanner on this device for QA. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. TestFlight 0.1.0 (6); scanner OFF each new build; Debug toggle for per-device QA only. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
 ```
 
 ---
@@ -61,12 +61,13 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | TestFlight **0.1.0 (2)** | Superseded by build **3** (plist-only hygiene) |
 | TestFlight **0.1.0 (3)** | Superseded by build **4** — Phase **1D** + **1E**; smoke **passed** |
 | TestFlight **0.1.0 (4)** | Superseded by build **5** |
-| TestFlight **0.1.0 (5)** | **Uploaded** 2026-05-17 — build **4** + Phase **1F.1** Debug scanner toggle (`c5705ad`) |
-| Export compliance | **`ITSAppUsesNonExemptEncryption = false`** (build **5** archive) |
-| Device QA | Build **3** smoke **passed**; build **4**/**5** smoke after Connect processing |
+| TestFlight **0.1.0 (5)** | Superseded by build **6** |
+| TestFlight **0.1.0 (6)** | **Uploaded** 2026-05-17 — scanner-toggle reset on new `CFBundleVersion` (`11efe6c`) |
+| Export compliance | **`ITSAppUsesNonExemptEncryption = false`** (build **6** archive) |
+| Device QA | Build **3** smoke **passed**; build **6** smoke after Connect processing |
 | IA/copy cleanup | In builds **4+** (`c8e53f4`) |
 | Phase **1F** scanner | In builds **4+** (`ce4dd48`); compile flag **off** |
-| Phase **1F.1** runtime toggle | In build **5** — Debug → **Enable scanner on this device** |
+| Phase **1F.1** runtime toggle | Builds **5+**; **6** resets toggle **off** on first launch of new build |
 
 **App Store Connect**
 
@@ -90,31 +91,33 @@ Bump **`CURRENT_PROJECT_VERSION`** / `CFBundleVersion` before each new TestFligh
 
 ---
 
-## Latest delivery — TestFlight 0.1.0 (5) (2026-05-17)
+## Latest delivery — TestFlight 0.1.0 (6) (2026-05-17)
 
-**Scope:** Internal TestFlight. Everything in build **4** plus **Phase 1F.1** (`c5705ad`) runtime scanner toggle. Scanner **hidden by default** for DockStockers; Kyle can enable per device in Debug without a rebuild.
+**Scope:** Scanner-toggle **safety / hygiene** release only. Includes **`11efe6c`**: on first launch of a new `CFBundleVersion`, internal scanner toggle resets **off** (fixes build **5** carrying `UserDefaults` across TestFlight update). **No** new product features, service changes, or scanner workflow expansion.
 
 | Item | Detail |
 |------|--------|
 | Marketing version | **0.1.0** (unchanged) |
-| Build | **5** |
+| Build | **6** |
 | Bundle ID | `io.skyprairie.dockwalk` |
 | Compile scanner flag | `liveScannerEnabled` **false** |
-| Runtime scanner QA | More → **Open debug panel** → **Enable scanner on this device** |
+| Default for testers | Scanner **hidden** (no Scanner Lab / scan buttons) |
+| Per-device QA | More → **Open debug panel** → **Enable scanner on this device** |
+| Toggle persistence | **Within same build** only; **new build → off** on first launch |
 | Camera plist | `NSCameraUsageDescription` present |
 | Export compliance | `ITSAppUsesNonExemptEncryption = false` |
 | Archive | **ARCHIVE SUCCEEDED** |
 | Export/upload | **EXPORT SUCCEEDED** — Upload succeeded (processing) |
 
-**Still OFF:** AI/Gemini, OCR cloud, image upload, payments, auth, direct Supabase, task cancel.
+**Still OFF:** AI/Gemini, OCR cloud, image upload, payments, auth, direct Supabase, task cancel. No backend/service repo edits.
 
-**Device scanner QA confirmed:** Scanner Lab camera + manual entry on Kyle’s device (Xcode/`main`); build **5** ships same toggle to TestFlight.
+**Why build 6:** Build **5** correctly persisted Debug scanner toggle across TestFlight update; build **6** ensures every new build starts with scanner off until explicitly re-enabled in Debug.
 
 ---
 
-## TestFlight 0.1.0 (4) (2026-05-17)
+## TestFlight 0.1.0 (5) (2026-05-17)
 
-Superseded by build **5**. IA/copy + Phase **1F** scanner (compile flag off).
+Superseded by build **6**. Phase **1F.1** Debug toggle; toggle could persist across update from prior QA.
 
 ---
 
@@ -127,7 +130,7 @@ Superseded by build **5**. IA/copy + Phase **1F** scanner (compile flag off).
 | Persistence | `DockWalk.internalScannerEnabled` — survives restarts; **resets off** on each new `CFBundleVersion` (TestFlight build bump) |
 | Effective gate | `scannerPreferences.isScannerActive` (= compile **or** internal) |
 | More → Feature flags | Shows **Scanner on device** effective state |
-| TestFlight | **0.1.0 (5)** includes 1F.1; toggle still Debug-only |
+| TestFlight | **0.1.0 (6)** — toggle resets off on new build; Debug-only enable |
 
 **Do not** deepen Receive/Putaway scanner workflow until QA passes on device camera.
 
@@ -350,8 +353,8 @@ Inbound lines, receiving POST, offline queue, audit list, Railway QA defaults.
 
 | Priority | Work |
 |----------|------|
-| P1 | Enable build **5** on DockStockers; smoke stable flows (scanner hidden by default) |
-| P2 | Scanner device QA via Debug toggle on build **5** |
+| P1 | Enable build **6** on DockStockers; smoke stable flows (scanner off after update) |
+| P2 | Scanner device QA via Debug toggle on build **6** |
 | P3 | Deeper Receive/Putaway scanner workflow (after camera QA) |
 | P4 | Auth / mobile session |
 | P5 | Task cancel when API adds route |
