@@ -121,6 +121,11 @@ struct SettingsView: View {
                     NavigationLink("Putaway tasks") {
                         PutawayTasksView()
                     }
+                    if FeatureFlags.liveScannerEnabled {
+                        NavigationLink("Scanner Lab") {
+                            ScannerLabView()
+                        }
+                    }
                     NavigationLink("Exceptions") { ExceptionsHomeView() }
                     NavigationLink("Inspection (stub)") { InspectionStubView() }
                 }

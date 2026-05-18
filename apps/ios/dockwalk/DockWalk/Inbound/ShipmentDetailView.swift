@@ -6,6 +6,9 @@ struct ShipmentDetailView: View {
     @Bindable var viewModel: ShipmentDetailViewModel
     @State private var showActivity = false
     @State private var showPutawayTasks = false
+    @State private var showLineScanner = false
+    @State private var scanLineMessage: String?
+    @State private var scanMatchedLineId: String?
 
     init(shipment: InboundShipmentItem, appointmentId: String?, environment: AppEnvironment = .shared) {
         viewModel = ShipmentDetailViewModel(
@@ -42,6 +45,17 @@ struct ShipmentDetailView: View {
         }
         .navigationDestination(isPresented: $showPutawayTasks) {
             PutawayTasksView(inboundShipmentId: viewModel.shipment.id)
+        }
+        .sheet(isPresented: $showLineScanner) {
+            BarcodeScannerSheet(title: "Scan line") { result in
+                if let line = InboundLineScanMatcher.match(code: result.value, in: viewModel.lines) {
+                    scanMatchedLineId = line.id
+                    scanLineMessage = "Matched \(line.sku). Confirm Receive 1 below."
+                } else {
+                    scanMatchedLineId = nil
+                    scanLineMessage = "No matching line found for \"\(result.value)\"."
+                }
+            }
         }
     }
 
@@ -80,6 +94,35 @@ struct ShipmentDetailView: View {
             .disabled(viewModel.isSubmitting || viewModel.loadPhase != .loaded)
 
             submitResultBanner
+
+            if FeatureFlags.liveScannerEnabled {
+                PrimaryActionButton(title: "Scan line", systemImage: "barcode.viewfinder", style: .secondary) {
+                    scanLineMessage = nil
+                    scanMatchedLineId = nil
+                    showLineScanner = true
+                }
+                .disabled(viewModel.loadPhase != .loaded)
+
+                if let scanLineMessage {
+                    Text(scanLineMessage)
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(scanMatchedLineId == nil ? DockWalkTheme.danger : DockWalkTheme.textSecondary)
+                }
+
+                if let lineId = scanMatchedLineId,
+                   let line = viewModel.lines.first(where: { $0.id == lineId }) {
+                    PrimaryActionButton(
+                        title: viewModel.isSubmitting && viewModel.receivingLineId == lineId
+                            ? "Receiving…"
+                            : "Receive 1 × \(line.sku)",
+                        systemImage: "checkmark.circle.fill",
+                        style: .secondary
+                    ) {
+                        Task { await viewModel.receiveOne(lineId: lineId) }
+                    }
+                    .disabled(viewModel.isSubmitting || line.remainingQty <= 0)
+                }
+            }
 
             if syncStore.pendingReceivingEventCount > 0 {
                 Text("\(syncStore.pendingReceivingEventCount) receiving event(s) queued offline.")

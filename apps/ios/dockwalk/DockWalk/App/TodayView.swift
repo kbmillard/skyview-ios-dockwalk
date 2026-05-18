@@ -27,7 +27,7 @@ struct TodayView: View {
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showScanner) {
-                ScannerPlaceholderView()
+                ScannerLabView()
             }
         }
     }
@@ -97,8 +97,10 @@ struct TodayView: View {
                 selectedTab = .receiving
             }
 
-            PrimaryActionButton(title: "Scan Item", systemImage: "barcode.viewfinder", style: .secondary) {
-                showScanner = true
+            if FeatureFlags.liveScannerEnabled {
+                PrimaryActionButton(title: "Scan Item", systemImage: "barcode.viewfinder", style: .secondary) {
+                    showScanner = true
+                }
             }
 
             PrimaryActionButton(title: "Ship Order", systemImage: "truck.box.fill", style: .secondary) {

@@ -13,6 +13,8 @@ struct PutawayTaskDetailView: View {
     @State private var blockReasonText = PutawayBlockReasonOption.locationBlocked.defaultReasonText
     @State private var showCompleteConfirm = false
     @State private var completeQuantityText = "1"
+    @State private var showLabelScanner = false
+    @State private var scannedLabelContext: String?
 
     var body: some View {
         NavigationStack {
@@ -54,6 +56,11 @@ struct PutawayTaskDetailView: View {
                 ensureViewModel()
                 await viewModel?.load()
             }
+            .sheet(isPresented: $showLabelScanner) {
+                BarcodeScannerSheet(title: "Scan label") { result in
+                    scannedLabelContext = "\(result.symbology): \(result.value)"
+                }
+            }
         }
     }
 
@@ -77,6 +84,10 @@ struct PutawayTaskDetailView: View {
 
                 if let message = viewModel.actionBannerMessage {
                     StatusChip(label: message, tone: viewModel.actionBannerTone.statusChipTone)
+                }
+
+                if let scannedLabelContext {
+                    StatusChip(label: "Scanned: \(scannedLabelContext)", tone: .neutral)
                 }
 
                 labeledSection("SKU") {
@@ -142,6 +153,11 @@ struct PutawayTaskDetailView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Actions")
                     .font(DockWalkTheme.headlineFont)
+                if FeatureFlags.liveScannerEnabled {
+                    PrimaryActionButton(title: "Scan label", systemImage: "barcode.viewfinder", style: .secondary) {
+                        showLabelScanner = true
+                    }
+                }
                 ForEach(actions) { action in
                     actionButton(viewModel, action: action, taskStatus: detail.status)
                 }

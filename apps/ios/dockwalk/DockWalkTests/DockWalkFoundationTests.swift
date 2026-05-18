@@ -903,4 +903,40 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertEqual(OfflineSyncStore.taskActionKind, "task_action")
         XCTAssertEqual(OfflineSyncStore.receivingEventKind, "inbound.receiving_event")
     }
+
+    func testLiveScannerFeatureFlagDefaultOff() {
+        XCTAssertFalse(FeatureFlags.liveScannerEnabled)
+    }
+
+    func testInboundLineScanMatcherMatchesSKU() {
+        let lines = [
+            InboundLineItem(
+                id: "l1",
+                sku: "SKU-DEV-001",
+                description: "A",
+                expectedQty: 10,
+                receivedQty: 0,
+                quantityDamaged: 0,
+                receiveNow: 0,
+                uom: "ea",
+                status: "expected"
+            ),
+        ]
+        XCTAssertEqual(InboundLineScanMatcher.match(code: "sku-dev-001", in: lines)?.id, "l1")
+        XCTAssertNil(InboundLineScanMatcher.match(code: "OTHER", in: lines))
+    }
+
+    func testBarcodeScanDeduplicatorSuppressesDuplicates() {
+        var dedup = BarcodeScanDeduplicator(cooldown: 60)
+        XCTAssertTrue(dedup.shouldAccept(value: "ABC"))
+        XCTAssertFalse(dedup.shouldAccept(value: "ABC"))
+        dedup.reset()
+        XCTAssertTrue(dedup.shouldAccept(value: "ABC"))
+    }
+
+    func testManualScanUsesSameResultShape() {
+        let manual = ScanResult(symbology: "Manual", value: "TEST-123")
+        XCTAssertEqual(manual.symbology, "Manual")
+        XCTAssertEqual(manual.value, "TEST-123")
+    }
 }

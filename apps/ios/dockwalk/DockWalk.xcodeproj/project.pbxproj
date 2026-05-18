@@ -17,10 +17,14 @@
 		2223EC1464237444A8B678A8 /* PutawayTaskDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39FEA6B47A344516D5F3C8C2 /* PutawayTaskDetailViewModel.swift */; };
 		2255B9B737E4B13A198D0B47 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAEEAA7D36A3B4923A45D2FB /* MainTabView.swift */; };
 		242BBC24606D08440C837235 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106CB13D9A54E191EE509B92 /* SettingsView.swift */; };
+		2A6989473A3C577001D27458 /* BarcodeSymbology.swift in Sources */ = {isa = PBXBuildFile; fileRef = 484F16FEE152DD17F53B4BDE /* BarcodeSymbology.swift */; };
+		2CABD723EE399273525196EA /* BarcodeCaptureCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E70B89B914B52C92BFE0B479 /* BarcodeCaptureCoordinator.swift */; };
 		2E7C3112E616383BCF384E64 /* DockWalkTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 586D4D1AE3B59B6AB13CA45F /* DockWalkTheme.swift */; };
 		306D712854E5D0902B6758C7 /* DockWalkFoundationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0C761EC07D529368685D10 /* DockWalkFoundationTests.swift */; };
+		310C32AEA3D01248E7816CF9 /* ScanResultCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A77863CE8E996111DE3FD0AF /* ScanResultCard.swift */; };
 		3549771E1A49D06324D560D4 /* ScanResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = B064FBBBC798F261B1320467 /* ScanResult.swift */; };
 		42F8C15BEA548A45A95AE82D /* SectionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CFED203BDD4851E4D6C25BE /* SectionCard.swift */; };
+		45951DCE304BB29E1E4636AD /* ScannerLabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D90BE312D849ADACC8B8D1F /* ScannerLabView.swift */; };
 		4A477263CAD9717F561A80CC /* InventoryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D58A15DC729A16961EEABA /* InventoryModels.swift */; };
 		4B925293F9E09D749FCDC3F8 /* AppointmentsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F46A38157C5CA497E2122A5 /* AppointmentsViewModel.swift */; };
 		4CE2DE6F69B3AFEED5254021 /* SyncBatchReplayEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C01D2FCFF35EA66A25943EA /* SyncBatchReplayEngine.swift */; };
@@ -29,6 +33,7 @@
 		4E5288E0A5CD4D173EFC9F64 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A978CBA08DF8B85851D865B /* AppEnvironment.swift */; };
 		4EDE38AE14BBEC13A45B1834 /* TaskActionSyncModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84310D5C5A731CF4ACF91256 /* TaskActionSyncModels.swift */; };
 		52E5427771D1EC9359E42BB6 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B782D5EF4D98C01F04189DE /* APIClient.swift */; };
+		58A5EC78C9570705C5057C13 /* InboundLineScanMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A334CD8FFB4CD54CFCF39226 /* InboundLineScanMatcher.swift */; };
 		60E98D57E8259E48BD1E804E /* DeviceConfigurationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F6D71C779925A575BDE126 /* DeviceConfigurationStore.swift */; };
 		697307A48E8324B72E2795BD /* LoadPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06B44D071E70EE2F7E60C975 /* LoadPhase.swift */; };
 		6E9432E5A56A2F4E15761641 /* ReceivingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C6F14CED858882E5331EA31 /* ReceivingViewModel.swift */; };
@@ -40,11 +45,13 @@
 		7F69F3818A8B0E8E2D25417E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 02D72A64EC3A25E41E5A227A /* Assets.xcassets */; };
 		8A85DB3459F11CF233BD6469 /* DeviceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EC1D45ABBB4B332FCB9EB9 /* DeviceConfiguration.swift */; };
 		8D21C1DD6F0D54D4785BBC4D /* TasksHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F688F50AFDC4D186CCBBBF /* TasksHomeView.swift */; };
+		930923F681F65DFC36AA9E2A /* BarcodeScanDeduplicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FA772116FF8B752A2075FA /* BarcodeScanDeduplicator.swift */; };
 		95B31D3181C512C6B5F6BE53 /* APIEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3C78FB5F7638E84C64F36F /* APIEndpoint.swift */; };
 		991EEA386E0A466F0F41EF5B /* InventoryHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E08A4D5BF891D9ECAF945C /* InventoryHomeView.swift */; };
 		A199E254249F362F47C3F03D /* InboundLineRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E23B57D58AD0E4F88B0A59 /* InboundLineRowView.swift */; };
 		A34B01C7107D6BB29EE18384 /* PrimaryActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F880B64A0FC1079D74ED7640 /* PrimaryActionButton.swift */; };
 		A3D17E896A53ADBD7A6546DE /* ReceivingEventReplayEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AB148742D39441AF123D35B /* ReceivingEventReplayEngine.swift */; };
+		A518287D3146B6FF9FE55B28 /* BarcodeScannerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D788BFAC440441DC2075CD4E /* BarcodeScannerSheet.swift */; };
 		A9C31FFD638244A10731BF1C /* ReceivingEventReplayCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32AE8B706344E937315DEE42 /* ReceivingEventReplayCoordinator.swift */; };
 		B2BDAABAC52045B4D4993D27 /* PutawayTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F574C040783ECE04C37D361 /* PutawayTasksView.swift */; };
 		B62BB5725DA386A949C19199 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04A2CB30C4175FB8AE21139 /* TodayView.swift */; };
@@ -65,6 +72,7 @@
 		F10B4730F25A2DBECFBF5D42 /* ShipmentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 708BF8E60C9C166452BCDFA8 /* ShipmentDetailView.swift */; };
 		F19B91C3117CB3390E9977C2 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC3427C53C00D23834F49FC /* ActivityView.swift */; };
 		F42AFB2BE3B91E906EC41DE8 /* DebugPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E8477044F5641368A3205B /* DebugPanelView.swift */; };
+		F5D0B29589F3E3155EEFBF90 /* BarcodeScannerPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571E6858262FE4F8EB7E434D /* BarcodeScannerPreviewView.swift */; };
 		F7FF419EDF801A2359EC9609 /* ActivityViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C1522D112D64554E55E59EC /* ActivityViewModel.swift */; };
 		FC946718B654F08B7A27D996 /* InboundAPIMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47DF4322C998E2DDA15FF177 /* InboundAPIMapping.swift */; };
 		FD555837136CD26F6C70AF81 /* SyncQueuePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74EDB16DA0846024C4930E5 /* SyncQueuePersistence.swift */; };
@@ -99,13 +107,16 @@
 		45E08A4D5BF891D9ECAF945C /* InventoryHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryHomeView.swift; sourceTree = "<group>"; };
 		46EC1D45ABBB4B332FCB9EB9 /* DeviceConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceConfiguration.swift; sourceTree = "<group>"; };
 		47DF4322C998E2DDA15FF177 /* InboundAPIMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundAPIMapping.swift; sourceTree = "<group>"; };
+		484F16FEE152DD17F53B4BDE /* BarcodeSymbology.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeSymbology.swift; sourceTree = "<group>"; };
 		4B0C761EC07D529368685D10 /* DockWalkFoundationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockWalkFoundationTests.swift; sourceTree = "<group>"; };
 		4B782D5EF4D98C01F04189DE /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		4FC6C7CCE993538213FF044D /* StatusChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusChip.swift; sourceTree = "<group>"; };
+		571E6858262FE4F8EB7E434D /* BarcodeScannerPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerPreviewView.swift; sourceTree = "<group>"; };
 		586D4D1AE3B59B6AB13CA45F /* DockWalkTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockWalkTheme.swift; sourceTree = "<group>"; };
 		5C01D2FCFF35EA66A25943EA /* SyncBatchReplayEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncBatchReplayEngine.swift; sourceTree = "<group>"; };
 		5D0622CE00814C219A8DFE74 /* SyncBatchModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncBatchModels.swift; sourceTree = "<group>"; };
 		65B0D6FC114C221591F6DE4F /* AppointmentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppointmentsView.swift; sourceTree = "<group>"; };
+		69FA772116FF8B752A2075FA /* BarcodeScanDeduplicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScanDeduplicator.swift; sourceTree = "<group>"; };
 		6CE8CBC58F1CE03FB3DDDEFE /* LoadStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadStateView.swift; sourceTree = "<group>"; };
 		6F46A38157C5CA497E2122A5 /* AppointmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppointmentsViewModel.swift; sourceTree = "<group>"; };
 		708BF8E60C9C166452BCDFA8 /* ShipmentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipmentDetailView.swift; sourceTree = "<group>"; };
@@ -118,6 +129,7 @@
 		83F6D71C779925A575BDE126 /* DeviceConfigurationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceConfigurationStore.swift; sourceTree = "<group>"; };
 		84310D5C5A731CF4ACF91256 /* TaskActionSyncModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskActionSyncModels.swift; sourceTree = "<group>"; };
 		86CDC4C1E70C8852D4C2171E /* ScannerPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerPlaceholderView.swift; sourceTree = "<group>"; };
+		8D90BE312D849ADACC8B8D1F /* ScannerLabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerLabView.swift; sourceTree = "<group>"; };
 		8E908910669A3F7A8FA57A2D /* PutawayTasksViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayTasksViewModel.swift; sourceTree = "<group>"; };
 		8F9825520847293A864FC4C9 /* DockWalkApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockWalkApp.swift; sourceTree = "<group>"; };
 		954E5D3B5DFA985D13CB5C57 /* SyncStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncStatus.swift; sourceTree = "<group>"; };
@@ -125,6 +137,8 @@
 		99D635A37EFE7B7FEBDA838B /* InventoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryViewModel.swift; sourceTree = "<group>"; };
 		9C6F14CED858882E5331EA31 /* ReceivingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingViewModel.swift; sourceTree = "<group>"; };
 		9CFED203BDD4851E4D6C25BE /* SectionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionCard.swift; sourceTree = "<group>"; };
+		A334CD8FFB4CD54CFCF39226 /* InboundLineScanMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundLineScanMatcher.swift; sourceTree = "<group>"; };
+		A77863CE8E996111DE3FD0AF /* ScanResultCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanResultCard.swift; sourceTree = "<group>"; };
 		ACC3427C53C00D23834F49FC /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
 		B04A2CB30C4175FB8AE21139 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		B064FBBBC798F261B1320467 /* ScanResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanResult.swift; sourceTree = "<group>"; };
@@ -137,6 +151,8 @@
 		CE3C78FB5F7638E84C64F36F /* APIEndpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIEndpoint.swift; sourceTree = "<group>"; };
 		D1D58A15DC729A16961EEABA /* InventoryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryModels.swift; sourceTree = "<group>"; };
 		D512E2135DA76E6D631C2188 /* InboundModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundModels.swift; sourceTree = "<group>"; };
+		D788BFAC440441DC2075CD4E /* BarcodeScannerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerSheet.swift; sourceTree = "<group>"; };
+		E70B89B914B52C92BFE0B479 /* BarcodeCaptureCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeCaptureCoordinator.swift; sourceTree = "<group>"; };
 		EA7D11F1805588CFF8E1CA17 /* AuditEventModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuditEventModels.swift; sourceTree = "<group>"; };
 		EAEEAA7D36A3B4923A45D2FB /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		EF38FA4B54C294D6EA9BC63A /* InspectionStubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectionStubView.swift; sourceTree = "<group>"; };
@@ -333,8 +349,16 @@
 		E274C6FE2FD0D77E542AE903 /* Scanner */ = {
 			isa = PBXGroup;
 			children = (
+				E70B89B914B52C92BFE0B479 /* BarcodeCaptureCoordinator.swift */,
+				69FA772116FF8B752A2075FA /* BarcodeScanDeduplicator.swift */,
+				571E6858262FE4F8EB7E434D /* BarcodeScannerPreviewView.swift */,
+				D788BFAC440441DC2075CD4E /* BarcodeScannerSheet.swift */,
+				484F16FEE152DD17F53B4BDE /* BarcodeSymbology.swift */,
+				A334CD8FFB4CD54CFCF39226 /* InboundLineScanMatcher.swift */,
+				8D90BE312D849ADACC8B8D1F /* ScannerLabView.swift */,
 				86CDC4C1E70C8852D4C2171E /* ScannerPlaceholderView.swift */,
 				B064FBBBC798F261B1320467 /* ScanResult.swift */,
+				A77863CE8E996111DE3FD0AF /* ScanResultCard.swift */,
 			);
 			path = Scanner;
 			sourceTree = "<group>";
@@ -474,6 +498,11 @@
 				7E84CBC872675F0D988454F0 /* AppointmentsView.swift in Sources */,
 				4B925293F9E09D749FCDC3F8 /* AppointmentsViewModel.swift in Sources */,
 				DC03A918904EB4E7B75C35C0 /* AuditEventModels.swift in Sources */,
+				2CABD723EE399273525196EA /* BarcodeCaptureCoordinator.swift in Sources */,
+				930923F681F65DFC36AA9E2A /* BarcodeScanDeduplicator.swift in Sources */,
+				F5D0B29589F3E3155EEFBF90 /* BarcodeScannerPreviewView.swift in Sources */,
+				A518287D3146B6FF9FE55B28 /* BarcodeScannerSheet.swift in Sources */,
+				2A6989473A3C577001D27458 /* BarcodeSymbology.swift in Sources */,
 				F42AFB2BE3B91E906EC41DE8 /* DebugPanelView.swift in Sources */,
 				8A85DB3459F11CF233BD6469 /* DeviceConfiguration.swift in Sources */,
 				60E98D57E8259E48BD1E804E /* DeviceConfigurationStore.swift in Sources */,
@@ -484,6 +513,7 @@
 				C31E417E8A047DA319AF5D80 /* FeatureFlags.swift in Sources */,
 				FC946718B654F08B7A27D996 /* InboundAPIMapping.swift in Sources */,
 				A199E254249F362F47C3F03D /* InboundLineRowView.swift in Sources */,
+				58A5EC78C9570705C5057C13 /* InboundLineScanMatcher.swift in Sources */,
 				C002F18121A3EEA09B9F8073 /* InboundModels.swift in Sources */,
 				D571070FE57A1BD038E38654 /* InspectionStubView.swift in Sources */,
 				991EEA386E0A466F0F41EF5B /* InventoryHomeView.swift in Sources */,
@@ -506,6 +536,8 @@
 				0526E4FF7E5DC878A9367F84 /* ReceivingView.swift in Sources */,
 				6E9432E5A56A2F4E15761641 /* ReceivingViewModel.swift in Sources */,
 				3549771E1A49D06324D560D4 /* ScanResult.swift in Sources */,
+				310C32AEA3D01248E7816CF9 /* ScanResultCard.swift in Sources */,
+				45951DCE304BB29E1E4636AD /* ScannerLabView.swift in Sources */,
 				0A003A8CA0C7A5B3967E586E /* ScannerPlaceholderView.swift in Sources */,
 				42F8C15BEA548A45A95AE82D /* SectionCard.swift in Sources */,
 				242BBC24606D08440C837235 /* SettingsView.swift in Sources */,

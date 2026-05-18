@@ -43,7 +43,7 @@ struct ReceivingView: View {
         .navigationTitle("Receiving")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showScanner) {
-            ScannerPlaceholderView()
+            ScannerLabView()
         }
         .task(id: environment.configRevision) {
             await viewModel.load()
@@ -70,8 +70,10 @@ struct ReceivingView: View {
 
     private var actionButtons: some View {
         VStack(spacing: 12) {
-            PrimaryActionButton(title: "Scan", systemImage: "barcode.viewfinder") {
-                showScanner = true
+            if FeatureFlags.liveScannerEnabled {
+                PrimaryActionButton(title: "Scan", systemImage: "barcode.viewfinder") {
+                    showScanner = true
+                }
             }
             PrimaryActionButton(
                 title: viewModel.isReceiving ? "Receiving in progress" : "Start Receiving",
@@ -131,11 +133,14 @@ struct ReceivingView: View {
         }
     }
 
+    @ViewBuilder
     private var scannerNote: some View {
-        Text("Scanner remains simulated. Shipments load from GET /api/inbound/shipments; lines and receive use the live inbound routes.")
-            .font(DockWalkTheme.captionFont)
-            .foregroundStyle(DockWalkTheme.textSecondary)
-            .padding(.top, 8)
+        if !FeatureFlags.liveScannerEnabled {
+            Text("Shipments load from GET /api/inbound/shipments; lines and receive use the live inbound routes.")
+                .font(DockWalkTheme.captionFont)
+                .foregroundStyle(DockWalkTheme.textSecondary)
+                .padding(.top, 8)
+        }
     }
 }
 

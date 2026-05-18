@@ -9,8 +9,10 @@ struct ShippingHomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
                     outboundSummary
-                    PrimaryActionButton(title: "Scan Load", systemImage: "barcode.viewfinder") {
-                        showScanner = true
+                    if FeatureFlags.liveScannerEnabled {
+                        PrimaryActionButton(title: "Scan Load", systemImage: "barcode.viewfinder") {
+                            showScanner = true
+                        }
                     }
                     stagedOrdersSection
                     closeoutPlaceholder
@@ -20,7 +22,7 @@ struct ShippingHomeView: View {
             .background(DockWalkTheme.background)
             .navigationTitle("Ship")
             .sheet(isPresented: $showScanner) {
-                ScannerPlaceholderView()
+                ScannerLabView()
             }
         }
     }

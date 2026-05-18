@@ -9,8 +9,10 @@ struct InventoryHomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
                     searchField
-                    PrimaryActionButton(title: "Scan Item", systemImage: "barcode.viewfinder") {
-                        showScanner = true
+                    if FeatureFlags.liveScannerEnabled {
+                        PrimaryActionButton(title: "Scan Item", systemImage: "barcode.viewfinder") {
+                            showScanner = true
+                        }
                     }
                     itemsSection
                     cycleCountSection
@@ -20,7 +22,7 @@ struct InventoryHomeView: View {
             .background(DockWalkTheme.background)
             .navigationTitle("Inventory")
             .sheet(isPresented: $showScanner) {
-                ScannerPlaceholderView()
+                ScannerLabView()
             }
         }
     }
