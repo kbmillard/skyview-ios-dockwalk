@@ -21,13 +21,13 @@ enum Tokens {
         // MARK: Ink
         enum Ink {
             /// Primary text: #0A1428 light / #FFFFFF dark
-            static let primary = SwiftUI.Color("Ink/Primary")
+            static let primary = SwiftUI.Color("Ink/InkPrimary")
             /// Secondary text: #5F6878 light / #9CA3AF dark
-            static let secondary = SwiftUI.Color("Ink/Secondary")
+            static let secondary = SwiftUI.Color("Ink/InkSecondary")
             /// Tertiary text: #9CA3AF light / #6B7280 dark
-            static let tertiary = SwiftUI.Color("Ink/Tertiary")
+            static let tertiary = SwiftUI.Color("Ink/InkTertiary")
             /// Text on Accent.horizon fill: #FFFFFF light / #0A1428 dark
-            static let inverse = SwiftUI.Color("Ink/Inverse")
+            static let inverse = SwiftUI.Color("Ink/InkInverse")
         }
         
         // MARK: Accent

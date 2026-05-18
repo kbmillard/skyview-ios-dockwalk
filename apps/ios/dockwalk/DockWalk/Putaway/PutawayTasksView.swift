@@ -11,7 +11,7 @@ struct PutawayTasksView: View {
 
     init(inboundShipmentId: String? = nil, isOperationalTabRoot: Bool = false) {
         self.inboundShipmentId = inboundShipmentId
-        if let inboundShipmentId {
+        if inboundShipmentId != nil {
             self.navigationTitle = "Putaway for shipment"
         } else if isOperationalTabRoot {
             self.navigationTitle = "Putaway"
