@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ShippingHomeView: View {
+    @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @State private var viewModel = OutboundViewModel()
     @State private var showScanner = false
 
@@ -9,7 +10,7 @@ struct ShippingHomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
                     outboundSummary
-                    if FeatureFlags.liveScannerEnabled {
+                    if scannerPreferences.isScannerActive {
                         PrimaryActionButton(title: "Scan Load", systemImage: "barcode.viewfinder") {
                             showScanner = true
                         }

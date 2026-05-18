@@ -43,6 +43,7 @@
 		78CED7C1E16F0EBD98B9FD36 /* StatusChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC6C7CCE993538213FF044D /* StatusChip.swift */; };
 		7E84CBC872675F0D988454F0 /* AppointmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B0D6FC114C221591F6DE4F /* AppointmentsView.swift */; };
 		7F69F3818A8B0E8E2D25417E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 02D72A64EC3A25E41E5A227A /* Assets.xcassets */; };
+		85033374C13847844EEA83A0 /* ScannerPreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CC14C43A95FBC4ECF49497 /* ScannerPreferencesStore.swift */; };
 		8A85DB3459F11CF233BD6469 /* DeviceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EC1D45ABBB4B332FCB9EB9 /* DeviceConfiguration.swift */; };
 		8D21C1DD6F0D54D4785BBC4D /* TasksHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F688F50AFDC4D186CCBBBF /* TasksHomeView.swift */; };
 		930923F681F65DFC36AA9E2A /* BarcodeScanDeduplicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FA772116FF8B752A2075FA /* BarcodeScanDeduplicator.swift */; };
@@ -152,6 +153,7 @@
 		D1D58A15DC729A16961EEABA /* InventoryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryModels.swift; sourceTree = "<group>"; };
 		D512E2135DA76E6D631C2188 /* InboundModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundModels.swift; sourceTree = "<group>"; };
 		D788BFAC440441DC2075CD4E /* BarcodeScannerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerSheet.swift; sourceTree = "<group>"; };
+		E1CC14C43A95FBC4ECF49497 /* ScannerPreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerPreferencesStore.swift; sourceTree = "<group>"; };
 		E70B89B914B52C92BFE0B479 /* BarcodeCaptureCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeCaptureCoordinator.swift; sourceTree = "<group>"; };
 		EA7D11F1805588CFF8E1CA17 /* AuditEventModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuditEventModels.swift; sourceTree = "<group>"; };
 		EAEEAA7D36A3B4923A45D2FB /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
@@ -330,6 +332,7 @@
 				0BAACA53AE5FDD000E2D76E7 /* OfflineSyncStore.swift */,
 				32AE8B706344E937315DEE42 /* ReceivingEventReplayCoordinator.swift */,
 				3AB148742D39441AF123D35B /* ReceivingEventReplayEngine.swift */,
+				E1CC14C43A95FBC4ECF49497 /* ScannerPreferencesStore.swift */,
 				5C01D2FCFF35EA66A25943EA /* SyncBatchReplayEngine.swift */,
 				CA75C5EC1E5EF2D4B3045CBC /* SyncPreferencesStore.swift */,
 				F74EDB16DA0846024C4930E5 /* SyncQueuePersistence.swift */,
@@ -539,6 +542,7 @@
 				310C32AEA3D01248E7816CF9 /* ScanResultCard.swift in Sources */,
 				45951DCE304BB29E1E4636AD /* ScannerLabView.swift in Sources */,
 				0A003A8CA0C7A5B3967E586E /* ScannerPlaceholderView.swift in Sources */,
+				85033374C13847844EEA83A0 /* ScannerPreferencesStore.swift in Sources */,
 				42F8C15BEA548A45A95AE82D /* SectionCard.swift in Sources */,
 				242BBC24606D08440C837235 /* SettingsView.swift in Sources */,
 				F10B4730F25A2DBECFBF5D42 /* ShipmentDetailView.swift in Sources */,

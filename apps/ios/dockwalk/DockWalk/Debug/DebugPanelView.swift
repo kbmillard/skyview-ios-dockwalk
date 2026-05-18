@@ -3,6 +3,7 @@ import SwiftUI
 struct DebugPanelView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
+    @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @Environment(ReceivingEventReplayCoordinator.self) private var replayCoordinator
 
     var body: some View {
@@ -17,6 +18,19 @@ struct DebugPanelView: View {
             Section {
                 NavigationLink("API connection & health test") {
                     APIConnectionSettingsView()
+                }
+            }
+
+            if !FeatureFlags.liveScannerEnabled {
+                Section {
+                    Toggle("Enable scanner on this device", isOn: internalScannerBinding)
+                } header: {
+                    Text("Scanner (internal QA)")
+                } footer: {
+                    Text(
+                        "Shows Scanner Lab and scan buttons on this device only. Other DockStockers testers are unaffected until they enable this in Debug."
+                    )
+                    .font(DockWalkTheme.captionFont)
                 }
             }
 
@@ -81,6 +95,13 @@ struct DebugPanelView: View {
         }
         .navigationTitle("Debug")
     }
+
+    private var internalScannerBinding: Binding<Bool> {
+        Binding(
+            get: { scannerPreferences.internalScannerEnabled },
+            set: { scannerPreferences.setInternalScannerEnabled($0) }
+        )
+    }
 }
 
 #Preview {
@@ -89,6 +110,7 @@ struct DebugPanelView: View {
             .environment(AppEnvironment.shared)
             .environment(OfflineSyncStore.shared)
             .environment(SyncPreferencesStore.shared)
+            .environment(ScannerPreferencesStore.shared)
             .environment(ReceivingEventReplayCoordinator.shared)
     }
 }

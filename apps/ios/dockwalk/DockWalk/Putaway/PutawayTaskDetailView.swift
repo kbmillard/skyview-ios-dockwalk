@@ -3,6 +3,7 @@ import SwiftUI
 struct PutawayTaskDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppEnvironment.self) private var environment
+    @Environment(ScannerPreferencesStore.self) private var scannerPreferences
 
     let initialTask: PutawayTaskItem
     var onTaskUpdated: (() -> Void)?
@@ -153,7 +154,7 @@ struct PutawayTaskDetailView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Actions")
                     .font(DockWalkTheme.headlineFont)
-                if FeatureFlags.liveScannerEnabled {
+                if scannerPreferences.isScannerActive {
                     PrimaryActionButton(title: "Scan label", systemImage: "barcode.viewfinder", style: .secondary) {
                         showLabelScanner = true
                     }

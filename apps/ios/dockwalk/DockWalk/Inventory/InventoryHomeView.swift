@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct InventoryHomeView: View {
+    @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @State private var viewModel = InventoryViewModel()
     @State private var showScanner = false
 
@@ -9,7 +10,7 @@ struct InventoryHomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
                     searchField
-                    if FeatureFlags.liveScannerEnabled {
+                    if scannerPreferences.isScannerActive {
                         PrimaryActionButton(title: "Scan Item", systemImage: "barcode.viewfinder") {
                             showScanner = true
                         }

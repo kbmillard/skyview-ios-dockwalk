@@ -1,7 +1,7 @@
 import AVFoundation
 import SwiftUI
 
-/// Feature-flagged scanner sandbox (`liveScannerEnabled`). Not a production workflow.
+/// Scanner sandbox when `ScannerPreferencesStore.isScannerActive`. Not a production workflow.
 struct ScannerLabView: View {
     @State private var permission: CameraPermissionState = .notDetermined
     @State private var lastScan: ScanResult?

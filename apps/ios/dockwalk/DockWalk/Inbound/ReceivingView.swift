@@ -5,6 +5,7 @@ struct ReceivingView: View {
     @Bindable var viewModel: ReceivingViewModel
     @State private var showScanner = false
     @Environment(OfflineSyncStore.self) private var syncStore
+    @Environment(ScannerPreferencesStore.self) private var scannerPreferences
 
     init(appointment: ReceivingAppointment, environment: AppEnvironment = .shared) {
         viewModel = ReceivingViewModel(appointment: appointment, environment: environment)
@@ -70,7 +71,7 @@ struct ReceivingView: View {
 
     private var actionButtons: some View {
         VStack(spacing: 12) {
-            if FeatureFlags.liveScannerEnabled {
+            if scannerPreferences.isScannerActive {
                 PrimaryActionButton(title: "Scan", systemImage: "barcode.viewfinder") {
                     showScanner = true
                 }
@@ -135,7 +136,7 @@ struct ReceivingView: View {
 
     @ViewBuilder
     private var scannerNote: some View {
-        if !FeatureFlags.liveScannerEnabled {
+        if !scannerPreferences.isScannerActive {
             Text("Shipments load from GET /api/inbound/shipments; lines and receive use the live inbound routes.")
                 .font(DockWalkTheme.captionFont)
                 .foregroundStyle(DockWalkTheme.textSecondary)

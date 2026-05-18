@@ -4,6 +4,7 @@ struct SettingsView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
     @Environment(SyncPreferencesStore.self) private var syncPreferences
+    @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @Environment(ReceivingEventReplayCoordinator.self) private var replayCoordinator
     @State private var showDebug = false
 
@@ -102,7 +103,8 @@ struct SettingsView: View {
                 Section("Feature flags") {
                     flagRow("AI inspection", enabled: FeatureFlags.aiInspectionEnabled)
                     flagRow("Payments / POS", enabled: FeatureFlags.paymentsEnabled)
-                    flagRow("Live scanner", enabled: FeatureFlags.liveScannerEnabled)
+                    flagRow("Live scanner (compile)", enabled: FeatureFlags.liveScannerEnabled)
+                    flagRow("Scanner on device", enabled: scannerPreferences.isScannerActive)
                     flagRow("Offline sync", enabled: FeatureFlags.offlineSyncEnabled)
                     flagRow("Batch sync replay", enabled: FeatureFlags.syncBatchReplayEnabled)
                     flagRow("Debug panel", enabled: FeatureFlags.debugPanelEnabled)
@@ -121,7 +123,7 @@ struct SettingsView: View {
                     NavigationLink("Putaway tasks") {
                         PutawayTasksView()
                     }
-                    if FeatureFlags.liveScannerEnabled {
+                    if scannerPreferences.isScannerActive {
                         NavigationLink("Scanner Lab") {
                             ScannerLabView()
                         }
@@ -185,5 +187,6 @@ struct SettingsView: View {
         .environment(AppEnvironment.shared)
         .environment(OfflineSyncStore.shared)
         .environment(SyncPreferencesStore.shared)
+        .environment(ScannerPreferencesStore.shared)
         .environment(ReceivingEventReplayCoordinator.shared)
 }

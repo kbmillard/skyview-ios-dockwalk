@@ -3,6 +3,7 @@ import SwiftUI
 struct TodayView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
+    @Environment(ScannerPreferencesStore.self) private var scannerPreferences
 
     @State private var showScanner = false
     @State private var selectedTab: TodayQuickAction?
@@ -97,7 +98,7 @@ struct TodayView: View {
                 selectedTab = .receiving
             }
 
-            if FeatureFlags.liveScannerEnabled {
+            if scannerPreferences.isScannerActive {
                 PrimaryActionButton(title: "Scan Item", systemImage: "barcode.viewfinder", style: .secondary) {
                     showScanner = true
                 }

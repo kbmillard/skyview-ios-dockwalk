@@ -908,6 +908,34 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertFalse(FeatureFlags.liveScannerEnabled)
     }
 
+    func testInternalScannerToggleDefaultsOff() {
+        let suite = "DockWalkTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            XCTFail("Could not create test defaults suite")
+            return
+        }
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        XCTAssertFalse(ScannerPreferencesStore.loadInternalScannerEnabled(using: defaults))
+        let store = ScannerPreferencesStore(defaults: defaults)
+        XCTAssertFalse(store.internalScannerEnabled)
+        XCTAssertFalse(store.isScannerActive)
+    }
+
+    func testInternalScannerToggleActivatesScannerUI() {
+        let suite = "DockWalkTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            XCTFail("Could not create test defaults suite")
+            return
+        }
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        let store = ScannerPreferencesStore(defaults: defaults)
+        store.setInternalScannerEnabled(true)
+        XCTAssertTrue(store.isScannerActive)
+        XCTAssertTrue(ScannerPreferencesStore.loadInternalScannerEnabled(using: defaults))
+    }
+
     func testInboundLineScanMatcherMatchesSKU() {
         let lines = [
             InboundLineItem(

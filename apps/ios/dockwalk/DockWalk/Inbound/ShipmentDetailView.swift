@@ -3,6 +3,7 @@ import SwiftUI
 struct ShipmentDetailView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
+    @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @Bindable var viewModel: ShipmentDetailViewModel
     @State private var showActivity = false
     @State private var showPutawayTasks = false
@@ -95,7 +96,7 @@ struct ShipmentDetailView: View {
 
             submitResultBanner
 
-            if FeatureFlags.liveScannerEnabled {
+            if scannerPreferences.isScannerActive {
                 PrimaryActionButton(title: "Scan line", systemImage: "barcode.viewfinder", style: .secondary) {
                     scanLineMessage = nil
                     scanMatchedLineId = nil
