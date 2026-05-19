@@ -18,7 +18,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.skyprairie.dockwalk
         MARKETING_VERSION: "0.1.0"
-        CURRENT_PROJECT_VERSION: "8"
+        CURRENT_PROJECT_VERSION: "9"
         DEVELOPMENT_TEAM: 5RP4DB2THP
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: NO

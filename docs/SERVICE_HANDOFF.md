@@ -1,6 +1,6 @@
 # DockWalk iOS — 
 
-**Last updated:** 2026-05-18 (Phase 2 prototype alignment — scanner lock chips, floor sheets, Today layout; build **0.1.0 (8)** still current on TestFlight)
+**Last updated:** 2026-05-18 (TestFlight **0.1.0 (9)** uploaded — Phase 2b prototype alignment: scanner chips, floor sheets, Today layout)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -48,7 +48,7 @@
 **Paste block for a new chat**
 
 ```text
-DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Tabs: Today / Receiving / Inventory / Putaway / Shipping (Inventory center). TestFlight 0.1.0 (8). Prototype-aligned Today + ScannerLockChip on work modes + floor bottom sheets (exception, scan confirm, dock door). Scanner Debug-gated. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Tabs: Today / Receiving / Inventory / Putaway / Shipping (Inventory center). TestFlight 0.1.0 (9). Prototype-aligned Today + ScannerLockChip on work modes + floor bottom sheets (exception, scan confirm, dock door). Scanner Debug-gated. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
 ```
 
 ---
@@ -69,7 +69,8 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | TestFlight **0.1.0 (5)**                             | Superseded by build **6**                                                                           |
 | TestFlight **0.1.0 (6)**                             | Superseded by build **7**                                                                           |
 | TestFlight **0.1.0 (7)**                             | Superseded by build **8**                                                                           |
-| TestFlight **0.1.0 (8)**                             | **Uploaded** 2026-05-18 — Spec tabs: Today / Receiving / Inventory (center) / Putaway / Shipping (`3028755`) |
+| TestFlight **0.1.0 (8)**                             | Superseded by build **9** — Spec tabs (`3028755`)                                                   |
+| TestFlight **0.1.0 (9)**                             | **Uploaded** 2026-05-18 — Phase 2b: prototype UI (scanner chips, floor sheets, Today layout) (`f74ec16`) |
 | Export compliance                                    | `**ITSAppUsesNonExemptEncryption = false`** (build **7** archive)                                   |
 | Device QA                                            | Build **3** + **6** smoke **passed** (Receive, Putaway complete/block, Activity, Sync; scanner off) |
 | IA/copy cleanup                                      | In builds **4+** (`c8e53f4`)                                                                        |
@@ -105,7 +106,7 @@ Bump `**CURRENT_PROJECT_VERSION**` / `CFBundleVersion` before each new TestFligh
 
 ## Latest delivery — Phase 2b: Prototype visual alignment (2026-05-18)
 
-**Scope:** Align native UI to HTML floor prototype — scanner lock contract, work-mode chips, bottom sheets, Today command center layout. **No** auth, payments, Gemini, Supabase client, backend routes, or TestFlight upload. Build still **0.1.0 (8)**.
+**Scope:** Align native UI to HTML floor prototype — scanner lock contract, work-mode chips, bottom sheets, Today command center layout. **No** auth, payments, Gemini, Supabase client, or backend routes. **TestFlight 0.1.0 (9)** uploaded 2026-05-18.
 
 ### Scanner lock contract
 
