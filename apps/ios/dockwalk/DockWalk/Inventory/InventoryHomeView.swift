@@ -5,11 +5,14 @@ struct InventoryHomeView: View {
     @State private var viewModel = InventoryViewModel()
     @State private var showScanner = false
     @State private var showLocationLookup = false
+    @State private var showScanConfirm = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
+                    ScannerLockChip(mode: .globalInventory)
+
                     inventorySummary
                     
                     quickActions
@@ -41,13 +44,8 @@ struct InventoryHomeView: View {
                 }
             }
             .sheet(isPresented: $showScanner) {
-                NavigationStack {
-                    ScannerLabView()
-                        .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button("Done") { showScanner = false }
-                            }
-                        }
+                BarcodeScannerSheet(title: "Scan inventory") { _ in
+                    showScanConfirm = true
                 }
             }
             .sheet(isPresented: $showLocationLookup) {
@@ -59,6 +57,9 @@ struct InventoryHomeView: View {
                             }
                         }
                 }
+            }
+            .sheet(isPresented: $showScanConfirm) {
+                ScanConfirmSheet(payload: MockWarehouseFloor.scanConfirmSample)
             }
             .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showScanner)
         }
@@ -121,6 +122,35 @@ struct InventoryHomeView: View {
                                 Text("Location lookup")
                                     .font(DockWalkTheme.bodyFont)
                                 Text("Find by bin")
+                                    .font(DockWalkTheme.captionFont)
+                                    .foregroundStyle(DockWalkTheme.textSecondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(DockWalkTheme.textSecondary)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    if scannerPreferences.isScannerActive {
+                        showScanner = true
+                    } else {
+                        showScanConfirm = true
+                    }
+                } label: {
+                    SectionCard {
+                        HStack {
+                            Image(systemName: "barcode.viewfinder")
+                                .font(.title3)
+                                .foregroundStyle(DockWalkTheme.accent)
+                                .frame(width: 28)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Scan inventory")
+                                    .font(DockWalkTheme.bodyFont)
+                                Text("Global lookup")
                                     .font(DockWalkTheme.captionFont)
                                     .foregroundStyle(DockWalkTheme.textSecondary)
                             }

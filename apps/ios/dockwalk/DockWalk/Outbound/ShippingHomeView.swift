@@ -24,7 +24,7 @@ struct ShippingHomeView: View {
                 .padding(DockWalkTheme.screenPadding)
             }
             .background(DockWalkTheme.background)
-            .navigationTitle("Ship")
+            .navigationTitle("Shipping")
             .toolbar {
                 if scannerPreferences.isScannerActive {
                     ToolbarItem(placement: .topBarTrailing) {
@@ -205,8 +205,9 @@ struct ShippingHomeView: View {
         }
     }
     
+    @ViewBuilder
     private func jobCard(_ order: OutboundOrder) -> some View {
-        SectionCard {
+        let card = SectionCard {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -252,6 +253,17 @@ struct ShippingHomeView: View {
                     .foregroundStyle(DockWalkTheme.textSecondary)
                 }
             }
+        }
+
+        if order.status == .staged || order.status == .loading {
+            NavigationLink {
+                ShippingLoadDetailView(order: order)
+            } label: {
+                card
+            }
+            .buttonStyle(.plain)
+        } else {
+            card
         }
     }
     

@@ -1,6 +1,6 @@
 # DockWalk iOS — 
 
-**Last updated:** 2026-05-18 (TestFlight **0.1.0 (8)** uploaded — spec-aligned 5-tab shell: Today / Receiving / **Inventory** / Putaway / Shipping)
+**Last updated:** 2026-05-18 (Phase 2 prototype alignment — scanner lock chips, floor sheets, Today layout; build **0.1.0 (8)** still current on TestFlight)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -48,7 +48,7 @@
 **Paste block for a new chat**
 
 ```text
-DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Tabs: Today / Receiving / Inventory / Putaway / Shipping (Inventory center). TestFlight 0.1.0 (8). Scanner Debug-gated. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Tabs: Today / Receiving / Inventory / Putaway / Shipping (Inventory center). TestFlight 0.1.0 (8). Prototype-aligned Today + ScannerLockChip on work modes + floor bottom sheets (exception, scan confirm, dock door). Scanner Debug-gated. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
 ```
 
 ---
@@ -103,7 +103,45 @@ Bump `**CURRENT_PROJECT_VERSION**` / `CFBundleVersion` before each new TestFligh
 
 ---
 
-## Latest delivery — Phase 2: Ship & Inventory Deep Integration (2026-05-18)
+## Latest delivery — Phase 2b: Prototype visual alignment (2026-05-18)
+
+**Scope:** Align native UI to HTML floor prototype — scanner lock contract, work-mode chips, bottom sheets, Today command center layout. **No** auth, payments, Gemini, Supabase client, backend routes, or TestFlight upload. Build still **0.1.0 (8)**.
+
+### Scanner lock contract
+
+- `ScannerMode` enum: `globalInventory`, `load(loadId:)`, `putawayTask(taskId:)`, `shipment(shipmentId:)`
+- `ScannerLockChip` visible on Inventory (global), Receiving load detail, Putaway task detail, Shipping load detail
+- Floating scan disc on `MainTabView`: Today → Inventory tab; Inventory → global scan; Receiving/Putaway/Shipping → scan confirm sheet
+
+### Floor bottom sheets
+
+- `ExceptionMarkingSheet`, `ScanConfirmSheet`, `DockDoorSelectorSheet` in `DesignSystem/FloorWorkSheets.swift`
+- Wired on Receiving (`ShipmentDetailView`), Putaway (`PutawayTaskDetailView`), Shipping (`ShippingLoadDetailView`), Inventory quick scan
+
+### Today command center
+
+- Live Now banner, 2×2 overview stats, quick actions row, recent work feed (mock data from `MockWarehouseFloor`)
+- DockWalk by SkyView branding; Settings/Activity via sheets (no More tab)
+
+### Shipping work mode
+
+- `ShippingLoadDetailView` for staged/loading orders (tap S-55120 card on Shipping tab)
+- Stub outbound data includes **S-55120** (Midwest Supply, Door 2, staged)
+- Navigation titles: **Receiving**, **Shipping** (was Receive / Ship)
+
+### Build validation
+
+```bash
+cd apps/ios/dockwalk
+xcodegen generate
+xcodebuild -project DockWalk.xcodeproj -scheme DockWalk \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' build
+# BUILD SUCCEEDED
+```
+
+---
+
+## Previous delivery — Phase 2: Ship & Inventory Deep Integration (2026-05-18)
 
 **Scope:** Ship and Inventory workflow expansion with dock-worker friendly UX. **No** auth, payments, Gemini, direct Supabase, task cancel, new backend routes, TestFlight upload, or version bump. Uses stable local foundation data. All existing flows (Receive, Putaway, offline queue) remain working.
 

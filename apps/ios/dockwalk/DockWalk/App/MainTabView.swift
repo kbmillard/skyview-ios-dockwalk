@@ -9,6 +9,8 @@ import SwiftUI
 struct MainTabView: View {
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @State private var selectedTab: AppTab = .today
+    @State private var showFloatingScanner = false
+    @State private var showFloatingScanConfirm = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -53,12 +55,32 @@ struct MainTabView: View {
             floatingScanDisc
                 .offset(y: -58)
         }
+        .sheet(isPresented: $showFloatingScanner) {
+            BarcodeScannerSheet(title: "Scan inventory") { _ in
+                showFloatingScanConfirm = true
+            }
+        }
+        .sheet(isPresented: $showFloatingScanConfirm) {
+            ScanConfirmSheet(payload: MockWarehouseFloor.scanConfirmSample)
+        }
+        .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showFloatingScanner)
     }
 
     private var floatingScanDisc: some View {
         Button {
             Haptics.scanSuccess()
-            // TODO: Open scanner sheet wired to current tab's ScannerMode.
+            switch selectedTab {
+            case .today:
+                selectedTab = .inventory
+            case .inventory:
+                if scannerPreferences.isScannerActive {
+                    showFloatingScanner = true
+                } else {
+                    showFloatingScanConfirm = true
+                }
+            case .receiving, .putaway, .shipping:
+                showFloatingScanConfirm = true
+            }
         } label: {
             ZStack {
                 Circle()

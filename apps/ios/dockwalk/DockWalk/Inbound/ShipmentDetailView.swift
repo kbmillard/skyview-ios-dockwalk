@@ -8,6 +8,9 @@ struct ShipmentDetailView: View {
     @State private var showActivity = false
     @State private var showPutawayTasks = false
     @State private var showLineScanner = false
+    @State private var showScanConfirm = false
+    @State private var showException = false
+    @State private var showDockDoors = false
     @State private var scanLineMessage: String?
     @State private var scanMatchedLineId: String?
 
@@ -23,6 +26,8 @@ struct ShipmentDetailView: View {
         ZStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
+                    ScannerLockChip(mode: .load(loadId: viewModel.shipment.referenceNumber))
+
                     shipmentHeader
                     submitSection
                     linesSection
@@ -52,11 +57,21 @@ struct ShipmentDetailView: View {
                 if let line = InboundLineScanMatcher.match(code: result.value, in: viewModel.lines) {
                     scanMatchedLineId = line.id
                     scanLineMessage = "Matched \(line.sku). Confirm Receive 1 below."
+                    showScanConfirm = true
                 } else {
                     scanMatchedLineId = nil
                     scanLineMessage = "No matching line found for \"\(result.value)\"."
                 }
             }
+        }
+        .sheet(isPresented: $showScanConfirm) {
+            ScanConfirmSheet(payload: MockWarehouseFloor.scanConfirmSample)
+        }
+        .sheet(isPresented: $showException) {
+            ExceptionMarkingSheet()
+        }
+        .sheet(isPresented: $showDockDoors) {
+            DockDoorSelectorSheet(loadId: viewModel.shipment.referenceNumber)
         }
     }
 
@@ -96,14 +111,30 @@ struct ShipmentDetailView: View {
 
             submitResultBanner
 
-            if scannerPreferences.isScannerActive {
-                PrimaryActionButton(title: "Scan line", systemImage: "barcode.viewfinder", style: .secondary) {
+            PrimaryActionButton(title: "Scan Item", systemImage: "barcode.viewfinder") {
+                if scannerPreferences.isScannerActive {
                     scanLineMessage = nil
                     scanMatchedLineId = nil
                     showLineScanner = true
+                } else {
+                    showScanConfirm = true
                 }
-                .disabled(viewModel.loadPhase != .loaded)
+            }
+            .disabled(viewModel.loadPhase != .loaded)
 
+            HStack(spacing: 12) {
+                Button { showException = true } label: {
+                    Label("Mark exception", systemImage: "exclamationmark.triangle")
+                        .font(DockWalkTheme.captionFont.weight(.semibold))
+                }
+                Button { showDockDoors = true } label: {
+                    Label("Change door", systemImage: "door.left.hand.open")
+                        .font(DockWalkTheme.captionFont.weight(.semibold))
+                }
+            }
+            .foregroundStyle(DockWalkTheme.accent)
+
+            if scannerPreferences.isScannerActive {
                 if let scanLineMessage {
                     Text(scanLineMessage)
                         .font(DockWalkTheme.captionFont)

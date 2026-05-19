@@ -15,6 +15,8 @@ struct PutawayTaskDetailView: View {
     @State private var showCompleteConfirm = false
     @State private var completeQuantityText = "1"
     @State private var showLabelScanner = false
+    @State private var showScanConfirm = false
+    @State private var showException = false
     @State private var scannedLabelContext: String?
 
     var body: some View {
@@ -60,7 +62,14 @@ struct PutawayTaskDetailView: View {
             .sheet(isPresented: $showLabelScanner) {
                 BarcodeScannerSheet(title: "Scan label") { result in
                     scannedLabelContext = "\(result.symbology): \(result.value)"
+                    showScanConfirm = true
                 }
+            }
+            .sheet(isPresented: $showScanConfirm) {
+                ScanConfirmSheet(payload: MockWarehouseFloor.scanConfirmSample)
+            }
+            .sheet(isPresented: $showException) {
+                ExceptionMarkingSheet()
             }
         }
     }
@@ -81,6 +90,8 @@ struct PutawayTaskDetailView: View {
     private func detailContent(_ viewModel: PutawayTaskDetailViewModel, detail: PutawayTaskItem) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                ScannerLockChip(mode: .putawayTask(taskId: detail.id))
+
                 headerRow(viewModel, detail: detail)
 
                 if let message = viewModel.actionBannerMessage {
@@ -167,7 +178,18 @@ struct PutawayTaskDetailView: View {
                     PrimaryActionButton(title: "Scan label", systemImage: "barcode.viewfinder", style: .secondary) {
                         showLabelScanner = true
                     }
+                } else {
+                    PrimaryActionButton(title: "Scan Item", systemImage: "barcode.viewfinder") {
+                        showScanConfirm = true
+                    }
                 }
+
+                Button { showException = true } label: {
+                    Label("Mark exception", systemImage: "exclamationmark.triangle")
+                        .font(DockWalkTheme.captionFont.weight(.semibold))
+                }
+                .foregroundStyle(DockWalkTheme.accent)
+
                 ForEach(actions) { action in
                     actionButton(viewModel, action: action, taskStatus: detail.status)
                 }

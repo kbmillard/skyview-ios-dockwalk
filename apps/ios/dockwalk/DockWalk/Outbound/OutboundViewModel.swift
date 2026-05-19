@@ -99,14 +99,14 @@ final class OutboundViewModel {
                 assignedTo: "Picker-2"
             ),
             OutboundOrder(
-                id: "out-103",
-                orderNumber: "SO-4403",
-                customer: "BuildRight Supply",
-                door: "Door 11",
+                id: "out-ship",
+                orderNumber: "S-55120",
+                customer: "Midwest Supply",
+                door: "Door 2",
                 status: .staged,
-                lineCount: 12,
-                cartonCount: 56,
-                priority: .standard,
+                lineCount: 14,
+                cartonCount: 14,
+                priority: .urgent,
                 shipDate: today,
                 assignedTo: nil
             ),

@@ -22,7 +22,7 @@ struct AppointmentsView: View {
                         .background(.ultraThinMaterial)
                 }
             }
-            .navigationTitle("Receive")
+            .navigationTitle("Receiving")
             .refreshable {
                 await viewModel?.refresh(syncStore: syncStore)
             }
