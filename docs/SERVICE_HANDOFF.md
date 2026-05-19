@@ -105,7 +105,99 @@ Bump `**CURRENT_PROJECT_VERSION**` / `CFBundleVersion` before each new TestFligh
 
 ---
 
-## Latest work — Inbound Status Unification (2026-05-19)
+## Latest work — Cross-Repo Status Restructure (2026-05-19)
+
+**Scope:** Full iOS-backend alignment with unified status enums, registry abstraction for future extensibility, and dedicated workflow modules.
+
+**Brother Mode:** Cross-repo refactor covering `skyview-ios-dockwalk` (iOS) and `skyview-dockwalk` (backend API) to ensure 0% spaghetti, 100% contract clarity.
+
+### Backend Changes (skyview-dockwalk)
+
+**Created `/docs/contracts/status-enums.md`:**
+- Documented all backend Zod status schemas for iOS alignment
+- Inbound workflow: shipment status (draft, scheduled, arrived, receiving, received, closed, cancelled), line status (expected, receiving, received, short, over, damaged, rejected, closed)
+- Putaway/Tasks workflow: task status (pending, assigned, in_progress, blocked, completed, cancelled), task type enum
+- Appointments: appointment status (scheduled, arrived, receiving, completed, cancelled, missed)
+- Tracked alignment status: aligned, partially aligned, misaligned, missing contracts
+
+**Commit:** `2f16205` - Document backend status enum contracts for iOS alignment
+
+### iOS Changes (skyview-ios-dockwalk)
+
+**Created WorkflowStatus Protocol + Registry Foundation:**
+- `/Core/WorkflowStatus.swift` - protocol that all status enums conform to
+- `DefaultStatusRegistry` - returns hardcoded enum values now, swaps to API-driven later
+- Enables future migration to customer-configurable workflows without refactoring
+
+**Status Enum Unification (1:1 Backend Alignment):**
+- `InboundLoadStatus` - already good, added WorkflowStatus conformance
+- `OutboundOrderStatus` - already good, added WorkflowStatus conformance + Codable
+- **Fixed** `PickTaskStatus` - rawValue changed from "Ready to Pick" → "ready_to_pick", added displayName/chipTone/systemImage
+- **Fixed** `PickLineStatus` - rawValue changed from "Pending" → "pending", added displayName/chipTone
+- **Fixed** `PickPriority` - rawValue changed from "Standard" → "standard", added displayName/chipTone/systemImage
+- **Fixed** `InventoryStatus` - rawValue changed from "Available" → "available", added displayName/chipTone/systemImage, added WorkflowStatus conformance
+
+**Created Dedicated Putaway Module:**
+- `/Putaway/PutawayModels.swift` - unified PutawayTaskStatus enum matching backend, PutawayTaskItem, PutawayQueueGroup, PutawayTaskStatusFilter
+- `/Putaway/PutawayAPIMapping.swift` - DTO mapping with mapPutawayTaskStatus()
+- **Moved** from `WarehouseTaskModels.swift` and `InboundWorkflowModels.swift`
+- Updated all Putaway views/viewmodels to use new module
+
+**Updated All Call Sites:**
+- Changed `.rawValue` → `.displayName` in all UI code
+- Changed hardcoded status tone logic → `.chipTone` property
+- Updated Picking views: `PickingTasksView.swift` now uses `priority.displayName` and `priority.chipTone`
+- Updated Inventory views: `InventoryViewModel.swift`, `InventoryItemDetailView.swift` now use `.displayName`
+- Updated Putaway views: `PutawayTaskDetailView.swift`, `PutawayTasksView.swift` now use `.displayName` and `.chipTone`
+- Fixed `TodayDashboardViewModel` to use `PutawayTaskStatus` instead of `PutawayQueueStatus`
+- Updated viewmodels to use `PutawayAPIMapping` instead of `WarehouseTaskAPIMapping`
+
+**Cleanup:**
+- Removed duplicate `PutawayQueueStatus` from `InboundWorkflowModels.swift`
+- Removed `PutawayTaskItem`, `PutawayTaskStatusFilter`, `WarehouseTaskAPIMapping` from `WarehouseTaskModels.swift`
+- Left `WarehouseTaskDTO` in Networking (pure API contract type)
+
+**Validation:**
+- xcodegen generate ✓
+- xcodebuild build ✓
+- Fixed all type mismatches where String was expected (used `.rawValue`)
+
+**Commit:** `5ba8259` - Cross-repo restructure: unified status enums + registry abstraction
+
+### Contract Alignment Matrix
+
+| Workflow | iOS Enum | Backend Zod Schema | Status |
+|----------|----------|-------------------|--------|
+| Inbound Shipment | `InboundLoadStatus` | `shipmentStatus` | ⚠️ Partial - iOS has `.staged`, backend only has `"arrived"` |
+| Putaway/Tasks | `PutawayTaskStatus` | `taskStatusSchema` | ✅ Aligned - 1:1 match |
+| Picking Tasks | `PickTaskStatus` | Not implemented yet | 📋 Backend routes pending |
+| Picking Lines | `PickLineStatus` | Not implemented yet | 📋 Backend routes pending |
+| Outbound Orders | `OutboundOrderStatus` | Not implemented yet | 📋 Backend routes pending |
+| Inventory | `InventoryStatus` | Not implemented yet | 📋 Backend contract pending |
+
+### Future Extensibility Architecture
+
+**Now:** Hardcoded enums accessed through `DefaultStatusRegistry`
+```swift
+let registry = DefaultStatusRegistry.shared
+let statuses = registry.statuses(for: .picking) // Returns [PickTaskStatus.allCases]
+```
+
+**Later:** Customer-configurable schemas loaded from backend
+```swift
+let registry = APIStatusRegistry(apiClient: api)
+let statuses = registry.statuses(for: .picking) // Loads from /api/workflows/picking/statuses, caches offline
+```
+
+**Benefits:**
+- Zero client code changes needed for extensibility
+- Views/viewmodels already use `WorkflowStatus` protocol
+- Swap registry implementation when customers need customization
+- Offline-first preserved (deterministic enums now, cached schemas later)
+
+---
+
+## Previous work — Inbound Status Unification (2026-05-19)
 
 **Scope:** Consolidate fragmented inbound status models into a single canonical enum with 1:1 API slug mapping.
 
