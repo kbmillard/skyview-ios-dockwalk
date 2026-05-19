@@ -1,6 +1,6 @@
 # DockWalk iOS — 
 
-**Last updated:** 2026-05-18 (TestFlight **0.1.0 (9)** uploaded — Phase 2b prototype alignment: scanner chips, floor sheets, Today layout)
+**Last updated:** 2026-05-18 (TestFlight **0.1.0 (10)** — Phase 2b prototype alignment; `CFBundleVersion` now follows `CURRENT_PROJECT_VERSION`)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -48,7 +48,7 @@
 **Paste block for a new chat**
 
 ```text
-DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Tabs: Today / Receiving / Inventory / Putaway / Shipping (Inventory center). TestFlight 0.1.0 (9). Prototype-aligned Today + ScannerLockChip on work modes + floor bottom sheets (exception, scan confirm, dock door). Scanner Debug-gated. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Tabs: Today / Receiving / Inventory / Putaway / Shipping (Inventory center). TestFlight 0.1.0 (10). Prototype-aligned Today + ScannerLockChip on work modes + floor bottom sheets (exception, scan confirm, dock door). Scanner Debug-gated. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
 ```
 
 ---
@@ -69,8 +69,9 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | TestFlight **0.1.0 (5)**                             | Superseded by build **6**                                                                           |
 | TestFlight **0.1.0 (6)**                             | Superseded by build **7**                                                                           |
 | TestFlight **0.1.0 (7)**                             | Superseded by build **8**                                                                           |
-| TestFlight **0.1.0 (8)**                             | Superseded by build **9** — Spec tabs (`3028755`)                                                   |
-| TestFlight **0.1.0 (9)**                             | **Uploaded** 2026-05-18 — Phase 2b: prototype UI (scanner chips, floor sheets, Today layout) (`f74ec16`) |
+| TestFlight **0.1.0 (8)**                             | Superseded by build **9**–**10** (see note below)                                                   |
+| TestFlight **0.1.0 (9)**                             | Upload attempt; `Info.plist` still pinned `CFBundleVersion` **7** until fixed below                  |
+| TestFlight **0.1.0 (10)**                            | **Current** — Phase 2b: prototype UI (scanner chips, floor sheets, Today layout) (`f74ec16`)         |
 | Export compliance                                    | `**ITSAppUsesNonExemptEncryption = false`** (build **7** archive)                                   |
 | Device QA                                            | Build **3** + **6** smoke **passed** (Receive, Putaway complete/block, Activity, Sync; scanner off) |
 | IA/copy cleanup                                      | In builds **4+** (`c8e53f4`)                                                                        |
@@ -106,7 +107,9 @@ Bump `**CURRENT_PROJECT_VERSION**` / `CFBundleVersion` before each new TestFligh
 
 ## Latest delivery — Phase 2b: Prototype visual alignment (2026-05-18)
 
-**Scope:** Align native UI to HTML floor prototype — scanner lock contract, work-mode chips, bottom sheets, Today command center layout. **No** auth, payments, Gemini, Supabase client, or backend routes. **TestFlight 0.1.0 (9)** uploaded 2026-05-18.
+**Scope:** Align native UI to HTML floor prototype — scanner lock contract, work-mode chips, bottom sheets, Today command center layout. **TestFlight 0.1.0 (10)** is current on device.
+
+**Build number hygiene:** `Info.plist` had `CFBundleVersion` hardcoded to `7`, so `project.yml` bumps did not affect archives. Fixed to `$(CURRENT_PROJECT_VERSION)`; repo now at **10** — next upload is **11**.
 
 ### Scanner lock contract
 
