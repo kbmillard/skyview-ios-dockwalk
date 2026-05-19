@@ -1,6 +1,6 @@
 # DockWalk iOS — 
 
-**Last updated:** 2026-05-18 (TestFlight **0.1.0 (7)** uploaded — Phase **1G+1H+1I+2** complete WMS shell)
+**Last updated:** 2026-05-18 (TestFlight **0.1.0 (8)** uploaded — spec-aligned 5-tab shell: Today / Receiving / **Inventory** / Putaway / Shipping)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -48,7 +48,7 @@
 **Paste block for a new chat**
 
 ```text
-DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Tabs: Today / Receive / Putaway / Ship / More. TestFlight 0.1.0 (6). Scanner Debug-gated. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Tabs: Today / Receiving / Inventory / Putaway / Shipping (Inventory center). TestFlight 0.1.0 (8). Scanner Debug-gated. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
 ```
 
 ---
@@ -68,7 +68,8 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | TestFlight **0.1.0 (4)**                             | Superseded by build **5**                                                                           |
 | TestFlight **0.1.0 (5)**                             | Superseded by build **6**                                                                           |
 | TestFlight **0.1.0 (6)**                             | Superseded by build **7**                                                                           |
-| TestFlight **0.1.0 (7)**                             | **Uploaded** 2026-05-18 — Phase **1G+1H+1I+2** complete WMS shell (`c9a84c2`)                       |
+| TestFlight **0.1.0 (7)**                             | Superseded by build **8**                                                                           |
+| TestFlight **0.1.0 (8)**                             | **Uploaded** 2026-05-18 — Spec tabs: Today / Receiving / Inventory (center) / Putaway / Shipping (`3028755`) |
 | Export compliance                                    | `**ITSAppUsesNonExemptEncryption = false`** (build **7** archive)                                   |
 | Device QA                                            | Build **3** + **6** smoke **passed** (Receive, Putaway complete/block, Activity, Sync; scanner off) |
 | IA/copy cleanup                                      | In builds **4+** (`c8e53f4`)                                                                        |
