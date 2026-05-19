@@ -1,0 +1,307 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 LucidaGrande;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Recommended initial Cursor agent/model:\
+Cursor \'97 Claude Sonnet 4.5\
+\
+Recommended debugging agent/model:\
+Cursor \'97 GPT-5.5 Thinking or Claude Opus 4.5 if the implementation gets tangled\
+\
+Build the DockWalk by SkyView iOS-style warehouse floor app prototype using the existing design direction as visual reference.\
+\
+Product naming:\
+- App name: DockWalk\
+- Company/platform: SkyView\
+- Use \'93DockWalk by SkyView\'94 naturally in the app header or onboarding.\
+- Do not use placeholder product names like Floor, Dock, Intake, Activity, or Profile.\
+\
+Core navigation:\
+Create exactly 5 bottom tabs in this order:\
+\
+1. Today\
+2. Receiving\
+3. Inventory\
+4. Putaway\
+5. Shipping\
+\
+Inventory must be the center tab.\
+\
+Core product rule:\
+This is a warehouse floor app, not a management dashboard and not a full ERP.\
+\
+The phone app should help an operator answer:\
+- What am I working on?\
+- What needs scanned?\
+- What load/task/shipment am I attached to?\
+- Where does this material go?\
+- What needs review?\
+\
+The larger admin/web UI handles:\
+- Billing\
+- POS\
+- Permissions\
+- Office review\
+- Reporting\
+- Custom workflow stages\
+- Configuration\
+\
+Do not overbuild those admin concepts into the mobile interface.\
+\
+Build these screens/routes:\
+\
+1. Today dashboard\
+2. Receiving queue\
+3. Receive Load work mode\
+4. Inventory search\
+5. Inventory item detail\
+6. Putaway queue\
+7. Putaway task mode\
+8. Shipping queue\
+9. Shipping load mode\
+10. Dock door selector\
+11. Exception marking sheet\
+12. Scan result confirmation sheet\
+\
+Suggested structure if this is a Next.js / React prototype:\
+\
+src/\
+  app/\
+    layout.tsx\
+    page.tsx\
+    receiving/page.tsx\
+    receiving/[loadId]/page.tsx\
+    inventory/page.tsx\
+    inventory/[itemId]/page.tsx\
+    putaway/page.tsx\
+    putaway/[taskId]/page.tsx\
+    shipping/page.tsx\
+    shipping/[shipmentId]/page.tsx\
+  components/\
+    AppShell.tsx\
+    BottomTabBar.tsx\
+    StatusChip.tsx\
+    MetricCard.tsx\
+    WorkCard.tsx\
+    ScannerLockChip.tsx\
+    ExceptionSheet.tsx\
+    ScanConfirmSheet.tsx\
+    DockDoorSelector.tsx\
+  data/\
+    mockWarehouse.ts\
+  types/\
+    warehouse.ts\
+\
+Use mock data first. Do not wire real APIs yet.\
+\
+Mock data should include realistic warehouse IDs:\
+- Load IDs: T-4471, T-4468, T-4480\
+- Shipment IDs: S-55120, S-55132\
+- Putaway task IDs: P-2041, P-2042\
+- SKUs: BR-8821, AX-1102\
+- Doors: Door 2, Door 3, Door 5, Door 7\
+- Carrier examples: Old Dominion, FedEx Freight, Estes\
+- Vendor examples: Midwest Parts, Apex Supply\
+\
+Important scanner contract:\
+\
+type ScannerMode =\
+  | \{ scope: "globalInventory" \}\
+  | \{ scope: "load"; loadId: string \}\
+  | \{ scope: "putawayTask"; taskId: string \}\
+  | \{ scope: "shipment"; shipmentId: string \}\
+\
+Scanner behavior:\
+- Today: shortcut only, no scanner lock\
+- Receiving Load screen: scanner locked to loadId\
+- Inventory: scanner performs global inventory lookup\
+- Putaway Task screen: scanner locked to taskId\
+- Shipping Load screen: scanner locked to shipmentId\
+\
+Every work-mode screen must show a visible scanner chip:\
+- \'93Scanner locked to T-4471\'94\
+- \'93Inventory scanner searches globally\'94\
+- \'93Scanner locked to Putaway Task P-2041\'94\
+- \'93Scanner locked to Shipment S-55120\'94\
+\
+TODAY TAB\
+\
+Today is the default landing screen.\
+\
+Today should show:\
+- DockWalk header\
+- \'93by SkyView\'94 brand line\
+- Compact location/date line\
+- Live Now card\
+- Overview cards\
+- Quick actions\
+- Recent work\
+\
+Live Now example:\
+\'93T-4471 receiving at Door 7\'94\
+\'93Old Dominion \'b7 22 pallets \'b7 14 min elapsed\'94\
+\
+Overview cards:\
+- Active doors: 12 / 14\
+- Inbound today: 8\
+- Verified pallets: 1,284\
+- Exceptions: 3\
+\
+Quick actions:\
+- Receive Load\
+- Scan Inventory\
+- Start Putaway\
+- Ship Order\
+\
+Recent work:\
+- T-4468 received \'97 18 pallets\
+- T-4471 unloading at Door 7\
+- SKU BR-8821 moved to A-14\
+- Shipment S-55120 staged for loading\
+\
+RECEIVING TAB\
+\
+Receiving is the strongest workflow in the app.\
+\
+Receiving main screen groups:\
+1. Ready to Receive\
+2. In Progress\
+3. Needs Review\
+\
+Receiving load cards should show:\
+- Shipment ID\
+- Carrier\
+- Vendor\
+- Dock door\
+- Status\
+- Time arrived / staged\
+- Exception badge if needed\
+\
+Example:\
+Shipment T-4471\
+Old Dominion \'b7 Door 7\
+Vendor: Midwest Parts\
+22 pallets \'b7 Staged\
+Button: Start Receiving\
+\
+When tapping a load, support two actions:\
+1. View Details\
+2. Start Receiving\
+\
+Do not mix load details and scanner work mode together.\
+\
+RECEIVE LOAD WORK MODE\
+\
+This is the core workflow.\
+\
+Steps:\
+1. Verify BOL / packing list against scheduled shipment\
+2. Confirm packing list\
+3. Scan or generate UPC\
+4. Enter SKU / part number / item name\
+5. Enter quantity\
+6. Create label\
+7. Mark overage / shortage / damage if needed\
+8. Verify totals\
+9. Sign off load\
+\
+Screen should include:\
+- Sticky load header\
+- Shipment ID\
+- Dock door\
+- Carrier\
+- Status\
+- Scanner locked chip\
+- Big Scan Item action\
+- Generate UPC\
+- Add Line Manually\
+- Create Label\
+- Received inventory line list\
+- Exception button\
+- Verify Totals\
+- Sign Off Load\
+\
+INVENTORY TAB\
+\
+Inventory is the center tab.\
+\
+It is the universal lookup and material action hub.\
+\
+\
+Putaway task card:\
+Brake Rotor Assembly\
+Qty 36\
+Receiving Staging 
+\f1 \uc0\u8594 
+\f0  Bin A-14\
+Task P-2041\
+\
+Putaway task mode:\
+1. Scan item\
+2. Confirm quantity\
+3. Scan destination bin\
+4. Complete putaway\
+\
+Secondary actions:\
+- Report issue\
+- Change destination, if permitted\
+- Mark damaged\
+- Send to hold / QC\
+\
+SHIPPING TAB\
+\
+Shipping handles outbound work.\
+\
+Groups:\
+1. Ready to Load\
+2. Loading\
+3. Completed\
+\
+Shipping load card:\
+Shipment S-55120\
+Customer: Midwest Supply\
+Door 2 \'b7 Ready to Load\
+14 items\
+\
+Shipping load mode:\
+1. View shipment details\
+2. Scan staged product\
+3. Confirm loaded items\
+4. Mark missing / damaged\
+5. Complete shipment\
+6. Generate shipper PO / paperwork\
+\
+Exception types:\
+- Overage\
+- Shortage\
+- Damage\
+- Missing paperwork\
+- Unknown SKU\
+- Quantity mismatch\
+- QC hold\
+- Wrong item\
+\
+Design requirements:\
+- Keep the existing premium iOS visual direction.\
+- Use rounded cards, clean spacing, soft shadows, navy/blue SkyView feel.\
+- Large tap targets.\
+- No cluttered ERP tables.\
+- Mobile-first.\
+- Make every screen feel like a working warehouse floor tool.\
+- Prioritize screen hierarchy, scanner state, and workflow clarity over decorative polish.\
+\
+Acceptance checks:\
+- Bottom tabs are exactly Today, Receiving, Inventory, Putaway, Shipping.\
+- Inventory is visually centered.\
+- App name is DockWalk.\
+- Company/platform name is SkyView.\
+- No placeholder tabs named Floor, Dock, Intake, Activity, or Profile.\
+- Receiving has a real queue and Receive Load work mode.\
+- Inventory has omnibar/global lookup behavior.\
+- Putaway and Shipping are task/load queues.\
+- Scanner lock chip appears on Receiving, Putaway, and Shipping work-mode screens.\
+- Inventory scanner clearly says it searches globally.\
+- App does not pretend to be a full ERP.}

@@ -3,10 +3,22 @@ import Foundation
 struct InventoryItem: Identifiable, Equatable {
     let id: String
     let sku: String
+    let upc: String?
+    let partNumber: String?
+    let itemName: String
     let description: String
-    let location: String
+    var quantity: Int
+    var location: String
+    var status: InventoryStatus
     let onHand: Int
     let reserved: Int
+}
+
+enum InventoryStatus: String, CaseIterable {
+    case available = "Available"
+    case reserved = "Reserved"
+    case onHold = "On Hold"
+    case damaged = "Damaged"
 }
 
 struct CycleCountTask: Identifiable, Equatable {

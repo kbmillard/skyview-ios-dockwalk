@@ -45,6 +45,7 @@
 		697307A48E8324B72E2795BD /* LoadPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06B44D071E70EE2F7E60C975 /* LoadPhase.swift */; };
 		6E9432E5A56A2F4E15761641 /* ReceivingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C6F14CED858882E5331EA31 /* ReceivingViewModel.swift */; };
 		709FEFB4FB6C2EF3883EB2C0 /* OutboundViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6BD6174FDF1330B85CFAE17 /* OutboundViewModel.swift */; };
+		7149B41791DE5C165DAD3AEC /* TasksHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BFA9D8E39EAE9F0AD4F59CC /* TasksHomeView.swift */; };
 		71AD215D6FACA5CE53BA48D9 /* PutawayTaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72181A510BDB097237BAC204 /* PutawayTaskDetailView.swift */; };
 		73E9FC37F4155133092E99E3 /* WarehouseTaskActionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7CA1D9E2AFB4B1A5DE83BA7 /* WarehouseTaskActionModels.swift */; };
 		78CED7C1E16F0EBD98B9FD36 /* StatusChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC6C7CCE993538213FF044D /* StatusChip.swift */; };
@@ -56,8 +57,8 @@
 		87576C51E396C8D292D77FE8 /* SystemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AB42286DB335C3BFA16DDC /* SystemRow.swift */; };
 		877E615336855977F6C389E5 /* FoundationAreaBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44BFDB14BE3CAA5B45B84404 /* FoundationAreaBanner.swift */; };
 		8A85DB3459F11CF233BD6469 /* DeviceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EC1D45ABBB4B332FCB9EB9 /* DeviceConfiguration.swift */; };
-		8D21C1DD6F0D54D4785BBC4D /* TasksHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F688F50AFDC4D186CCBBBF /* TasksHomeView.swift */; };
 		8E7D59B56667E2237A9291F7 /* LiveNowBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6DBA3CBA3E03261DC7E8387 /* LiveNowBanner.swift */; };
+		9141EB51A8C017F49465AFD1 /* InventoryItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6109CF949D64AB8B6946F1C9 /* InventoryItemDetailView.swift */; };
 		930923F681F65DFC36AA9E2A /* BarcodeScanDeduplicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FA772116FF8B752A2075FA /* BarcodeScanDeduplicator.swift */; };
 		95B31D3181C512C6B5F6BE53 /* APIEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3C78FB5F7638E84C64F36F /* APIEndpoint.swift */; };
 		991EEA386E0A466F0F41EF5B /* InventoryHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E08A4D5BF891D9ECAF945C /* InventoryHomeView.swift */; };
@@ -134,9 +135,9 @@
 		281BEBC8BDB0B78462A285DD /* ReceivingEventModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingEventModels.swift; sourceTree = "<group>"; };
 		32AE8B706344E937315DEE42 /* ReceivingEventReplayCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingEventReplayCoordinator.swift; sourceTree = "<group>"; };
 		35762B2271979B09C378B109 /* OperationalDestinationCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationalDestinationCard.swift; sourceTree = "<group>"; };
-		37F688F50AFDC4D186CCBBBF /* TasksHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksHomeView.swift; sourceTree = "<group>"; };
 		39FEA6B47A344516D5F3C8C2 /* PutawayTaskDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayTaskDetailViewModel.swift; sourceTree = "<group>"; };
 		3AB148742D39441AF123D35B /* ReceivingEventReplayEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingEventReplayEngine.swift; sourceTree = "<group>"; };
+		3BFA9D8E39EAE9F0AD4F59CC /* TasksHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksHomeView.swift; sourceTree = "<group>"; };
 		44BFDB14BE3CAA5B45B84404 /* FoundationAreaBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationAreaBanner.swift; sourceTree = "<group>"; };
 		45E08A4D5BF891D9ECAF945C /* InventoryHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryHomeView.swift; sourceTree = "<group>"; };
 		46EC1D45ABBB4B332FCB9EB9 /* DeviceConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceConfiguration.swift; sourceTree = "<group>"; };
@@ -152,6 +153,7 @@
 		586D4D1AE3B59B6AB13CA45F /* DockWalkTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockWalkTheme.swift; sourceTree = "<group>"; };
 		5C01D2FCFF35EA66A25943EA /* SyncBatchReplayEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncBatchReplayEngine.swift; sourceTree = "<group>"; };
 		5D0622CE00814C219A8DFE74 /* SyncBatchModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncBatchModels.swift; sourceTree = "<group>"; };
+		6109CF949D64AB8B6946F1C9 /* InventoryItemDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryItemDetailView.swift; sourceTree = "<group>"; };
 		628AE0BA7E863AB6ABB813F3 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		65B0D6FC114C221591F6DE4F /* AppointmentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppointmentsView.swift; sourceTree = "<group>"; };
 		69FA772116FF8B752A2075FA /* BarcodeScanDeduplicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScanDeduplicator.swift; sourceTree = "<group>"; };
@@ -216,14 +218,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
-		022FC8CC65A7DCD093806EF7 /* Tasks */ = {
-			isa = PBXGroup;
-			children = (
-				37F688F50AFDC4D186CCBBBF /* TasksHomeView.swift */,
-			);
-			path = Tasks;
-			sourceTree = "<group>";
-		};
 		05C964B0BABF3A52668C1B9E /* Features */ = {
 			isa = PBXGroup;
 			children = (
@@ -264,7 +258,6 @@
 				99DEB5DB0B37421338CBC2DC /* Resources */,
 				E274C6FE2FD0D77E542AE903 /* Scanner */,
 				764BD5E90C9C3E7B1C4543E9 /* Settings */,
-				022FC8CC65A7DCD093806EF7 /* Tasks */,
 			);
 			path = DockWalk;
 			sourceTree = "<group>";
@@ -281,6 +274,7 @@
 			isa = PBXGroup;
 			children = (
 				4B0C761EC07D529368685D10 /* DockWalkFoundationTests.swift */,
+				8138EA07C25F09FF1720236E /* Tasks */,
 			);
 			path = DockWalkTests;
 			sourceTree = "<group>";
@@ -335,6 +329,14 @@
 				106CB13D9A54E191EE509B92 /* SettingsView.swift */,
 			);
 			path = Settings;
+			sourceTree = "<group>";
+		};
+		8138EA07C25F09FF1720236E /* Tasks */ = {
+			isa = PBXGroup;
+			children = (
+				3BFA9D8E39EAE9F0AD4F59CC /* TasksHomeView.swift */,
+			);
+			path = Tasks;
 			sourceTree = "<group>";
 		};
 		8C5BA647BAC69AD67FA389BB /* DesignSystem */ = {
@@ -499,6 +501,7 @@
 			isa = PBXGroup;
 			children = (
 				45E08A4D5BF891D9ECAF945C /* InventoryHomeView.swift */,
+				6109CF949D64AB8B6946F1C9 /* InventoryItemDetailView.swift */,
 				D1D58A15DC729A16961EEABA /* InventoryModels.swift */,
 				99D635A37EFE7B7FEBDA838B /* InventoryViewModel.swift */,
 				4C2AAF2FD89A645CF6C24E67 /* LocationLookupView.swift */,
@@ -654,6 +657,7 @@
 				7996E42A7A33EFE4AD179DF4 /* InboundWorkflowModels.swift in Sources */,
 				D571070FE57A1BD038E38654 /* InspectionStubView.swift in Sources */,
 				991EEA386E0A466F0F41EF5B /* InventoryHomeView.swift in Sources */,
+				9141EB51A8C017F49465AFD1 /* InventoryItemDetailView.swift in Sources */,
 				4A477263CAD9717F561A80CC /* InventoryModels.swift in Sources */,
 				0B71977ACA8200BEC35C454D /* InventoryViewModel.swift in Sources */,
 				8E7D59B56667E2237A9291F7 /* LiveNowBanner.swift in Sources */,
@@ -705,7 +709,6 @@
 				4E47A863500A2982A263522E /* SyncStatus.swift in Sources */,
 				87576C51E396C8D292D77FE8 /* SystemRow.swift in Sources */,
 				4EDE38AE14BBEC13A45B1834 /* TaskActionSyncModels.swift in Sources */,
-				8D21C1DD6F0D54D4785BBC4D /* TasksHomeView.swift in Sources */,
 				3CB30D28D66CD38D595937BB /* TodayDashboard.swift in Sources */,
 				61DBD58A765A849B2ACC397E /* TodayDashboardViewModel.swift in Sources */,
 				B62BB5725DA386A949C19199 /* TodayView.swift in Sources */,
@@ -719,6 +722,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				306D712854E5D0902B6758C7 /* DockWalkFoundationTests.swift in Sources */,
+				7149B41791DE5C165DAD3AEC /* TasksHomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -103,9 +103,45 @@ struct LocationLookupView: View {
     
     private func performLookup(_ query: String) {
         let mockItems = [
-            InventoryItem(id: "inv-1", sku: "SKU-44102", description: "Cases — beverage", location: "A-12-03", onHand: 480, reserved: 48),
-            InventoryItem(id: "inv-2", sku: "SKU-99201", description: "Drums — chemical", location: "C-04-01", onHand: 36, reserved: 0),
-            InventoryItem(id: "inv-3", sku: "SKU-22018", description: "Pallet — mixed retail", location: "B-08-02", onHand: 120, reserved: 24),
+            InventoryItem(
+                id: "inv-1",
+                sku: "SKU-44102",
+                upc: "00844711002",
+                partNumber: "BEV-CS-01",
+                itemName: "Cases — beverage",
+                description: "Cases — beverage",
+                quantity: 480,
+                location: "A-12-03",
+                status: .reserved,
+                onHand: 480,
+                reserved: 48
+            ),
+            InventoryItem(
+                id: "inv-2",
+                sku: "SKU-99201",
+                upc: "00992010001",
+                partNumber: "CHEM-DR-01",
+                itemName: "Drums — chemical",
+                description: "Drums — chemical",
+                quantity: 36,
+                location: "C-04-01",
+                status: .available,
+                onHand: 36,
+                reserved: 0
+            ),
+            InventoryItem(
+                id: "inv-3",
+                sku: "SKU-22018",
+                upc: "00220180001",
+                partNumber: "RET-PAL-01",
+                itemName: "Pallet — mixed retail",
+                description: "Pallet — mixed retail",
+                quantity: 120,
+                location: "B-08-02",
+                status: .reserved,
+                onHand: 120,
+                reserved: 24
+            ),
         ]
         
         let normalizedQuery = query.lowercased()

@@ -1,0 +1,1932 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DockWalk by SkyView · Warehouse Floor</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  /* ── SkyView Ink Palette ── */
+  --white:        #FFFFFF;
+  --silver:       #9CA3AF;
+  --steel:        #6B7280;
+  --slate:        #5F6878;
+  --navy:         #0A1428;
+  --navy-2:       #1A2438;
+  --blue:         #2F6FE5;   /* SkyView accent */
+
+  /* Surfaces */
+  --bg:           #F4F5F7;
+  --paper:        #FFFFFF;
+  --paper-2:      #F8F9FB;
+  --paper-3:      #F1F3F6;
+  --line:         #E5E8ED;
+  --line-2:       #D7DCE3;
+
+  /* Status (muted, on-palette) */
+  --ok:           #2E7D5B;
+  --warn:         #C58A2E;
+  --crit:         #B74343;
+
+  --ease: cubic-bezier(.22,.7,.2,1);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--navy);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
+  letter-spacing:-0.01em;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.04 0 0 0 0 0.08 0 0 0 0 0.16 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  opacity:.6;mix-blend-mode:multiply;
+}
+
+/* ─────────────────────────────────────
+   PAGE FRAME
+   ───────────────────────────────────── */
+.page{min-height:100vh;display:flex;flex-direction:column;position:relative;z-index:1}
+
+.page-top{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:24px 40px;position:relative;z-index:5;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .logo-badge{
+  width:36px;height:36px;border-radius:9px;
+  background:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  box-shadow:0 4px 14px -4px rgba(10,20,40,0.30), inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+.brand .logo-badge img{width:100%;height:100%;object-fit:cover;transform:scale(2.1) translateX(0%);object-position:center}
+.brand .titles{display:flex;flex-direction:column;gap:1px}
+.brand .name{font-family:'Bricolage Grotesque',sans-serif;font-weight:600;font-size:15px;color:var(--navy);letter-spacing:-0.02em;line-height:1.1}
+.brand .name .v{color:var(--blue)}
+.brand .tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.20em;text-transform:uppercase;color:var(--steel)}
+
+.page-meta{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.20em;
+  text-transform:uppercase;color:var(--steel);
+  display:flex;align-items:center;gap:10px;
+}
+.page-meta .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:livepulse 2.2s ease-in-out infinite}
+@keyframes livepulse{50%{opacity:.35;transform:scale(.8)}}
+
+.stage{
+  flex:1;display:grid;
+  grid-template-columns:1fr 420px 1fr;
+  align-items:center;gap:60px;
+  padding:0 60px 60px;position:relative;
+}
+@media(max-width:1200px){.stage{grid-template-columns:1fr 420px;gap:32px;padding:0 32px 40px}.side-left{display:none}}
+@media(max-width:840px){.stage{grid-template-columns:1fr;justify-items:center;gap:32px;padding:0 16px 40px}.side-right{display:none}}
+
+.side{display:flex;flex-direction:column;gap:32px;max-width:280px}
+.side-left{justify-self:end;text-align:right}
+.side-right{justify-self:start}
+.side-block{display:flex;flex-direction:column;gap:6px}
+.side-block .l{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.20em;text-transform:uppercase;color:var(--silver)}
+.side-block .t{font-family:'Bricolage Grotesque',sans-serif;font-size:22px;font-weight:500;color:var(--navy);letter-spacing:-0.02em;line-height:1.15}
+.side-block .d{font-size:13.5px;color:var(--slate);line-height:1.55;margin-top:4px}
+.side-stat{display:flex;flex-direction:column;gap:4px}
+.side-stat .v{font-family:'Bricolage Grotesque',sans-serif;font-size:42px;font-weight:300;letter-spacing:-0.04em;line-height:1;color:var(--navy)}
+.side-stat .v sup{font-size:16px;color:var(--silver);font-weight:400;margin-left:4px}
+.side-stat .l{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.20em;text-transform:uppercase;color:var(--steel);line-height:1.4}
+.divider{height:1px;background:var(--line);margin:8px 0}
+
+/* ─────────────────────────────────────
+   PHONE
+   ───────────────────────────────────── */
+.phone{
+  width:420px;height:850px;
+  background:#0A0E15;border-radius:60px;padding:14px;
+  position:relative;
+  box-shadow:
+    0 60px 120px -40px rgba(10,20,40,0.40),
+    0 24px 40px -20px rgba(10,20,40,0.20),
+    0 0 0 1px rgba(10,20,40,0.06),
+    inset 0 0 0 2px rgba(255,255,255,0.05);
+  justify-self:center;
+}
+.phone .screen{
+  width:100%;height:100%;
+  background:var(--paper-2);
+  border-radius:48px;overflow:hidden;
+  position:relative;display:flex;flex-direction:column;
+}
+
+.statusbar{
+  height:54px;flex-shrink:0;
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding:0 30px 12px;
+  font-weight:600;font-size:15px;color:var(--navy);
+  letter-spacing:-0.02em;position:relative;z-index:3;
+}
+.statusbar .icons{display:flex;align-items:center;gap:6px}
+.island{
+  position:absolute;top:11px;left:50%;transform:translateX(-50%);
+  width:118px;height:34px;border-radius:20px;background:#000;z-index:4;
+}
+
+/* ─────────────────────────────────────
+   NAV HEADER
+   ───────────────────────────────────── */
+.nav{
+  padding:8px 22px 14px;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  position:relative;z-index:3;
+  background:var(--paper-2);
+  flex-shrink:0;
+}
+.nav .lead{display:flex;align-items:flex-start;gap:10px;min-width:0;flex:1}
+.nav .back{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--paper);border:1px solid var(--line);
+  display:none;align-items:center;justify-content:center;
+  color:var(--navy);cursor:pointer;flex-shrink:0;
+  transition:all .2s var(--ease);
+  margin-top:2px;
+}
+.nav .back:hover{background:var(--paper-3);transform:translateX(-2px)}
+.nav.show-back .back{display:flex}
+.nav .titleblock{min-width:0}
+.nav .title{
+  font-weight:700;font-size:28px;
+  color:var(--navy);letter-spacing:-0.035em;line-height:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.nav .subtitle{
+  font-size:11.5px;color:var(--slate);font-weight:500;margin-top:3px;letter-spacing:-0.005em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.nav .subtitle .blu{color:var(--blue);font-weight:600}
+.nav .actions{display:flex;gap:8px;flex-shrink:0;align-items:center;margin-top:4px}
+.nav .action{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--paper);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--navy);cursor:pointer;
+  transition:all .2s var(--ease);position:relative;
+}
+.nav .action:hover{background:var(--paper-3);transform:translateY(-1px)}
+.nav .action .badge{
+  position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;
+  background:var(--crit);border:2px solid var(--paper);
+}
+
+/* ─────────────────────────────────────
+   SCANNER LOCK CHIP
+   ───────────────────────────────────── */
+.scanchip{
+  margin:0 22px 6px;flex-shrink:0;
+  padding:8px 12px;border-radius:10px;
+  background:var(--navy);color:#fff;
+  display:flex;align-items:center;gap:8px;
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;
+  position:relative;z-index:2;
+}
+.scanchip svg{flex-shrink:0;color:var(--blue)}
+.scanchip .label{flex:1;color:#a8b3c7}
+.scanchip .v{color:#fff;font-weight:600}
+.scanchip.global{background:var(--paper);color:var(--slate);border:1px solid var(--line)}
+.scanchip.global svg{color:var(--steel)}
+.scanchip.global .label{color:var(--steel)}
+.scanchip.global .v{color:var(--navy)}
+
+/* ─────────────────────────────────────
+   BODY (scrollable)
+   ───────────────────────────────────── */
+.body{
+  flex:1;
+  overflow-y:auto;overflow-x:hidden;
+  padding:0 22px 110px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.body::-webkit-scrollbar{display:none}
+
+/* views & screens (drill-down) */
+.tabview{display:none}
+.tabview.active{display:block}
+.screen{display:none;animation:fadein .35s var(--ease)}
+.screen.active{display:block}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─────────────────────────────────────
+   SHARED COMPONENTS
+   ───────────────────────────────────── */
+.section-label{
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:600;color:var(--silver);
+  margin:22px 4px 10px;display:flex;justify-content:space-between;align-items:center;
+}
+.section-label .count{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--steel);letter-spacing:.04em;text-transform:none;
+}
+.section-label .more{color:var(--blue);text-transform:none;letter-spacing:0;font-size:13px;font-weight:500;cursor:pointer}
+.section-label .more:hover{opacity:.7}
+
+.greeting{margin-bottom:6px}
+.greeting .hi{font-weight:700;font-size:22px;color:var(--navy);letter-spacing:-0.025em}
+.greeting .where{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:13px;color:var(--slate)}
+.greeting .where svg{color:var(--steel);flex-shrink:0}
+
+/* Live banner */
+.livebanner{
+  margin-top:18px;padding:14px 16px;
+  background:var(--navy);border-radius:18px;color:#fff;
+  display:flex;align-items:center;gap:14px;
+  position:relative;overflow:hidden;cursor:pointer;
+  transition:transform .3s var(--ease);
+}
+.livebanner:hover{transform:translateY(-1px)}
+.livebanner::before{
+  content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(400px 200px at 100% 0%, rgba(47,111,229,0.30), transparent 60%),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px) 0 0/24px 24px,
+    linear-gradient(0deg,  rgba(255,255,255,0.04) 1px, transparent 1px) 0 0/24px 24px;
+  mask:radial-gradient(circle at 100% 50%, #000, transparent 80%);
+  -webkit-mask:radial-gradient(circle at 100% 50%, #000, transparent 80%);
+  pointer-events:none;
+}
+.livebanner > *{position:relative;z-index:1}
+.livebanner .icon{
+  width:38px;height:38px;border-radius:12px;
+  background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.15);
+  display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;
+}
+.livebanner .text{flex:1;min-width:0}
+.livebanner .text .label{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.20em;text-transform:uppercase;
+  color:#88aad3;margin-bottom:3px;display:flex;align-items:center;gap:6px;
+}
+.livebanner .text .label .dot{
+  width:5px;height:5px;border-radius:50%;background:var(--blue);
+  box-shadow:0 0 6px var(--blue);animation:livepulse 1.6s ease-in-out infinite;
+}
+.livebanner .text .what{font-weight:600;font-size:14px;letter-spacing:-0.015em;color:#fff}
+.livebanner .text .when{font-size:12px;color:#a8b3c7;margin-top:2px}
+.livebanner .chev{color:rgba(255,255,255,0.4);flex-shrink:0}
+
+/* Stat grid */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.stat{
+  padding:14px;background:var(--paper);border:1px solid var(--line);border-radius:16px;
+  cursor:pointer;transition:all .25s var(--ease);position:relative;
+}
+.stat:hover{transform:translateY(-2px);box-shadow:0 8px 20px -8px rgba(10,20,40,0.10);border-color:var(--line-2)}
+.stat .stat-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.stat .label{font-size:11px;color:var(--steel);font-weight:500}
+.stat .icon{width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.stat.ok .icon{background:rgba(46,125,91,0.10);color:var(--ok)}
+.stat.warn .icon{background:rgba(197,138,46,0.12);color:var(--warn)}
+.stat.crit .icon{background:rgba(183,67,67,0.10);color:var(--crit)}
+.stat.info .icon{background:rgba(47,111,229,0.10);color:var(--blue)}
+.stat .value{font-size:26px;font-weight:700;color:var(--navy);letter-spacing:-0.03em;line-height:1}
+.stat .value .sub{font-size:14px;color:var(--silver);font-weight:500;margin-left:2px}
+.stat .delta{font-size:11px;color:var(--steel);margin-top:4px}
+.stat .delta.up{color:var(--ok)} .stat .delta.down{color:var(--crit)}
+
+/* Quick actions */
+.actions-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.qa{
+  background:var(--paper);border:1px solid var(--line);
+  border-radius:14px;padding:14px 6px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  cursor:pointer;transition:all .25s var(--ease);
+}
+.qa:hover{background:var(--paper-3);transform:translateY(-2px);border-color:var(--line-2)}
+.qa:active{transform:scale(.97)}
+.qa .ic{
+  width:32px;height:32px;border-radius:10px;
+  background:var(--navy);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+}
+.qa .lb{font-size:10.5px;color:var(--navy);font-weight:600;text-align:center;line-height:1.2}
+
+/* Feed list */
+.feed{background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.feed-row{
+  padding:12px 14px;display:flex;gap:12px;align-items:flex-start;
+  border-bottom:1px solid var(--line);
+  cursor:pointer;transition:background .2s var(--ease);
+}
+.feed-row:last-child{border-bottom:none}
+.feed-row:hover{background:var(--paper-2)}
+.feed-row .ic{
+  width:32px;height:32px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.feed-row .ic.ok{background:rgba(46,125,91,0.10);color:var(--ok)}
+.feed-row .ic.warn{background:rgba(197,138,46,0.12);color:var(--warn)}
+.feed-row .ic.crit{background:rgba(183,67,67,0.10);color:var(--crit)}
+.feed-row .ic.info{background:rgba(47,111,229,0.10);color:var(--blue)}
+.feed-row .ic.muted{background:var(--paper-3);color:var(--steel)}
+.feed-row .main{flex:1;min-width:0}
+.feed-row .what{font-size:13.5px;font-weight:600;color:var(--navy);letter-spacing:-0.015em;line-height:1.3}
+.feed-row .meta{font-size:12px;color:var(--slate);margin-top:2px;line-height:1.4}
+.feed-row .time{font-size:11px;color:var(--silver);flex-shrink:0;font-family:'JetBrains Mono',monospace;letter-spacing:.04em;align-self:center}
+.feed-row .time.live{color:var(--blue);font-weight:600}
+
+/* Load / Task / Shipment card */
+.workcard{
+  background:var(--paper);border:1px solid var(--line);border-radius:16px;
+  padding:14px;display:flex;flex-direction:column;gap:10px;
+  cursor:pointer;transition:all .25s var(--ease);margin-bottom:8px;
+}
+.workcard:hover{border-color:var(--line-2);transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(10,20,40,0.10)}
+.workcard .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.workcard .top .left{display:flex;align-items:center;gap:8px;min-width:0}
+.workcard .top .left .id{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--steel);letter-spacing:.04em;font-weight:500}
+.workcard .top .badge{
+  font-size:9px;letter-spacing:.10em;text-transform:uppercase;font-weight:700;
+  padding:3px 7px;border-radius:5px;
+}
+.workcard .top .badge.staged{background:var(--paper-3);color:var(--steel)}
+.workcard .top .badge.active{background:rgba(47,111,229,0.12);color:var(--blue)}
+.workcard .top .badge.review{background:rgba(197,138,46,0.14);color:var(--warn)}
+.workcard .top .badge.crit{background:rgba(183,67,67,0.10);color:var(--crit)}
+.workcard .top .badge.done{background:rgba(46,125,91,0.12);color:var(--ok)}
+.workcard .what{font-size:14.5px;font-weight:600;color:var(--navy);letter-spacing:-0.015em;line-height:1.25}
+.workcard .meta{
+  font-size:12px;color:var(--slate);display:flex;align-items:center;gap:8px;flex-wrap:wrap;line-height:1.4;
+}
+.workcard .meta .pip{width:3px;height:3px;border-radius:50%;background:var(--silver);flex-shrink:0}
+.workcard .meta strong{color:var(--navy);font-weight:600}
+.workcard .progress{
+  height:4px;border-radius:2px;background:var(--paper-3);overflow:hidden;margin-top:2px;
+}
+.workcard .progress .fill{height:100%;background:var(--blue);border-radius:2px}
+.workcard .cta{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding-top:10px;margin-top:2px;border-top:1px solid var(--line);
+}
+.workcard .cta .label{font-size:11.5px;color:var(--silver);font-family:'JetBrains Mono',monospace;letter-spacing:.04em}
+.workcard .cta .start{
+  font-size:12.5px;font-weight:600;color:var(--blue);
+  display:flex;align-items:center;gap:4px;
+}
+
+/* Omnibar (Inventory search) */
+.omnibar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--paper);border:1px solid var(--line);
+  padding:11px 14px;border-radius:14px;margin-top:6px;
+  transition:all .25s var(--ease);cursor:text;
+}
+.omnibar:focus-within,.omnibar:hover{border-color:var(--steel);background:var(--white)}
+.omnibar svg{color:var(--steel);flex-shrink:0}
+.omnibar input{
+  flex:1;border:none;outline:none;background:transparent;
+  font-family:'Inter',sans-serif;font-size:14px;color:var(--navy);font-weight:500;letter-spacing:-0.01em;
+}
+.omnibar input::placeholder{color:var(--silver);font-weight:400}
+.omnibar .scan{
+  width:30px;height:30px;border-radius:8px;background:var(--navy);color:#fff;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;
+  transition:transform .2s var(--ease);
+}
+.omnibar .scan:hover{transform:scale(1.05)}
+
+/* Item row (inventory) */
+.item-row{
+  padding:14px;background:var(--paper);border:1px solid var(--line);
+  border-radius:14px;margin-bottom:8px;
+  cursor:pointer;transition:all .25s var(--ease);
+}
+.item-row:hover{border-color:var(--line-2);transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(10,20,40,0.10)}
+.item-row .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+.item-row .name{font-size:14.5px;font-weight:600;color:var(--navy);letter-spacing:-0.015em;line-height:1.25;flex:1;min-width:0}
+.item-row .status{
+  font-size:9px;letter-spacing:.10em;text-transform:uppercase;font-weight:700;
+  padding:3px 7px;border-radius:5px;flex-shrink:0;
+}
+.item-row .status.avail{background:rgba(46,125,91,0.12);color:var(--ok)}
+.item-row .status.hold{background:rgba(197,138,46,0.14);color:var(--warn)}
+.item-row .status.review{background:rgba(183,67,67,0.10);color:var(--crit)}
+.item-row .codes{
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--steel);
+  letter-spacing:.04em;margin-bottom:6px;
+}
+.item-row .codes span{margin-right:10px}
+.item-row .qty-bin{
+  display:flex;align-items:center;gap:10px;padding-top:8px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--slate);
+}
+.item-row .qty-bin .x{display:flex;align-items:center;gap:4px}
+.item-row .qty-bin .x strong{color:var(--navy);font-weight:600}
+.item-row .qty-bin .pip{width:3px;height:3px;border-radius:50%;background:var(--silver)}
+
+/* Sticky detail header (Receive Load, Putaway Task, Shipping Load) */
+.detail-head{
+  background:var(--paper);border:1px solid var(--line);border-radius:16px;
+  padding:14px;margin-top:6px;
+}
+.detail-head .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.detail-head .row + .row{margin-top:6px}
+.detail-head .k{font-size:11px;color:var(--silver);text-transform:uppercase;letter-spacing:.12em;font-weight:600}
+.detail-head .v{font-size:13px;color:var(--navy);font-weight:600;letter-spacing:-0.01em}
+.detail-head .v.mono{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.04em}
+.detail-head .pillrow{display:flex;gap:6px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.detail-head .pill{
+  font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+  padding:3px 7px;border-radius:5px;background:var(--paper-3);color:var(--steel);
+}
+.detail-head .pill.active{background:rgba(47,111,229,0.12);color:var(--blue)}
+.detail-head .pill.warn{background:rgba(197,138,46,0.14);color:var(--warn)}
+.detail-head .pill.ok{background:rgba(46,125,91,0.12);color:var(--ok)}
+
+/* Detail progress bar */
+.detail-progress{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:10px 14px;margin-top:8px;background:var(--paper);border:1px solid var(--line);border-radius:12px;
+}
+.detail-progress .pmeta{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--steel);letter-spacing:.04em}
+.detail-progress .pmeta strong{color:var(--navy);font-weight:600}
+.detail-progress .bar{flex:1;height:4px;background:var(--paper-3);border-radius:2px;overflow:hidden}
+.detail-progress .bar .f{height:100%;background:var(--blue);border-radius:2px}
+
+/* Primary big button */
+.bigbtn{
+  margin-top:14px;width:100%;padding:18px;
+  background:var(--blue);color:#fff;border:none;border-radius:16px;
+  font-family:'Inter',sans-serif;font-weight:700;font-size:15.5px;letter-spacing:-0.01em;
+  display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;
+  transition:all .25s var(--ease);
+  box-shadow:0 10px 24px -8px rgba(47,111,229,0.40);
+}
+.bigbtn:hover{background:#2560D1;transform:translateY(-1px);box-shadow:0 14px 32px -8px rgba(47,111,229,0.55)}
+.bigbtn.dark{background:var(--navy);box-shadow:0 10px 24px -8px rgba(10,20,40,0.40)}
+.bigbtn.dark:hover{background:#000;box-shadow:0 14px 32px -8px rgba(10,20,40,0.55)}
+
+/* Secondary actions row */
+.secondary-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+.secondary-row.two{grid-template-columns:1fr 1fr}
+.secondary-btn{
+  padding:11px 8px;background:var(--paper);border:1px solid var(--line);
+  border-radius:12px;cursor:pointer;transition:all .2s var(--ease);
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+}
+.secondary-btn:hover{background:var(--paper-3);border-color:var(--line-2)}
+.secondary-btn .ic{color:var(--steel);display:flex}
+.secondary-btn .lb{font-size:10.5px;color:var(--navy);font-weight:600;text-align:center;line-height:1.2}
+
+/* Line list (received/loaded items) */
+.linelist{
+  background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+}
+.linelist .lhdr{
+  padding:10px 14px;display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--line);background:var(--paper-2);
+}
+.linelist .lhdr .l{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--steel);font-weight:600}
+.linelist .lhdr .c{font-size:11px;color:var(--ok);font-weight:600;display:flex;align-items:center;gap:5px}
+.linelist .lhdr .c .d{width:6px;height:6px;border-radius:50%;background:var(--ok)}
+.line{padding:12px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line)}
+.line:last-child{border-bottom:none}
+.line .check{
+  width:22px;height:22px;border-radius:50%;flex-shrink:0;
+  background:rgba(46,125,91,0.12);color:var(--ok);
+  display:flex;align-items:center;justify-content:center;
+}
+.line .check.pending{background:var(--paper-3);color:var(--silver)}
+.line .check.warn{background:rgba(197,138,46,0.14);color:var(--warn)}
+.line .info{flex:1;min-width:0}
+.line .info .nm{font-size:13px;font-weight:600;color:var(--navy);letter-spacing:-0.01em;line-height:1.3}
+.line .info .codes{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--steel);letter-spacing:.04em;margin-top:2px}
+.line .qty{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--navy);font-weight:700;letter-spacing:.02em;flex-shrink:0}
+
+/* Inline action list (Item detail) */
+.action-list{
+  background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+}
+.action-row{
+  padding:13px 14px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid var(--line);
+  cursor:pointer;transition:background .2s var(--ease);
+}
+.action-row:last-child{border-bottom:none}
+.action-row:hover{background:var(--paper-2)}
+.action-row .ic{
+  width:30px;height:30px;border-radius:9px;background:var(--paper-3);color:var(--steel);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.action-row .ic.crit{background:rgba(183,67,67,0.10);color:var(--crit)}
+.action-row .ic.warn{background:rgba(197,138,46,0.12);color:var(--warn)}
+.action-row .ic.ok{background:rgba(46,125,91,0.10);color:var(--ok)}
+.action-row .label{flex:1;font-size:14px;color:var(--navy);font-weight:500;letter-spacing:-0.005em}
+.action-row .chev{color:var(--silver)}
+
+/* Step indicator (Putaway task) */
+.steps{
+  display:flex;align-items:center;gap:6px;margin-top:10px;
+  padding:10px 12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;
+}
+.step{flex:1;display:flex;align-items:center;gap:6px;min-width:0}
+.step .dot{
+  width:18px;height:18px;border-radius:50%;flex-shrink:0;
+  background:var(--paper-3);color:var(--silver);
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;
+}
+.step.done .dot{background:var(--ok);color:#fff}
+.step.current .dot{background:var(--blue);color:#fff;box-shadow:0 0 0 3px rgba(47,111,229,0.20)}
+.step .lb{font-size:10.5px;color:var(--silver);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.005em}
+.step.done .lb,.step.current .lb{color:var(--navy)}
+.step-sep{flex-shrink:0;color:var(--silver)}
+
+/* Filter pills */
+.filter-pills{display:flex;gap:6px;margin:8px 0 14px;overflow-x:auto;scrollbar-width:none}
+.filter-pills::-webkit-scrollbar{display:none}
+.pill{
+  padding:6px 12px;border-radius:999px;
+  background:var(--paper);border:1px solid var(--line);
+  font-size:12px;font-weight:600;color:var(--slate);
+  cursor:pointer;transition:all .2s var(--ease);white-space:nowrap;
+}
+.pill:hover{background:var(--paper-3)}
+.pill.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.pill .c{font-family:'JetBrains Mono',monospace;font-size:9.5px;margin-left:5px;color:inherit;opacity:.7}
+
+/* ─────────────────────────────────────
+   TAB BAR
+   ───────────────────────────────────── */
+.tabbar{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:8px 10px 24px;
+  background:rgba(248,249,251,0.85);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;
+  z-index:10;
+}
+.tab{
+  flex:1;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 0 4px;cursor:pointer;color:var(--silver);
+  transition:color .2s var(--ease);
+}
+.tab:hover{color:var(--steel)}
+.tab.active{color:var(--navy)}
+.tab .ic{
+  width:24px;height:24px;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .25s var(--ease);
+}
+.tab.active .ic{transform:scale(1.08)}
+.tab .lb{font-size:10px;font-weight:600;letter-spacing:-0.005em}
+
+.home-indicator{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  width:134px;height:5px;border-radius:3px;background:var(--navy);opacity:.85;z-index:11;
+}
+
+/* ─────────────────────────────────────
+   BOTTOM SHEET (overlay)
+   ───────────────────────────────────── */
+.sheet-backdrop{
+  position:absolute;inset:0;background:rgba(10,20,40,0.40);
+  backdrop-filter:blur(2px);z-index:15;
+  opacity:0;visibility:hidden;transition:opacity .3s var(--ease),visibility .3s;
+}
+.sheet-backdrop.open{opacity:1;visibility:visible}
+
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;z-index:16;
+  background:var(--paper);
+  border-top-left-radius:24px;border-top-right-radius:24px;
+  padding:8px 22px 32px;
+  transform:translateY(100%);transition:transform .35s var(--ease);
+  max-height:80%;overflow-y:auto;
+  box-shadow:0 -20px 40px -20px rgba(10,20,40,0.20);
+}
+.sheet.open{transform:translateY(0)}
+.sheet .grabber{width:36px;height:4px;border-radius:2px;background:var(--line-2);margin:6px auto 14px}
+.sheet .stitle{font-weight:700;font-size:20px;color:var(--navy);letter-spacing:-0.025em;margin-bottom:4px}
+.sheet .sdesc{font-size:13px;color:var(--slate);margin-bottom:16px;line-height:1.5}
+.sheet .opt{
+  padding:13px 14px;background:var(--paper);border:1px solid var(--line);
+  border-radius:12px;margin-bottom:6px;display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:all .2s var(--ease);
+}
+.sheet .opt:hover{background:var(--paper-2);border-color:var(--line-2)}
+.sheet .opt .ic{
+  width:32px;height:32px;border-radius:9px;background:var(--paper-3);color:var(--steel);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.sheet .opt.crit .ic{background:rgba(183,67,67,0.10);color:var(--crit)}
+.sheet .opt.warn .ic{background:rgba(197,138,46,0.12);color:var(--warn)}
+.sheet .opt .label{flex:1}
+.sheet .opt .label .t{font-size:13.5px;font-weight:600;color:var(--navy)}
+.sheet .opt .label .d{font-size:12px;color:var(--slate);margin-top:1px}
+
+.sheet .doors{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.sheet .door{
+  aspect-ratio:1.1;border-radius:10px;background:var(--paper-3);border:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  cursor:pointer;transition:all .2s var(--ease);
+}
+.sheet .door:hover{background:var(--paper);border-color:var(--steel)}
+.sheet .door.selected{background:var(--navy);border-color:var(--navy)}
+.sheet .door.selected .n{color:#fff}
+.sheet .door.selected .st{color:var(--blue)}
+.sheet .door.busy{opacity:.45;cursor:not-allowed}
+.sheet .door .n{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--navy);letter-spacing:.04em}
+.sheet .door .st{font-size:9px;color:var(--steel);font-family:'JetBrains Mono',monospace;letter-spacing:.10em;text-transform:uppercase}
+
+.sheet-actions{display:flex;gap:8px;margin-top:14px}
+.sheet-actions .sbtn{
+  flex:1;padding:14px;border-radius:14px;
+  font-family:'Inter',sans-serif;font-weight:600;font-size:14px;cursor:pointer;
+  transition:all .2s var(--ease);border:none;letter-spacing:-0.01em;
+}
+.sheet-actions .sbtn.ghost{background:var(--paper);border:1px solid var(--line);color:var(--navy)}
+.sheet-actions .sbtn.ghost:hover{background:var(--paper-3)}
+.sheet-actions .sbtn.primary{background:var(--navy);color:#fff}
+.sheet-actions .sbtn.primary:hover{background:#000}
+
+/* Scan result sheet specifics */
+.scan-result-card{
+  background:var(--paper-2);border:1px solid var(--line);border-radius:14px;
+  padding:14px;display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;
+}
+.scan-result-card .check{
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  background:rgba(46,125,91,0.12);color:var(--ok);
+  display:flex;align-items:center;justify-content:center;
+}
+.scan-result-card .info{flex:1;min-width:0}
+.scan-result-card .info .nm{font-weight:700;font-size:15px;color:var(--navy);letter-spacing:-0.02em}
+.scan-result-card .info .codes{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--steel);letter-spacing:.04em;margin-top:3px}
+.scan-result-card .info .meta{font-size:12px;color:var(--slate);margin-top:6px}
+.scan-result-card .info .meta strong{color:var(--navy)}
+.scan-result-card .conf{
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
+  padding:4px 8px;border-radius:6px;
+  background:rgba(46,125,91,0.12);color:var(--ok);flex-shrink:0;
+}
+
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- top bar -->
+  <header class="page-top">
+    <div class="brand">
+      <div class="logo-badge"><img src="assets/skyview-logo.png" alt=""></div>
+      <div class="titles">
+        <span class="name">Sky<span class="v">View</span></span>
+        <span class="tag">DockWalk · Warehouse Floor</span>
+      </div>
+    </div>
+    <div class="page-meta">
+      <span class="dot"></span>
+      Live Prototype · v0.2
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- left annotations -->
+    <aside class="side side-left">
+      <div class="side-block">
+        <span class="l">Built for the floor</span>
+        <span class="t">An operator's<br>console, not an<br>admin dashboard.</span>
+        <span class="d">DockWalk runs in the operator's pocket. The web app handles billing, permissions, POS, reporting, and workflow configuration.</span>
+      </div>
+      <div class="divider"></div>
+      <div class="side-stat">
+        <span class="v">5</span>
+        <span class="l">Floor tabs<br>Today · Receiving · Inventory<br>Putaway · Shipping</span>
+      </div>
+      <div class="side-stat">
+        <span class="v">14 / 14</span>
+        <span class="l">Dock doors monitored<br>continuously</span>
+      </div>
+    </aside>
+
+    <!-- phone -->
+    <div class="phone">
+      <div class="screen" id="screen">
+        <div class="island"></div>
+        <div class="statusbar">
+          <span>9:41</span>
+          <div class="icons">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2" width="3" height="9" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+            <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor"><path d="M7.5 0C4.5 0 1.8 1.1 0 2.9l1.1 1.1C2.6 2.5 4.9 1.6 7.5 1.6s4.9.9 6.4 2.4L15 2.9C13.2 1.1 10.5 0 7.5 0zm0 3.2c-2 0-3.9.8-5.3 2.1l1.1 1.1c1.1-1 2.6-1.6 4.2-1.6s3.1.6 4.2 1.6l1.1-1.1c-1.4-1.3-3.3-2.1-5.3-2.1zm0 3.2c-1 0-2 .4-2.7 1l2.7 2.7 2.7-2.7c-.7-.6-1.7-1-2.7-1z"/></svg>
+            <svg width="25" height="11" viewBox="0 0 25 11" fill="none" stroke="currentColor" stroke-width="1"><rect x="0.5" y="0.5" width="21" height="10" rx="2.5"/><rect x="2" y="2" width="16" height="7" rx="1" fill="currentColor"/><rect x="22" y="3.5" width="2" height="4" rx="0.5" fill="currentColor"/></svg>
+          </div>
+        </div>
+
+        <!-- ╔══════ NAV ══════╗ -->
+        <div class="nav" id="nav">
+          <div class="lead">
+            <div class="back" id="backBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+            </div>
+            <div class="titleblock">
+              <div class="title" id="navTitle">Today</div>
+              <div class="subtitle" id="navSubtitle">DockWalk <span class="blu">by SkyView</span></div>
+            </div>
+          </div>
+          <div class="actions">
+            <div class="action" title="Search">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+            </div>
+            <div class="action" title="Notifications">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 003.4 0"/></svg>
+              <span class="badge"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- scanner chip slot -->
+        <div id="scanchip-slot"></div>
+
+        <!-- body -->
+        <div class="body" id="body">
+
+          <!-- ╔════════════════════ TAB 1: TODAY ════════════════════╗ -->
+          <div class="tabview active" data-tab="today">
+            <div class="screen active" data-screen="root">
+
+              <div class="greeting">
+                <div class="hi">Good morning, Marcus</div>
+                <div class="where">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  CJ Logistics · New Century DC · Mon, May 18
+                </div>
+              </div>
+
+              <div class="livebanner" data-jump="receiving:t-4471">
+                <div class="icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="1" y="6" width="13" height="11" rx="1"/><polygon points="14,9 18,9 22,12.5 22,17 14,17"/><circle cx="6" cy="19.5" r="2"/><circle cx="18" cy="19.5" r="2"/></svg>
+                </div>
+                <div class="text">
+                  <div class="label"><span class="dot"></span> Live now · Door 7</div>
+                  <div class="what">T-4471 receiving</div>
+                  <div class="when">Old Dominion · 22 pallets · 14 min elapsed</div>
+                </div>
+                <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+
+              <div class="section-label">Overview <span class="more">View all</span></div>
+              <div class="stats">
+                <div class="stat ok">
+                  <div class="stat-top">
+                    <span class="label">Active doors</span>
+                    <div class="icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  </div>
+                  <div class="value">12<span class="sub">/14</span></div>
+                  <div class="delta up">↑ 2 vs yesterday</div>
+                </div>
+                <div class="stat info">
+                  <div class="stat-top">
+                    <span class="label">Inbound today</span>
+                    <div class="icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg></div>
+                  </div>
+                  <div class="value">8</div>
+                  <div class="delta">3 remaining</div>
+                </div>
+                <div class="stat ok">
+                  <div class="stat-top">
+                    <span class="label">Verified pallets</span>
+                    <div class="icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg></div>
+                  </div>
+                  <div class="value">1,284</div>
+                  <div class="delta up">↑ 18% vs avg</div>
+                </div>
+                <div class="stat crit">
+                  <div class="stat-top">
+                    <span class="label">Exceptions</span>
+                    <div class="icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+                  </div>
+                  <div class="value">3</div>
+                  <div class="delta down">2 awaiting review</div>
+                </div>
+              </div>
+
+              <div class="section-label">Quick actions</div>
+              <div class="actions-grid">
+                <div class="qa" data-jump="receiving">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg></div>
+                  <span class="lb">Receive Load</span>
+                </div>
+                <div class="qa" data-jump="inventory">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+                  <span class="lb">Scan Inventory</span>
+                </div>
+                <div class="qa" data-jump="putaway">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg></div>
+                  <span class="lb">Start Putaway</span>
+                </div>
+                <div class="qa" data-jump="shipping">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
+                  <span class="lb">Ship Order</span>
+                </div>
+              </div>
+
+              <div class="section-label">Recent work <span class="more">All</span></div>
+              <div class="feed">
+                <div class="feed-row">
+                  <div class="ic ok"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  <div class="main">
+                    <div class="what">T-4468 received — 18 pallets</div>
+                    <div class="meta">FedEx Freight · Door 4 · No exceptions</div>
+                  </div>
+                  <span class="time">8:42</span>
+                </div>
+                <div class="feed-row" data-jump="receiving:t-4471">
+                  <div class="ic info"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="6" width="13" height="11" rx="1"/><polygon points="14,9 18,9 22,12.5 22,17 14,17"/></svg></div>
+                  <div class="main">
+                    <div class="what">T-4471 unloading at Door 7</div>
+                    <div class="meta">Old Dominion · 14 of 22 pallets verified</div>
+                  </div>
+                  <span class="time live">LIVE</span>
+                </div>
+                <div class="feed-row">
+                  <div class="ic muted"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M21 3l-7 7"/></svg></div>
+                  <div class="main">
+                    <div class="what">SKU BR-8821 moved to A-14</div>
+                    <div class="meta">Brake Rotor Assembly · 36 ea · Putaway P-2038</div>
+                  </div>
+                  <span class="time">8:14</span>
+                </div>
+                <div class="feed-row">
+                  <div class="ic muted"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,8 9,4"/><path d="M14 6h7M14 12h7M14 18h7M3 12h7M3 18h7"/></svg></div>
+                  <div class="main">
+                    <div class="what">Shipment S-55120 staged</div>
+                    <div class="meta">Midwest Supply · Door 2 · 14 items ready</div>
+                  </div>
+                  <span class="time">7:51</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ╔════════════════════ TAB 2: RECEIVING ════════════════════╗ -->
+          <div class="tabview" data-tab="receiving">
+
+            <!-- ROOT: Receiving queue -->
+            <div class="screen active" data-screen="root">
+              <div class="filter-pills">
+                <span class="pill active">All <span class="c">11</span></span>
+                <span class="pill">Mine <span class="c">2</span></span>
+                <span class="pill">Doors 1–7</span>
+                <span class="pill">Doors 8–14</span>
+              </div>
+
+              <div class="section-label">In progress <span class="count">2</span></div>
+
+              <div class="workcard" data-jump-screen="receiving:detail-t4471">
+                <div class="top">
+                  <div class="left"><span class="id">T-4471</span></div>
+                  <span class="badge active">Receiving</span>
+                </div>
+                <div class="what">Old Dominion · Door 7</div>
+                <div class="meta">Vendor <strong>Midwest Parts</strong> <span class="pip"></span> 22 pallets <span class="pip"></span> 14 min in</div>
+                <div class="progress"><div class="fill" style="width:63%"></div></div>
+                <div class="cta">
+                  <span class="label">14 / 22 pallets · 2 pending review</span>
+                  <span class="start">Resume <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg></span>
+                </div>
+              </div>
+
+              <div class="workcard">
+                <div class="top">
+                  <div class="left"><span class="id">T-4472</span></div>
+                  <span class="badge review">Hold flagged</span>
+                </div>
+                <div class="what">Saia · Door 9</div>
+                <div class="meta">Vendor <strong>Atlas Co.</strong> <span class="pip"></span> 16 pallets <span class="pip"></span> 32 min in</div>
+                <div class="cta">
+                  <span class="label">Awaiting paperwork from carrier</span>
+                  <span class="start">View <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg></span>
+                </div>
+              </div>
+
+              <div class="section-label">Ready to receive <span class="count">3</span></div>
+
+              <div class="workcard" data-jump-screen="receiving:detail-t4473">
+                <div class="top">
+                  <div class="left"><span class="id">T-4473</span></div>
+                  <span class="badge staged">Staged</span>
+                </div>
+                <div class="what">XPO · Door 12</div>
+                <div class="meta">Vendor <strong>Acme Plastics</strong> <span class="pip"></span> 28 pallets <span class="pip"></span> Scheduled 10:15</div>
+                <div class="cta">
+                  <span class="label">BOL on file · ready</span>
+                  <span class="start">Start receiving <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg></span>
+                </div>
+              </div>
+
+              <div class="workcard">
+                <div class="top">
+                  <div class="left"><span class="id">T-4475</span></div>
+                  <span class="badge staged">Staged</span>
+                </div>
+                <div class="what">Schneider · Door 5</div>
+                <div class="meta">Vendor <strong>Pioneer Tools</strong> <span class="pip"></span> 16 pallets <span class="pip"></span> Scheduled 10:45</div>
+              </div>
+
+              <div class="workcard">
+                <div class="top">
+                  <div class="left"><span class="id">T-4477</span></div>
+                  <span class="badge staged">Approaching</span>
+                </div>
+                <div class="what">Estes · Door TBD</div>
+                <div class="meta">Vendor <strong>Heartland Mfg</strong> <span class="pip"></span> 12 pallets <span class="pip"></span> ETA 11:20</div>
+                <div class="cta">
+                  <span class="label">No door assigned yet</span>
+                  <span class="start" data-sheet="docks">Assign door <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg></span>
+                </div>
+              </div>
+
+              <div class="section-label">Needs review <span class="count">2</span></div>
+
+              <div class="workcard">
+                <div class="top">
+                  <div class="left"><span class="id">T-4465</span></div>
+                  <span class="badge crit">SKU mismatch</span>
+                </div>
+                <div class="what">FedEx Freight · Door 4</div>
+                <div class="meta">Vendor <strong>Coastal Co.</strong> <span class="pip"></span> 2 pallets flagged <span class="pip"></span> 8:14</div>
+              </div>
+
+              <div class="workcard" style="margin-bottom:8px">
+                <div class="top">
+                  <div class="left"><span class="id">T-4470</span></div>
+                  <span class="badge review">Overage</span>
+                </div>
+                <div class="what">ArcBest · Door 11</div>
+                <div class="meta">Vendor <strong>NorthRange Inc.</strong> <span class="pip"></span> +3 boxes vs BOL <span class="pip"></span> 7:32</div>
+              </div>
+            </div>
+
+            <!-- DETAIL: Receive Load — T-4471 -->
+            <div class="screen" data-screen="detail-t4471">
+              <div class="detail-head">
+                <div class="row"><span class="k">Shipment</span><span class="v mono">T-4471</span></div>
+                <div class="row"><span class="k">Carrier</span><span class="v">Old Dominion</span></div>
+                <div class="row"><span class="k">Vendor</span><span class="v">Midwest Parts</span></div>
+                <div class="row"><span class="k">Door</span><span class="v mono">D-07</span></div>
+                <div class="pillrow"><span class="pill active">Receiving</span><span class="pill">14 min elapsed</span></div>
+              </div>
+
+              <div class="detail-progress">
+                <span class="pmeta"><strong>14</strong> / 22 pallets</span>
+                <div class="bar"><div class="f" style="width:63%"></div></div>
+                <span class="pmeta">63%</span>
+              </div>
+
+              <button class="bigbtn" data-sheet="scan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8v8M11 8v8M14 8v8M17 8v8"/></svg>
+                Scan Item
+              </button>
+
+              <div class="secondary-row">
+                <div class="secondary-btn">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+                  <span class="lb">Generate UPC</span>
+                </div>
+                <div class="secondary-btn">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
+                  <span class="lb">Add line</span>
+                </div>
+                <div class="secondary-btn">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>
+                  <span class="lb">Create label</span>
+                </div>
+              </div>
+
+              <div class="section-label">Received lines <span class="count">14 of 22</span></div>
+              <div class="linelist">
+                <div class="lhdr">
+                  <span class="l">Verified</span>
+                  <span class="c"><span class="d"></span> Pallet 14 · 96% confidence</span>
+                </div>
+                <div class="line">
+                  <div class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  <div class="info">
+                    <div class="nm">Pharma — Cold-chain Type B</div>
+                    <div class="codes">SKU 8412 · UPC 00854411</div>
+                  </div>
+                  <span class="qty">×24</span>
+                </div>
+                <div class="line">
+                  <div class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  <div class="info">
+                    <div class="nm">Pharma — Type C boxes</div>
+                    <div class="codes">SKU 8419 · UPC 00854429</div>
+                  </div>
+                  <span class="qty">×18</span>
+                </div>
+                <div class="line">
+                  <div class="check warn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+                  <div class="info">
+                    <div class="nm">Cooler unit — large</div>
+                    <div class="codes">SKU 8423 · 74% match · review</div>
+                  </div>
+                  <span class="qty">×3</span>
+                </div>
+                <div class="line">
+                  <div class="check pending"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/></svg></div>
+                  <div class="info">
+                    <div class="nm">Ambient pallet — pending scan</div>
+                    <div class="codes">SKU not yet read</div>
+                  </div>
+                  <span class="qty">—</span>
+                </div>
+              </div>
+
+              <div class="secondary-row two">
+                <div class="secondary-btn" data-sheet="exception">
+                  <div class="ic" style="color:var(--crit)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+                  <span class="lb">Mark exception</span>
+                </div>
+                <div class="secondary-btn">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,8 9,4"/><path d="M14 6h7M14 12h7M14 18h7M3 12h7M3 18h7"/></svg></div>
+                  <span class="lb">Verify totals</span>
+                </div>
+              </div>
+
+              <button class="bigbtn dark" style="margin-top:8px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>
+                Sign off load
+              </button>
+            </div>
+
+            <!-- DETAIL: Receive Load — T-4473 (fresh, not yet started) -->
+            <div class="screen" data-screen="detail-t4473">
+              <div class="detail-head">
+                <div class="row"><span class="k">Shipment</span><span class="v mono">T-4473</span></div>
+                <div class="row"><span class="k">Carrier</span><span class="v">XPO Logistics</span></div>
+                <div class="row"><span class="k">Vendor</span><span class="v">Acme Plastics</span></div>
+                <div class="row"><span class="k">Door</span><span class="v mono">D-12</span></div>
+                <div class="pillrow"><span class="pill">Staged</span><span class="pill">28 pallets expected</span></div>
+              </div>
+
+              <div class="section-label">Pre-receive checks</div>
+              <div class="action-list">
+                <div class="action-row">
+                  <div class="ic ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  <span class="label">BOL on file · matches scheduled</span>
+                  <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+                <div class="action-row">
+                  <div class="ic ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  <span class="label">Packing list confirmed</span>
+                  <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+                <div class="action-row">
+                  <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg></div>
+                  <span class="label">Driver checked in · 9:12</span>
+                  <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+              </div>
+
+              <button class="bigbtn" style="margin-top:14px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg>
+                Start receiving
+              </button>
+
+              <div class="secondary-row two">
+                <div class="secondary-btn">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,8 9,4"/><path d="M14 6h7M14 12h7M14 18h7M3 12h7M3 18h7"/></svg></div>
+                  <span class="lb">View BOL</span>
+                </div>
+                <div class="secondary-btn" data-sheet="docks">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+                  <span class="lb">Change door</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ╔════════════════════ TAB 3: INVENTORY ════════════════════╗ -->
+          <div class="tabview" data-tab="inventory">
+
+            <!-- ROOT: Inventory search -->
+            <div class="screen active" data-screen="root">
+              <div class="omnibar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+                <input type="text" placeholder="Search UPC, SKU, part, bin, or item" />
+                <div class="scan" data-sheet="scan">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8v8M11 8v8M14 8v8M17 8v8"/></svg>
+                </div>
+              </div>
+
+              <div class="actions-grid" style="margin-top:10px">
+                <div class="qa" data-sheet="scan">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8v8M11 8v8M14 8v8M17 8v8"/></svg></div>
+                  <span class="lb">Scan item</span>
+                </div>
+                <div class="qa">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg></div>
+                  <span class="lb">Search</span>
+                </div>
+                <div class="qa">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+                  <span class="lb">Add item</span>
+                </div>
+                <div class="qa">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg></div>
+                  <span class="lb">Move</span>
+                </div>
+              </div>
+
+              <div class="section-label">Recently touched <span class="count">5</span></div>
+
+              <div class="item-row" data-jump-screen="inventory:detail-br8821">
+                <div class="top">
+                  <div class="name">Brake Rotor Assembly</div>
+                  <span class="status avail">Available</span>
+                </div>
+                <div class="codes"><span>SKU BR-8821</span><span>UPC 00938122</span></div>
+                <div class="qty-bin">
+                  <span class="x">Qty <strong>36</strong></span>
+                  <span class="pip"></span>
+                  <span class="x">Bin <strong>A-14</strong></span>
+                </div>
+              </div>
+
+              <div class="item-row">
+                <div class="top">
+                  <div class="name">Pharma — Cold-chain Type B</div>
+                  <span class="status avail">Available</span>
+                </div>
+                <div class="codes"><span>SKU 8412</span><span>UPC 00854411</span></div>
+                <div class="qty-bin">
+                  <span class="x">Qty <strong>240</strong></span>
+                  <span class="pip"></span>
+                  <span class="x">Bin <strong>C-08</strong></span>
+                </div>
+              </div>
+
+              <div class="item-row">
+                <div class="top">
+                  <div class="name">Hydraulic Hose ½″</div>
+                  <span class="status hold">On hold</span>
+                </div>
+                <div class="codes"><span>SKU HH-3344</span><span>UPC 00721944</span></div>
+                <div class="qty-bin">
+                  <span class="x">Qty <strong>12</strong></span>
+                  <span class="pip"></span>
+                  <span class="x">Bin <strong>B-22</strong></span>
+                </div>
+              </div>
+
+              <div class="item-row">
+                <div class="top">
+                  <div class="name">Industrial Brake Pad</div>
+                  <span class="status avail">Available</span>
+                </div>
+                <div class="codes"><span>SKU BR-8825</span><span>UPC 00938151</span></div>
+                <div class="qty-bin">
+                  <span class="x">Qty <strong>84</strong></span>
+                  <span class="pip"></span>
+                  <span class="x">Bin <strong>A-15</strong></span>
+                </div>
+              </div>
+
+              <div class="item-row" style="margin-bottom:8px">
+                <div class="top">
+                  <div class="name">Cooler Unit — Large</div>
+                  <span class="status review">Needs review</span>
+                </div>
+                <div class="codes"><span>SKU 8423</span><span>UPC 00857322</span></div>
+                <div class="qty-bin">
+                  <span class="x">Qty <strong>3</strong></span>
+                  <span class="pip"></span>
+                  <span class="x">Receiving stage</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- DETAIL: Inventory item -->
+            <div class="screen" data-screen="detail-br8821">
+              <div class="detail-head">
+                <div class="row"><span class="k">Item</span><span class="v">Brake Rotor Assembly</span></div>
+                <div class="row"><span class="k">SKU</span><span class="v mono">BR-8821</span></div>
+                <div class="row"><span class="k">UPC</span><span class="v mono">00938122</span></div>
+                <div class="row"><span class="k">Bin</span><span class="v mono">A-14</span></div>
+                <div class="pillrow"><span class="pill ok">Available</span><span class="pill">Qty 36</span><span class="pill">$48.20 ea</span></div>
+              </div>
+
+              <div class="section-label">Actions</div>
+              <div class="action-list">
+                <div class="action-row">
+                  <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+                  <span class="label">Adjust quantity</span>
+                  <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+                <div class="action-row">
+                  <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg></div>
+                  <span class="label">Change bin / location</span>
+                  <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+                <div class="action-row">
+                  <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
+                  <span class="label">Move material</span>
+                  <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+                <div class="action-row">
+                  <div class="ic warn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg></div>
+                  <span class="label">Place on hold</span>
+                  <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+                <div class="action-row" data-sheet="exception">
+                  <div class="ic crit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+                  <span class="label">Mark damaged</span>
+                  <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+              </div>
+
+              <div class="section-label">Recent movement</div>
+              <div class="feed">
+                <div class="feed-row">
+                  <div class="ic ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  <div class="main">
+                    <div class="what">Putaway → Bin A-14</div>
+                    <div class="meta">Task P-2038 · 36 ea · Marcus R.</div>
+                  </div>
+                  <span class="time">8:14</span>
+                </div>
+                <div class="feed-row">
+                  <div class="ic muted"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
+                  <div class="main">
+                    <div class="what">Staged at Receiving</div>
+                    <div class="meta">From T-4468 manifest</div>
+                  </div>
+                  <span class="time">8:02</span>
+                </div>
+                <div class="feed-row">
+                  <div class="ic muted"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="13" height="11" rx="1"/><polygon points="14,9 18,9 22,12.5 22,17 14,17"/></svg></div>
+                  <div class="main">
+                    <div class="what">Received from T-4468</div>
+                    <div class="meta">FedEx Freight · Door 4</div>
+                  </div>
+                  <span class="time">7:46</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ╔════════════════════ TAB 4: PUTAWAY ════════════════════╗ -->
+          <div class="tabview" data-tab="putaway">
+
+            <!-- ROOT: Putaway queue -->
+            <div class="screen active" data-screen="root">
+              <div class="filter-pills">
+                <span class="pill active">All <span class="c">9</span></span>
+                <span class="pill">Mine <span class="c">2</span></span>
+                <span class="pill">Aisle A</span>
+                <span class="pill">Aisle B</span>
+                <span class="pill">Aisle C</span>
+              </div>
+
+              <div class="section-label">Assigned to me <span class="count">2</span></div>
+
+              <div class="workcard" data-jump-screen="putaway:detail-p2041">
+                <div class="top">
+                  <div class="left"><span class="id">P-2041</span></div>
+                  <span class="badge active">In progress</span>
+                </div>
+                <div class="what">Brake Rotor Assembly</div>
+                <div class="meta">SKU <strong>BR-8821</strong> <span class="pip"></span> Qty 36 <span class="pip"></span> Receiving Stage → <strong>A-14</strong></div>
+                <div class="cta">
+                  <span class="label">Step 2 of 4 · confirm qty</span>
+                  <span class="start">Resume <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg></span>
+                </div>
+              </div>
+
+              <div class="workcard">
+                <div class="top">
+                  <div class="left"><span class="id">P-2042</span></div>
+                  <span class="badge staged">Assigned</span>
+                </div>
+                <div class="what">Pharma — Cold-chain Type B</div>
+                <div class="meta">SKU <strong>8412</strong> <span class="pip"></span> Qty 24 <span class="pip"></span> Receiving Stage → <strong>C-08</strong></div>
+              </div>
+
+              <div class="section-label">Ready for putaway <span class="count">4</span></div>
+
+              <div class="workcard">
+                <div class="top">
+                  <div class="left"><span class="id">P-2043</span></div>
+                  <span class="badge staged">Unassigned</span>
+                </div>
+                <div class="what">Hydraulic Hose ½″</div>
+                <div class="meta">SKU <strong>HH-3344</strong> <span class="pip"></span> Qty 12 <span class="pip"></span> Receiving Stage → <strong>B-22</strong></div>
+                <div class="cta">
+                  <span class="label">Available · take task</span>
+                  <span class="start">Claim <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg></span>
+                </div>
+              </div>
+
+              <div class="workcard">
+                <div class="top">
+                  <div class="left"><span class="id">P-2044</span></div>
+                  <span class="badge review">Hold flagged</span>
+                </div>
+                <div class="what">Cooler Unit — Large</div>
+                <div class="meta">SKU <strong>8423</strong> <span class="pip"></span> Qty 3 <span class="pip"></span> Receiving Stage → <strong>C-12</strong></div>
+              </div>
+
+              <div class="workcard">
+                <div class="top">
+                  <div class="left"><span class="id">P-2045</span></div>
+                  <span class="badge staged">Unassigned</span>
+                </div>
+                <div class="what">Industrial Brake Pad</div>
+                <div class="meta">SKU <strong>BR-8825</strong> <span class="pip"></span> Qty 84 <span class="pip"></span> Receiving Stage → <strong>A-15</strong></div>
+              </div>
+
+              <div class="section-label">Completed today <span class="count">3</span></div>
+
+              <div class="workcard">
+                <div class="top">
+                  <div class="left"><span class="id">P-2038</span></div>
+                  <span class="badge done">Complete</span>
+                </div>
+                <div class="what">Brake Rotor Assembly · 36 ea → A-14</div>
+                <div class="meta">Marcus R. <span class="pip"></span> 7:54 — 8:14 <span class="pip"></span> 20 min</div>
+              </div>
+
+              <div class="workcard" style="margin-bottom:8px">
+                <div class="top">
+                  <div class="left"><span class="id">P-2039</span></div>
+                  <span class="badge done">Complete</span>
+                </div>
+                <div class="what">Coupler Kit · 12 ea → D-05</div>
+                <div class="meta">Daniela L. <span class="pip"></span> 8:01 — 8:16 <span class="pip"></span> 15 min</div>
+              </div>
+            </div>
+
+            <!-- DETAIL: Putaway Task P-2041 -->
+            <div class="screen" data-screen="detail-p2041">
+              <div class="detail-head">
+                <div class="row"><span class="k">Task</span><span class="v mono">P-2041</span></div>
+                <div class="row"><span class="k">Item</span><span class="v">Brake Rotor Assembly</span></div>
+                <div class="row"><span class="k">SKU</span><span class="v mono">BR-8821</span></div>
+                <div class="row"><span class="k">Quantity</span><span class="v mono">36 ea</span></div>
+                <div class="row"><span class="k">From → To</span><span class="v mono">Stage → A-14</span></div>
+              </div>
+
+              <div class="steps">
+                <div class="step done"><span class="dot"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lb">Scan item</span></div>
+                <svg class="step-sep" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                <div class="step current"><span class="dot">2</span><span class="lb">Confirm qty</span></div>
+                <svg class="step-sep" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                <div class="step"><span class="dot">3</span><span class="lb">Scan bin</span></div>
+                <svg class="step-sep" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                <div class="step"><span class="dot">4</span><span class="lb">Complete</span></div>
+              </div>
+
+              <button class="bigbtn" data-sheet="scan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+                Confirm quantity · 36
+              </button>
+
+              <div class="section-label">Other actions</div>
+              <div class="action-list">
+                <div class="action-row" data-sheet="docks">
+                  <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+                  <span class="label">Change destination bin</span>
+                  <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+                <div class="action-row" data-sheet="exception">
+                  <div class="ic crit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+                  <span class="label">Mark damaged</span>
+                  <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+                <div class="action-row">
+                  <div class="ic warn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg></div>
+                  <span class="label">Send to hold / QC</span>
+                  <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+                <div class="action-row">
+                  <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg></div>
+                  <span class="label">Report issue</span>
+                  <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ╔════════════════════ TAB 5: SHIPPING ════════════════════╗ -->
+          <div class="tabview" data-tab="shipping">
+
+            <!-- ROOT: Shipping queue -->
+            <div class="screen active" data-screen="root">
+              <div class="filter-pills">
+                <span class="pill active">All <span class="c">9</span></span>
+                <span class="pill">Hotshots <span class="c">2</span></span>
+                <span class="pill">LTL</span>
+                <span class="pill">TL</span>
+              </div>
+
+              <div class="section-label">Loading <span class="count">1</span></div>
+
+              <div class="workcard" data-jump-screen="shipping:detail-s55118">
+                <div class="top">
+                  <div class="left"><span class="id">S-55118</span></div>
+                  <span class="badge active">Loading</span>
+                </div>
+                <div class="what">Heartland Co. · Saia · Door 6</div>
+                <div class="meta">18 items <span class="pip"></span> 8 loaded · 10 remaining</div>
+                <div class="progress"><div class="fill" style="width:44%"></div></div>
+                <div class="cta">
+                  <span class="label">Driver waiting · 22 min</span>
+                  <span class="start">Resume <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg></span>
+                </div>
+              </div>
+
+              <div class="section-label">Ready to load <span class="count">3</span></div>
+
+              <div class="workcard" data-jump-screen="shipping:detail-s55120">
+                <div class="top">
+                  <div class="left"><span class="id">S-55120</span></div>
+                  <span class="badge staged">Staged</span>
+                </div>
+                <div class="what">Midwest Supply · FedEx · Door 2</div>
+                <div class="meta">14 items <span class="pip"></span> Hotshot <span class="pip"></span> Driver ETA 10:30</div>
+                <div class="cta">
+                  <span class="label">All paperwork ready</span>
+                  <span class="start">Begin loading <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg></span>
+                </div>
+              </div>
+
+              <div class="workcard">
+                <div class="top">
+                  <div class="left"><span class="id">S-55121</span></div>
+                  <span class="badge staged">Staged</span>
+                </div>
+                <div class="what">Apex Industrial · XPO · Door 3</div>
+                <div class="meta">22 items <span class="pip"></span> LTL <span class="pip"></span> Driver ETA 11:00</div>
+              </div>
+
+              <div class="workcard">
+                <div class="top">
+                  <div class="left"><span class="id">S-55122</span></div>
+                  <span class="badge review">Missing paperwork</span>
+                </div>
+                <div class="what">Velocity Auto · Old Dominion · Door 1</div>
+                <div class="meta">8 items <span class="pip"></span> BOL not yet generated</div>
+              </div>
+
+              <div class="section-label">Completed today <span class="count">2</span></div>
+
+              <div class="workcard">
+                <div class="top">
+                  <div class="left"><span class="id">S-55115</span></div>
+                  <span class="badge done">Shipped</span>
+                </div>
+                <div class="what">NE Distribution · FedEx · 22 items</div>
+                <div class="meta">Door 2 <span class="pip"></span> Driver out 9:42 <span class="pip"></span> POD signed</div>
+              </div>
+
+              <div class="workcard" style="margin-bottom:8px">
+                <div class="top">
+                  <div class="left"><span class="id">S-55116</span></div>
+                  <span class="badge done">Shipped</span>
+                </div>
+                <div class="what">Plains Hardware · XPO · 14 items</div>
+                <div class="meta">Door 3 <span class="pip"></span> Driver out 10:15</div>
+              </div>
+            </div>
+
+            <!-- DETAIL: Shipping Load S-55120 -->
+            <div class="screen" data-screen="detail-s55120">
+              <div class="detail-head">
+                <div class="row"><span class="k">Shipment</span><span class="v mono">S-55120</span></div>
+                <div class="row"><span class="k">Customer</span><span class="v">Midwest Supply</span></div>
+                <div class="row"><span class="k">Carrier</span><span class="v">FedEx Freight</span></div>
+                <div class="row"><span class="k">Door</span><span class="v mono">D-02</span></div>
+                <div class="pillrow"><span class="pill">Staged</span><span class="pill">14 items · Hotshot</span></div>
+              </div>
+
+              <div class="detail-progress">
+                <span class="pmeta"><strong>0</strong> / 14 items loaded</span>
+                <div class="bar"><div class="f" style="width:0%"></div></div>
+                <span class="pmeta">0%</span>
+              </div>
+
+              <button class="bigbtn" data-sheet="scan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8v8M11 8v8M14 8v8M17 8v8"/></svg>
+                Scan staged product
+              </button>
+
+              <div class="secondary-row">
+                <div class="secondary-btn">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,8 9,4"/><path d="M14 6h7M14 12h7M14 18h7M3 12h7M3 18h7"/></svg></div>
+                  <span class="lb">Shipment details</span>
+                </div>
+                <div class="secondary-btn" data-sheet="exception">
+                  <div class="ic" style="color:var(--crit)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+                  <span class="lb">Mark missing</span>
+                </div>
+                <div class="secondary-btn">
+                  <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>
+                  <span class="lb">Generate PO</span>
+                </div>
+              </div>
+
+              <div class="section-label">Staged items <span class="count">14</span></div>
+              <div class="linelist">
+                <div class="lhdr">
+                  <span class="l">Pick list</span>
+                  <span class="c" style="color:var(--steel)">Not yet loaded</span>
+                </div>
+                <div class="line">
+                  <div class="check pending"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/></svg></div>
+                  <div class="info">
+                    <div class="nm">Brake Rotor Assembly</div>
+                    <div class="codes">SKU BR-8821 · Bin A-14</div>
+                  </div>
+                  <span class="qty">×8</span>
+                </div>
+                <div class="line">
+                  <div class="check pending"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/></svg></div>
+                  <div class="info">
+                    <div class="nm">Industrial Brake Pad</div>
+                    <div class="codes">SKU BR-8825 · Bin A-15</div>
+                  </div>
+                  <span class="qty">×4</span>
+                </div>
+                <div class="line">
+                  <div class="check pending"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/></svg></div>
+                  <div class="info">
+                    <div class="nm">Hydraulic Hose ½″</div>
+                    <div class="codes">SKU HH-3344 · Bin B-22</div>
+                  </div>
+                  <span class="qty">×2</span>
+                </div>
+              </div>
+
+              <button class="bigbtn dark" style="margin-top:14px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>
+                Complete shipment
+              </button>
+            </div>
+
+            <!-- DETAIL: Shipping Load S-55118 (currently loading) -->
+            <div class="screen" data-screen="detail-s55118">
+              <div class="detail-head">
+                <div class="row"><span class="k">Shipment</span><span class="v mono">S-55118</span></div>
+                <div class="row"><span class="k">Customer</span><span class="v">Heartland Co.</span></div>
+                <div class="row"><span class="k">Carrier</span><span class="v">Saia</span></div>
+                <div class="row"><span class="k">Door</span><span class="v mono">D-06</span></div>
+                <div class="pillrow"><span class="pill active">Loading</span><span class="pill">Driver waiting · 22 min</span></div>
+              </div>
+
+              <div class="detail-progress">
+                <span class="pmeta"><strong>8</strong> / 18 items loaded</span>
+                <div class="bar"><div class="f" style="width:44%"></div></div>
+                <span class="pmeta">44%</span>
+              </div>
+
+              <button class="bigbtn" data-sheet="scan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8v8M11 8v8M14 8v8M17 8v8"/></svg>
+                Scan next item
+              </button>
+
+              <div class="section-label">Loaded <span class="count">8 of 18</span></div>
+              <div class="linelist">
+                <div class="lhdr">
+                  <span class="l">Confirmed</span>
+                  <span class="c"><span class="d"></span> 8 items loaded</span>
+                </div>
+                <div class="line">
+                  <div class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  <div class="info">
+                    <div class="nm">Steel Bracket — heavy duty</div>
+                    <div class="codes">SKU SB-2201 · 8 ea</div>
+                  </div>
+                  <span class="qty">×8</span>
+                </div>
+                <div class="line">
+                  <div class="check pending"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/></svg></div>
+                  <div class="info">
+                    <div class="nm">Pallet — Painted Frames</div>
+                    <div class="codes">SKU PF-1144 · pending</div>
+                  </div>
+                  <span class="qty">×6</span>
+                </div>
+                <div class="line">
+                  <div class="check pending"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/></svg></div>
+                  <div class="info">
+                    <div class="nm">Fastener Kit — bulk</div>
+                    <div class="codes">SKU FK-9911 · pending</div>
+                  </div>
+                  <span class="qty">×4</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ╔══════ TAB BAR ══════╗ -->
+        <nav class="tabbar">
+          <div class="tab active" data-target="today">
+            <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+            <span class="lb">Today</span>
+          </div>
+          <div class="tab" data-target="receiving">
+            <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="6" width="13" height="11" rx="1"/><polygon points="14,9 18,9 22,12.5 22,17 14,17"/><circle cx="6" cy="19.5" r="2"/><circle cx="18" cy="19.5" r="2"/></svg></div>
+            <span class="lb">Receiving</span>
+          </div>
+          <div class="tab" data-target="inventory">
+            <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg></div>
+            <span class="lb">Inventory</span>
+          </div>
+          <div class="tab" data-target="putaway">
+            <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg></div>
+            <span class="lb">Putaway</span>
+          </div>
+          <div class="tab" data-target="shipping">
+            <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="22,8 22,16 13,21 13,13"/><polygon points="2,8 2,16 11,21 11,13"/><polygon points="12,2 22,7 12,12 2,7"/></svg></div>
+            <span class="lb">Shipping</span>
+          </div>
+        </nav>
+        <div class="home-indicator"></div>
+
+        <!-- ╔══════ BOTTOM SHEETS ══════╗ -->
+        <div class="sheet-backdrop" id="backdrop"></div>
+
+        <!-- Scan result sheet -->
+        <div class="sheet" id="sheet-scan">
+          <div class="grabber"></div>
+          <div class="stitle">Scan confirmed</div>
+          <div class="sdesc">Match found in 0.12s · pallet 14 of 22</div>
+
+          <div class="scan-result-card">
+            <div class="check"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div class="info">
+              <div class="nm">Pharma — Cold-chain Type B</div>
+              <div class="codes">SKU 8412 · UPC 00854411</div>
+              <div class="meta">Vendor <strong>Midwest Parts</strong> · Destination <strong>C-08</strong></div>
+            </div>
+            <div class="conf">96%</div>
+          </div>
+
+          <div class="action-list">
+            <div class="action-row">
+              <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+              <span class="label">Confirm quantity · 24</span>
+              <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+            <div class="action-row">
+              <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
+              <span class="label">View item record</span>
+              <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+          </div>
+
+          <div class="sheet-actions">
+            <button class="sbtn ghost" data-close-sheet>Reject</button>
+            <button class="sbtn primary" data-close-sheet>Accept &amp; continue</button>
+          </div>
+        </div>
+
+        <!-- Exception sheet -->
+        <div class="sheet" id="sheet-exception">
+          <div class="grabber"></div>
+          <div class="stitle">Mark exception</div>
+          <div class="sdesc">Tagging this load as flagged will route it to <strong>Needs Review</strong> for office sign-off.</div>
+
+          <div class="opt crit">
+            <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+            <div class="label"><div class="t">Damage</div><div class="d">Visible damage to packaging, pallet, or product</div></div>
+          </div>
+          <div class="opt warn">
+            <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v8M8 12h8"/><circle cx="12" cy="12" r="9"/></svg></div>
+            <div class="label"><div class="t">Overage</div><div class="d">Received more than BOL quantity</div></div>
+          </div>
+          <div class="opt warn">
+            <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 12h8"/><circle cx="12" cy="12" r="9"/></svg></div>
+            <div class="label"><div class="t">Shortage</div><div class="d">Received less than BOL quantity</div></div>
+          </div>
+          <div class="opt">
+            <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg></div>
+            <div class="label"><div class="t">Unknown SKU</div><div class="d">Item not in catalog · requires office review</div></div>
+          </div>
+          <div class="opt">
+            <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg></div>
+            <div class="label"><div class="t">Missing paperwork</div><div class="d">BOL, packing list, or invoice not provided</div></div>
+          </div>
+
+          <div class="sheet-actions">
+            <button class="sbtn ghost" data-close-sheet>Cancel</button>
+            <button class="sbtn primary" data-close-sheet>Continue</button>
+          </div>
+        </div>
+
+        <!-- Dock door selector sheet -->
+        <div class="sheet" id="sheet-docks">
+          <div class="grabber"></div>
+          <div class="stitle">Assign dock door</div>
+          <div class="sdesc">Pick an available door for <strong>T-4477</strong>. Busy doors are shown but disabled.</div>
+
+          <div class="doors">
+            <div class="door busy"><span class="n">D-01</span><span class="st">In use</span></div>
+            <div class="door"><span class="n">D-02</span><span class="st">Open</span></div>
+            <div class="door"><span class="n">D-03</span><span class="st">Open</span></div>
+            <div class="door busy"><span class="n">D-04</span><span class="st">In use</span></div>
+            <div class="door busy"><span class="n">D-05</span><span class="st">In use</span></div>
+            <div class="door busy"><span class="n">D-06</span><span class="st">Loading</span></div>
+            <div class="door busy"><span class="n">D-07</span><span class="st">Recv'g</span></div>
+            <div class="door busy"><span class="n">D-08</span><span class="st">In use</span></div>
+            <div class="door busy"><span class="n">D-09</span><span class="st">Hold</span></div>
+            <div class="door selected"><span class="n">D-10</span><span class="st">Selected</span></div>
+            <div class="door busy"><span class="n">D-11</span><span class="st">In use</span></div>
+            <div class="door busy"><span class="n">D-12</span><span class="st">In use</span></div>
+            <div class="door"><span class="n">D-13</span><span class="st">Open</span></div>
+            <div class="door"><span class="n">D-14</span><span class="st">Maint</span></div>
+          </div>
+
+          <div class="sheet-actions">
+            <button class="sbtn ghost" data-close-sheet>Cancel</button>
+            <button class="sbtn primary" data-close-sheet>Assign D-10</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- right annotations -->
+    <aside class="side side-right">
+      <div class="side-block">
+        <span class="l">Scanner-aware</span>
+        <span class="t">Every screen<br>knows what the<br>scanner means.</span>
+        <span class="d">Inside Receiving, the scanner is locked to the load ID. Inside Putaway, it's locked to the task. Inventory is the only global lookup.</span>
+      </div>
+      <div class="divider"></div>
+      <div class="side-stat">
+        <span class="v">0.12<sup>s</sup></span>
+        <span class="l">Scan-to-result<br>on-device VLM</span>
+      </div>
+      <div class="side-stat">
+        <span class="v">96<sup>%</sup></span>
+        <span class="l">SKU recognition<br>under shop-floor light</span>
+      </div>
+    </aside>
+
+  </main>
+</div>
+
+<script>
+const tabs = document.querySelectorAll('.tab');
+const tabviews = document.querySelectorAll('.tabview');
+const navTitle = document.getElementById('navTitle');
+const navSubtitle = document.getElementById('navSubtitle');
+const nav = document.getElementById('nav');
+const backBtn = document.getElementById('backBtn');
+const bodyEl = document.getElementById('body');
+const scanchipSlot = document.getElementById('scanchip-slot');
+
+const tabConfig = {
+  today:     { title:'Today',     subtitle:'DockWalk <span class="blu">by SkyView</span>', scan:null },
+  receiving: { title:'Receiving', subtitle:'CJ Logistics · New Century DC',                scan:null },
+  inventory: { title:'Inventory', subtitle:'CJ Logistics · New Century DC',                scan:{mode:'global'} },
+  putaway:   { title:'Putaway',   subtitle:'CJ Logistics · New Century DC',                scan:null },
+  shipping:  { title:'Shipping',  subtitle:'CJ Logistics · New Century DC',                scan:null },
+};
+
+const screenConfig = {
+  'receiving:detail-t4471':  { title:'T-4471',  subtitle:'Receive Load',     scan:{mode:'locked', label:'Scanner locked to', value:'T-4471'} },
+  'receiving:detail-t4473':  { title:'T-4473',  subtitle:'Receive Load',     scan:{mode:'locked', label:'Scanner locked to', value:'T-4473'} },
+  'inventory:detail-br8821': { title:'BR-8821', subtitle:'Brake Rotor Assembly', scan:{mode:'global'} },
+  'putaway:detail-p2041':    { title:'P-2041',  subtitle:'Putaway Task',     scan:{mode:'locked', label:'Scanner locked to', value:'Task P-2041'} },
+  'shipping:detail-s55120':  { title:'S-55120', subtitle:'Shipping Load',    scan:{mode:'locked', label:'Scanner locked to', value:'Ship S-55120'} },
+  'shipping:detail-s55118':  { title:'S-55118', subtitle:'Shipping Load',    scan:{mode:'locked', label:'Scanner locked to', value:'Ship S-55118'} },
+};
+
+let currentTab = 'today';
+let currentScreen = 'root';
+
+function renderScanChip(scan){
+  if(!scan){ scanchipSlot.innerHTML = ''; return; }
+  if(scan.mode === 'global'){
+    scanchipSlot.innerHTML = `
+      <div class="scanchip global">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+        <span class="label">Scanner mode</span>
+        <span class="v">Global lookup</span>
+      </div>`;
+  } else {
+    scanchipSlot.innerHTML = `
+      <div class="scanchip">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <span class="label">${scan.label}</span>
+        <span class="v">${scan.value}</span>
+      </div>`;
+  }
+}
+
+function applyHeader(){
+  const cfg = currentScreen === 'root'
+    ? tabConfig[currentTab]
+    : screenConfig[currentTab + ':' + currentScreen];
+  if(!cfg) return;
+  navTitle.textContent = cfg.title;
+  navSubtitle.innerHTML = cfg.subtitle;
+  nav.classList.toggle('show-back', currentScreen !== 'root');
+  renderScanChip(cfg.scan);
+}
+
+function switchTab(target, keepScreen){
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.target === target));
+  tabviews.forEach(v => v.classList.toggle('active', v.dataset.tab === target));
+  currentTab = target;
+  if(!keepScreen) currentScreen = 'root';
+  // ensure correct screen is active inside this tab
+  const view = document.querySelector(`.tabview[data-tab="${target}"]`);
+  if(view){
+    view.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.dataset.screen === currentScreen));
+  }
+  bodyEl.scrollTop = 0;
+  applyHeader();
+}
+
+function pushScreen(target){
+  // target = "tab:screen"
+  const [tab, screen] = target.split(':');
+  if(tab !== currentTab) switchTab(tab, true);
+  currentScreen = screen;
+  const view = document.querySelector(`.tabview[data-tab="${tab}"]`);
+  view.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.dataset.screen === screen));
+  bodyEl.scrollTop = 0;
+  applyHeader();
+}
+
+function popScreen(){
+  if(currentScreen === 'root') return;
+  currentScreen = 'root';
+  const view = document.querySelector(`.tabview[data-tab="${currentTab}"]`);
+  view.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.dataset.screen === 'root'));
+  bodyEl.scrollTop = 0;
+  applyHeader();
+}
+
+// tab clicks
+tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.target)));
+
+// back button
+backBtn.addEventListener('click', popScreen);
+
+// jump triggers (cards/links that navigate)
+document.addEventListener('click', e => {
+  const jumpScreen = e.target.closest('[data-jump-screen]');
+  if(jumpScreen){
+    pushScreen(jumpScreen.dataset.jumpScreen);
+    return;
+  }
+  const jump = e.target.closest('[data-jump]');
+  if(jump){
+    const v = jump.dataset.jump;
+    if(v.includes(':')) pushScreen(v);
+    else switchTab(v);
+    return;
+  }
+});
+
+// bottom sheets
+const backdrop = document.getElementById('backdrop');
+function openSheet(id){
+  document.getElementById('sheet-' + id).classList.add('open');
+  backdrop.classList.add('open');
+}
+function closeSheets(){
+  document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open'));
+  backdrop.classList.remove('open');
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-sheet]');
+  if(t){ openSheet(t.dataset.sheet); return; }
+  if(e.target.closest('[data-close-sheet]') || e.target === backdrop){ closeSheets(); }
+});
+
+// init
+applyHeader();
+</script>
+
+</body>
+</html>
