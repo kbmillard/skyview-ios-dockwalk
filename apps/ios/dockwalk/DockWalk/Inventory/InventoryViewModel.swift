@@ -24,6 +24,7 @@ final class InventoryViewModel {
                 || ($0.upc?.lowercased().contains(query) ?? false)
                 || ($0.partNumber?.lowercased().contains(query) ?? false)
                 || $0.itemName.lowercased().contains(query)
+                || $0.status.rawValue.lowercased().contains(query)
         }
     }
     
