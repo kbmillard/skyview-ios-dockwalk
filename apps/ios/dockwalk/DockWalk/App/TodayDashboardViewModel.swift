@@ -86,7 +86,7 @@ final class TodayDashboardViewModel {
                 id: apt.id,
                 referenceNumber: apt.referenceNumber ?? apt.id,
                 carrier: nil,
-                status: inferInboundStatus(from: apt.status),
+                status: InboundAPIMapping.mapInboundLoadStatus(apt.status),
                 scheduledAt: parseDate(apt.scheduledAt),
                 doorAssignment: nil
             )
@@ -94,7 +94,9 @@ final class TodayDashboardViewModel {
         
         var groups: [InboundLoadGroup] = []
         
-        for status in InboundStatus.allCases {
+        // Show primary workflow statuses in Today dashboard
+        let displayStatuses: [InboundLoadStatus] = [.scheduled, .checkedIn, .staged, .receiving]
+        for status in displayStatuses {
             let filtered = loads.filter { $0.status == status }
             if !filtered.isEmpty || status == .scheduled || status == .checkedIn {
                 groups.append(InboundLoadGroup(
@@ -119,16 +121,6 @@ final class TodayDashboardViewModel {
         return groups.filter { $0.count > 0 || $0.status == .staged || $0.status == .assigned }
     }
     
-    private func inferInboundStatus(from apiStatus: String?) -> InboundStatus {
-        guard let apiStatus else { return .scheduled }
-        
-        switch apiStatus.lowercased() {
-        case "arrived": return .checkedIn
-        case "staged": return .staged
-        case "receiving": return .receiving
-        default: return .scheduled
-        }
-    }
     
     private func parseDate(_ dateString: String?) -> Date? {
         guard let dateString else { return nil }

@@ -39,7 +39,7 @@ struct MainTabView: View {
                     }
                     .tag(AppTab.putaway)
 
-                ShippingHomeView()
+                ShippingTabRootView()
                     .tabItem {
                         Label("Shipping", systemImage: "arrow.up.to.line")
                     }

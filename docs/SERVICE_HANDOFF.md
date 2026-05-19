@@ -105,6 +105,46 @@ Bump `**CURRENT_PROJECT_VERSION**` / `CFBundleVersion` before each new TestFligh
 
 ---
 
+## Latest work — Inbound Status Unification (2026-05-19)
+
+**Scope:** Consolidate fragmented inbound status models into a single canonical enum with 1:1 API slug mapping.
+
+**Problem:**
+- Three separate status models existed: `AppointmentStatus`, `InboundStatus` (in `InboundWorkflowModels`), and raw `String` status on `InboundShipmentItem`
+- `TodayDashboardViewModel.inferInboundStatus` duplicated `InboundAPIMapping` logic
+- Inconsistent display names, chip tones, system images across inbound workflows
+
+**Solution:**
+- Created unified `InboundLoadStatus` enum in `InboundModels.swift`
+- Enum cases: `scheduled`, `checkedIn` (rawValue: "arrived"), `staged`, `receiving`, `complete`, `cancelled`
+- Each case provides: `displayName`, `chipTone`, `systemImage` computed properties
+- Removed `AppointmentStatus` and `InboundStatus` enums
+- Consolidated all mapping into `InboundAPIMapping.mapInboundLoadStatus()`
+- Removed `TodayDashboardViewModel.inferInboundStatus()` duplication
+- Updated models: `ReceivingAppointment`, `InboundShipmentItem`, `InboundLoad` now use `InboundLoadStatus`
+- Fixed all call sites: `ShipmentDetailView`, `ReceivingView`, `InboundAPIMapping`, preview data
+
+**API contract (1:1 slug mapping):**
+- `"scheduled"` → `.scheduled`
+- `"arrived"` or `"checked_in"` → `.checkedIn`
+- `"staged"` → `.staged`
+- `"receiving"` → `.receiving`
+- `"completed"` or `"complete"` → `.complete`
+- `"cancelled"`, `"missed"`, `"refused"` → `.cancelled`
+
+**Files modified:**
+- `InboundModels.swift` — unified enum, `ReceivingAppointment`, `InboundShipmentItem`
+- `InboundWorkflowModels.swift` — removed `InboundStatus`, updated `InboundLoadGroup`, `InboundLoad`
+- `InboundAPIMapping.swift` — consolidated mapper, updated `mapAppointment`, `mapInboundShipment`, `mapShipmentToReceivedLine`
+- `TodayDashboardViewModel.swift` — removed `inferInboundStatus`, call `InboundAPIMapping.mapInboundLoadStatus`
+- `ShipmentDetailView.swift` — use `status.displayName`, `status.chipTone`, fix preview
+- `ReceivingView.swift` — use `status.displayName`, `status.chipTone`
+
+**Validation:**
+- xcodegen + build clean ✓
+
+---
+
 ## Latest delivery — Phase 2b: Prototype visual alignment (2026-05-18)
 
 **Scope:** Align native UI to HTML floor prototype — scanner lock contract, work-mode chips, bottom sheets, Today command center layout. **TestFlight 0.1.0 (10)** is current on device.

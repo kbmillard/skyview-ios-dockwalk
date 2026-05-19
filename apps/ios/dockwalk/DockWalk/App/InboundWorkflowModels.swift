@@ -1,31 +1,5 @@
 import Foundation
 
-/// Inbound workflow status model for WMS command center
-enum InboundStatus: String, CaseIterable {
-    case scheduled = "scheduled"
-    case checkedIn = "arrived"
-    case staged = "staged"
-    case receiving = "receiving"
-    
-    var displayName: String {
-        switch self {
-        case .scheduled: return "Scheduled"
-        case .checkedIn: return "Checked In"
-        case .staged: return "Staged"
-        case .receiving: return "Receiving"
-        }
-    }
-    
-    var systemImage: String {
-        switch self {
-        case .scheduled: return "calendar"
-        case .checkedIn: return "checkmark.circle"
-        case .staged: return "door.left.hand.open"
-        case .receiving: return "arrow.down.doc"
-        }
-    }
-}
-
 /// Dock door status for WMS operations
 struct DockDoorStatus: Identifiable, Equatable {
     let id: String
@@ -56,7 +30,7 @@ struct DockDoorStatus: Identifiable, Equatable {
 /// Inbound load grouped by workflow status
 struct InboundLoadGroup: Identifiable {
     let id = UUID()
-    let status: InboundStatus
+    let status: InboundLoadStatus
     let count: Int
     let loads: [InboundLoad]
 }
@@ -66,7 +40,7 @@ struct InboundLoad: Identifiable, Equatable {
     let id: String
     let referenceNumber: String
     let carrier: String?
-    let status: InboundStatus
+    let status: InboundLoadStatus
     let scheduledAt: Date?
     let doorAssignment: String?
 }

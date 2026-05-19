@@ -35,7 +35,7 @@ enum InboundAPIMapping {
             carrier: carrier,
             dock: dock,
             scheduledAt: parseDate(dto.scheduledAt) ?? .now,
-            status: mapAppointmentStatus(dto.status),
+            status: mapInboundLoadStatus(dto.status),
             poNumber: dto.referenceNumber ?? "—",
             palletCount: pallets
         )
@@ -46,7 +46,7 @@ enum InboundAPIMapping {
             id: dto.id,
             appointmentId: dto.appointmentId,
             referenceNumber: dto.referenceNumber ?? "—",
-            status: dto.status ?? "draft",
+            status: mapInboundLoadStatus(dto.status),
             expectedAt: parseDate(dto.expectedAt),
             receivedAt: parseDate(dto.receivedAt)
         )
@@ -72,18 +72,22 @@ enum InboundAPIMapping {
         ReceivedLine(
             id: shipment.id,
             sku: shipment.referenceNumber,
-            description: "Inbound shipment · \(shipment.statusDisplay)",
+            description: "Inbound shipment · \(shipment.status.displayName)",
             quantity: 1
         )
     }
 
-    private static func mapAppointmentStatus(_ raw: String?) -> AppointmentStatus {
-        switch raw?.lowercased() {
+    /// Map API status string to unified inbound load status
+    static func mapInboundLoadStatus(_ raw: String?) -> InboundLoadStatus {
+        guard let raw = raw?.lowercased() else { return .scheduled }
+        
+        switch raw {
         case "scheduled": return .scheduled
-        case "arrived": return .checkedIn
+        case "arrived", "checked_in": return .checkedIn
+        case "staged": return .staged
         case "receiving": return .receiving
-        case "completed": return .complete
-        case "cancelled", "missed": return .delayed
+        case "completed", "complete": return .complete
+        case "cancelled", "missed", "refused": return .cancelled
         default: return .scheduled
         }
     }

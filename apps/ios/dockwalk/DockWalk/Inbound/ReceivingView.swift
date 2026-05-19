@@ -130,7 +130,7 @@ struct ReceivingView: View {
                         .foregroundStyle(DockWalkTheme.textSecondary)
                 }
                 Spacer()
-                StatusChip(label: shipment.statusDisplay, tone: .info)
+                StatusChip(label: shipment.status.displayName, tone: shipment.status.chipTone)
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(DockWalkTheme.textSecondary)

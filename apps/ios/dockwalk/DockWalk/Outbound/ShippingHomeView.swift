@@ -6,49 +6,48 @@ struct ShippingHomeView: View {
     @State private var showScanner = false
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
-                    workflowSummary
-                    
-                    readyToPickSection
-                    
-                    pickingSection
-                    
-                    stagedSection
-                    
-                    loadingSection
-                    
-                    foundationNotice
-                }
-                .padding(DockWalkTheme.screenPadding)
+        ScrollView {
+            VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
+                workflowSummary
+                
+                readyToPickSection
+                
+                pickingSection
+                
+                stagedSection
+                
+                loadingSection
+                
+                foundationNotice
             }
-            .background(DockWalkTheme.background)
-            .navigationTitle("Shipping")
-            .toolbar {
-                if scannerPreferences.isScannerActive {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showScanner = true
-                        } label: {
-                            Image(systemName: "barcode.viewfinder")
-                                .font(.body.weight(.semibold))
-                        }
+            .padding(DockWalkTheme.screenPadding)
+        }
+        .background(DockWalkTheme.background)
+        .navigationTitle("Shipping")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            if scannerPreferences.isScannerActive {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showScanner = true
+                    } label: {
+                        Image(systemName: "barcode.viewfinder")
+                            .font(.body.weight(.semibold))
                     }
                 }
             }
-            .sheet(isPresented: $showScanner) {
-                NavigationStack {
-                    ScannerLabView()
-                        .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button("Done") { showScanner = false }
-                            }
-                        }
-                }
-            }
-            .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showScanner)
         }
+        .sheet(isPresented: $showScanner) {
+            NavigationStack {
+                ScannerLabView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showScanner = false }
+                        }
+                    }
+            }
+        }
+        .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showScanner)
     }
 
     private var workflowSummary: some View {
@@ -99,6 +98,19 @@ struct ShippingHomeView: View {
                 }
             }
             
+            NavigationLink {
+                PickingTasksView()
+            } label: {
+                HStack {
+                    Text("Open picking queue")
+                        .font(DockWalkTheme.bodyFont.weight(.semibold))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                }
+                .foregroundStyle(DockWalkTheme.accent)
+            }
+            
             if viewModel.readyToPickOrders.isEmpty {
                 SectionCard {
                     VStack(spacing: 8) {
@@ -129,6 +141,19 @@ struct ShippingHomeView: View {
                 if viewModel.pickingCount > 0 {
                     StatusChip(label: "\(viewModel.pickingCount)", tone: .info)
                 }
+            }
+            
+            NavigationLink {
+                PickingTasksView()
+            } label: {
+                HStack {
+                    Text("Open picking queue")
+                        .font(DockWalkTheme.bodyFont.weight(.semibold))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                }
+                .foregroundStyle(DockWalkTheme.accent)
             }
             
             if viewModel.pickingOrders.isEmpty && viewModel.pickedOrders.isEmpty {
@@ -255,14 +280,22 @@ struct ShippingHomeView: View {
             }
         }
 
-        if order.status == .staged || order.status == .loading {
+        switch order.status {
+        case .readyToPick, .picking, .picked:
+            NavigationLink {
+                PickingTasksView()
+            } label: {
+                card
+            }
+            .buttonStyle(.plain)
+        case .staged, .loading:
             NavigationLink {
                 ShippingLoadDetailView(order: order)
             } label: {
                 card
             }
             .buttonStyle(.plain)
-        } else {
+        case .shipped:
             card
         }
     }

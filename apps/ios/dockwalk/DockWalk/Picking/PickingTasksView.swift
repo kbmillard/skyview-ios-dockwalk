@@ -7,45 +7,44 @@ struct PickingTasksView: View {
     @State private var showScanner = false
     
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: DockWalkTheme.sectionSpacing) {
-                    searchField
-                        .padding(.horizontal, DockWalkTheme.screenPadding)
-                    
-                    if viewModel.readyToPickTasks.isEmpty && viewModel.assignedTasks.isEmpty && viewModel.pickingTasks.isEmpty {
-                        emptyState
-                    } else {
-                        taskSections
-                    }
-                }
-                .padding(.vertical, DockWalkTheme.screenPadding)
-            }
-            .background(DockWalkTheme.background)
-            .navigationTitle("Picking")
-            .toolbar {
-                if scannerPreferences.isScannerActive {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showScanner = true
-                        } label: {
-                            Image(systemName: "barcode.viewfinder")
-                                .font(.body.weight(.semibold))
-                        }
-                    }
+        ScrollView {
+            VStack(spacing: DockWalkTheme.sectionSpacing) {
+                searchField
+                    .padding(.horizontal, DockWalkTheme.screenPadding)
+                
+                if viewModel.readyToPickTasks.isEmpty && viewModel.assignedTasks.isEmpty && viewModel.pickingTasks.isEmpty {
+                    emptyState
+                } else {
+                    taskSections
                 }
             }
-            .sheet(item: $selectedTask) { task in
-                PickingTaskDetailView(task: task)
-            }
-            .sheet(isPresented: $showScanner) {
-                BarcodeScannerSheet(title: "Scan pick item") { result in
-                    // TODO: Implement scan-to-search or scan-to-pick logic
-                    showScanner = false
-                }
-            }
-            .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showScanner)
+            .padding(.vertical, DockWalkTheme.screenPadding)
         }
+        .background(DockWalkTheme.background)
+        .navigationTitle("Picking")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            if scannerPreferences.isScannerActive {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showScanner = true
+                    } label: {
+                        Image(systemName: "barcode.viewfinder")
+                            .font(.body.weight(.semibold))
+                    }
+                }
+            }
+        }
+        .sheet(item: $selectedTask) { task in
+            PickingTaskDetailView(task: task)
+        }
+        .sheet(isPresented: $showScanner) {
+            BarcodeScannerSheet(title: "Scan pick item") { result in
+                viewModel.searchQuery = result.value
+                showScanner = false
+            }
+        }
+        .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showScanner)
     }
     
     private var searchField: some View {

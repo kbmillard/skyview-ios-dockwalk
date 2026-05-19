@@ -80,7 +80,7 @@ struct ShipmentDetailView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(viewModel.shipment.referenceNumber)
                     .font(DockWalkTheme.headlineFont)
-                StatusChip(label: viewModel.shipment.statusDisplay, tone: .info)
+                StatusChip(label: viewModel.shipment.status.displayName, tone: viewModel.shipment.status.chipTone)
                 if let mode = viewModel.dataMode {
                     StatusChip(label: mode == "live" ? "Live lines" : "Stub API", tone: .neutral)
                 }
@@ -239,7 +239,7 @@ struct ShipmentDetailView: View {
                 id: "ship-1",
                 appointmentId: "apt-1",
                 referenceNumber: "ASN-100",
-                status: "receiving",
+                status: .receiving,
                 expectedAt: nil,
                 receivedAt: nil
             ),
