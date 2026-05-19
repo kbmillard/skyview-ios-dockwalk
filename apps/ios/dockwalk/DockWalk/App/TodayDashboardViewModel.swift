@@ -113,12 +113,12 @@ final class TodayDashboardViewModel {
     private func processPutawayGroups(from tasks: [WarehouseTaskDTO]) -> [PutawayQueueGroup] {
         var groups: [PutawayQueueGroup] = []
         
-        for status in PutawayQueueStatus.allCases {
+        for status in PutawayTaskStatus.allCases {
             let count = tasks.filter { $0.status == status.rawValue }.count
             groups.append(PutawayQueueGroup(status: status, count: count))
         }
         
-        return groups.filter { $0.count > 0 || $0.status == .staged || $0.status == .assigned }
+        return groups.filter { $0.count > 0 || $0.status == .pending || $0.status == .assigned }
     }
     
     

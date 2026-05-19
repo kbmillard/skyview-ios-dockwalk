@@ -68,7 +68,7 @@ final class PutawayTasksViewModel {
                 offset: currentOffset
             )
             dataMode = response.mode
-            let mapped = response.items.map(WarehouseTaskAPIMapping.mapTask)
+            let mapped = response.items.map(PutawayAPIMapping.mapTask)
 
             if reset {
                 tasks = mapped

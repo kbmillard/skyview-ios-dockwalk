@@ -144,7 +144,7 @@ struct PutawayTasksView: View {
                 Text(task.sku)
                     .font(DockWalkTheme.headlineFont)
                 Spacer()
-                StatusChip(label: task.statusDisplay, tone: statusTone(task.status))
+                StatusChip(label: task.status.displayName, tone: task.status.chipTone)
             }
             Text("\(formatQuantity(task.quantity)) \(task.uom)")
                 .font(DockWalkTheme.bodyFont)

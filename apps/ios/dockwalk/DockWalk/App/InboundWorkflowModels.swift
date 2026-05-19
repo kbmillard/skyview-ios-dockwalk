@@ -45,47 +45,5 @@ struct InboundLoad: Identifiable, Equatable {
     let doorAssignment: String?
 }
 
-/// Putaway queue grouped by workflow status
-struct PutawayQueueGroup: Identifiable {
-    let id = UUID()
-    let status: PutawayQueueStatus
-    let count: Int
-}
-
-enum PutawayQueueStatus: String, CaseIterable {
-    case staged = "pending"
-    case assigned = "assigned"
-    case inProgress = "in_progress"
-    case blocked = "blocked"
-    case complete = "completed"
-    
-    var displayName: String {
-        switch self {
-        case .staged: return "Staged / Pending"
-        case .assigned: return "Assigned"
-        case .inProgress: return "In Progress"
-        case .blocked: return "Blocked"
-        case .complete: return "Complete"
-        }
-    }
-    
-    var systemImage: String {
-        switch self {
-        case .staged: return "square.stack"
-        case .assigned: return "person.crop.circle"
-        case .inProgress: return "arrow.triangle.2.circlepath"
-        case .blocked: return "exclamationmark.triangle"
-        case .complete: return "checkmark.circle"
-        }
-    }
-    
-    var chipTone: StatusChip.Tone {
-        switch self {
-        case .staged: return .neutral
-        case .assigned: return .info
-        case .inProgress: return .info
-        case .blocked: return .warning
-        case .complete: return .success
-        }
-    }
-}
+// NOTE: Putaway models moved to /Putaway/PutawayModels.swift
+// PutawayQueueGroup and PutawayTaskStatus now live in the Putaway module

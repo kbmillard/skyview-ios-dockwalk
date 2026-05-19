@@ -44,6 +44,22 @@ enum InboundLoadStatus: String, CaseIterable, Codable {
     }
 }
 
+// MARK: - WorkflowStatus Conformance
+extension InboundLoadStatus: WorkflowStatus {
+    var id: String { rawValue }
+    
+    var sortOrder: Int {
+        switch self {
+        case .scheduled: return 0
+        case .checkedIn: return 1
+        case .staged: return 2
+        case .receiving: return 3
+        case .complete: return 4
+        case .cancelled: return 5
+        }
+    }
+}
+
 struct ReceivingAppointment: Identifiable, Equatable {
     let id: String
     let carrier: String

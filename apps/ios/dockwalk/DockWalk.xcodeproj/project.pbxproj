@@ -23,10 +23,13 @@
 		2CC4C078F8DDD91F8DD2FF6F /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1D37EE01B6EA8A7F0E453C /* Haptics.swift */; };
 		2E7C3112E616383BCF384E64 /* DockWalkTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 586D4D1AE3B59B6AB13CA45F /* DockWalkTheme.swift */; };
 		306D712854E5D0902B6758C7 /* DockWalkFoundationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0C761EC07D529368685D10 /* DockWalkFoundationTests.swift */; };
+		30C33F8B8BEC140E2408B2F5 /* PutawayModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5935DCBF3225BB3882F375C /* PutawayModels.swift */; };
 		310C32AEA3D01248E7816CF9 /* ScanResultCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A77863CE8E996111DE3FD0AF /* ScanResultCard.swift */; };
 		311F0E797DBD81EDDA0259F8 /* PutawayTabRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5B51550017A14A4F40C28C5 /* PutawayTabRootView.swift */; };
+		3235AB23B81BD5B2BB302DDC /* WorkflowStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F3E3B80802C78C9078B89C9 /* WorkflowStatus.swift */; };
 		3549771E1A49D06324D560D4 /* ScanResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = B064FBBBC798F261B1320467 /* ScanResult.swift */; };
 		3CB30D28D66CD38D595937BB /* TodayDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB4A38A99FCBB8DEC4A42E2 /* TodayDashboard.swift */; };
+		4217938684C25BB03286D974 /* PutawayAPIMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA5E4332E7FE12A38347784D /* PutawayAPIMapping.swift */; };
 		42F8C15BEA548A45A95AE82D /* SectionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CFED203BDD4851E4D6C25BE /* SectionCard.swift */; };
 		45951DCE304BB29E1E4636AD /* ScannerLabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D90BE312D849ADACC8B8D1F /* ScannerLabView.swift */; };
 		4A477263CAD9717F561A80CC /* InventoryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D58A15DC729A16961EEABA /* InventoryModels.swift */; };
@@ -140,6 +143,7 @@
 		24AB42286DB335C3BFA16DDC /* SystemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemRow.swift; sourceTree = "<group>"; };
 		26143E5AAC25ACAFE2804EA3 /* APIConnectionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConnectionSettingsView.swift; sourceTree = "<group>"; };
 		281BEBC8BDB0B78462A285DD /* ReceivingEventModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingEventModels.swift; sourceTree = "<group>"; };
+		2F3E3B80802C78C9078B89C9 /* WorkflowStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkflowStatus.swift; sourceTree = "<group>"; };
 		32AE8B706344E937315DEE42 /* ReceivingEventReplayCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingEventReplayCoordinator.swift; sourceTree = "<group>"; };
 		35762B2271979B09C378B109 /* OperationalDestinationCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationalDestinationCard.swift; sourceTree = "<group>"; };
 		39FEA6B47A344516D5F3C8C2 /* PutawayTaskDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayTaskDetailViewModel.swift; sourceTree = "<group>"; };
@@ -211,6 +215,7 @@
 		D512E2135DA76E6D631C2188 /* InboundModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundModels.swift; sourceTree = "<group>"; };
 		D5B51550017A14A4F40C28C5 /* PutawayTabRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayTabRootView.swift; sourceTree = "<group>"; };
 		D788BFAC440441DC2075CD4E /* BarcodeScannerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerSheet.swift; sourceTree = "<group>"; };
+		DA5E4332E7FE12A38347784D /* PutawayAPIMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayAPIMapping.swift; sourceTree = "<group>"; };
 		E1CC14C43A95FBC4ECF49497 /* ScannerPreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerPreferencesStore.swift; sourceTree = "<group>"; };
 		E1E15A8290CDB296BB353719 /* InboundWorkflowModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundWorkflowModels.swift; sourceTree = "<group>"; };
 		E3E1624EE170D3416557E7B6 /* RecentWorkFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentWorkFeed.swift; sourceTree = "<group>"; };
@@ -224,6 +229,7 @@
 		EF38FA4B54C294D6EA9BC63A /* InspectionStubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectionStubView.swift; sourceTree = "<group>"; };
 		F39C4B1F3E1EE296F8007931 /* ExceptionsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExceptionsHomeView.swift; sourceTree = "<group>"; };
 		F41079A1C0A5A00229E859F7 /* ReceivingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingView.swift; sourceTree = "<group>"; };
+		F5935DCBF3225BB3882F375C /* PutawayModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayModels.swift; sourceTree = "<group>"; };
 		F74EDB16DA0846024C4930E5 /* SyncQueuePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncQueuePersistence.swift; sourceTree = "<group>"; };
 		F7CA1D9E2AFB4B1A5DE83BA7 /* WarehouseTaskActionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarehouseTaskActionModels.swift; sourceTree = "<group>"; };
 		F880B64A0FC1079D74ED7640 /* PrimaryActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryActionButton.swift; sourceTree = "<group>"; };
@@ -307,6 +313,8 @@
 		4595CFC0B8D62BFFAECCE600 /* Putaway */ = {
 			isa = PBXGroup;
 			children = (
+				DA5E4332E7FE12A38347784D /* PutawayAPIMapping.swift */,
+				F5935DCBF3225BB3882F375C /* PutawayModels.swift */,
 				D5B51550017A14A4F40C28C5 /* PutawayTabRootView.swift */,
 				72181A510BDB097237BAC204 /* PutawayTaskDetailView.swift */,
 				39FEA6B47A344516D5F3C8C2 /* PutawayTaskDetailViewModel.swift */,
@@ -544,6 +552,7 @@
 				7D5C08D0A23B801E54197778 /* FeatureFlags.swift */,
 				06B44D071E70EE2F7E60C975 /* LoadPhase.swift */,
 				0A280250101A83D3367606B4 /* ScannerMode.swift */,
+				2F3E3B80802C78C9078B89C9 /* WorkflowStatus.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -703,6 +712,8 @@
 				76EB3F07DB50CCC775517216 /* PickingTasksView.swift in Sources */,
 				9F546C71B7A784BD81A5D178 /* PickingTasksViewModel.swift in Sources */,
 				A34B01C7107D6BB29EE18384 /* PrimaryActionButton.swift in Sources */,
+				4217938684C25BB03286D974 /* PutawayAPIMapping.swift in Sources */,
+				30C33F8B8BEC140E2408B2F5 /* PutawayModels.swift in Sources */,
 				311F0E797DBD81EDDA0259F8 /* PutawayTabRootView.swift in Sources */,
 				71AD215D6FACA5CE53BA48D9 /* PutawayTaskDetailView.swift in Sources */,
 				2223EC1464237444A8B678A8 /* PutawayTaskDetailViewModel.swift in Sources */,
@@ -746,6 +757,7 @@
 				B62BB5725DA386A949C19199 /* TodayView.swift in Sources */,
 				73E9FC37F4155133092E99E3 /* WarehouseTaskActionModels.swift in Sources */,
 				BAA0A1AE9B419684378CBF24 /* WarehouseTaskModels.swift in Sources */,
+				3235AB23B81BD5B2BB302DDC /* WorkflowStatus.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

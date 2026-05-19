@@ -133,8 +133,8 @@ struct PickingTasksView: View {
                     Spacer()
                     
                     StatusChip(
-                        label: task.priority.rawValue,
-                        tone: task.priority == .rush ? .warning : .neutral
+                        label: task.priority.displayName,
+                        tone: task.priority.chipTone
                     )
                 }
                 

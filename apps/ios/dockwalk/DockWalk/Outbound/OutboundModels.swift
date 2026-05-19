@@ -1,6 +1,6 @@
 import Foundation
 
-enum OutboundOrderStatus: String, CaseIterable {
+enum OutboundOrderStatus: String, CaseIterable, Codable {
     case readyToPick = "ready_to_pick"
     case picking
     case picked
@@ -38,6 +38,22 @@ enum OutboundOrderStatus: String, CaseIterable {
         case .staged: return "square.stack.3d.up"
         case .loading: return "truck.box.fill"
         case .shipped: return "checkmark.seal.fill"
+        }
+    }
+}
+
+// MARK: - WorkflowStatus Conformance
+extension OutboundOrderStatus: WorkflowStatus {
+    var id: String { rawValue }
+    
+    var sortOrder: Int {
+        switch self {
+        case .readyToPick: return 0
+        case .picking: return 1
+        case .picked: return 2
+        case .staged: return 3
+        case .loading: return 4
+        case .shipped: return 5
         }
     }
 }

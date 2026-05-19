@@ -287,7 +287,7 @@ struct InventoryItemDetailView: View {
                         showStatusPicker = false
                     } label: {
                         HStack {
-                            Text(status.rawValue)
+                            Text(status.displayName)
                                 .foregroundStyle(DockWalkTheme.textPrimary)
                             Spacer()
                             if item.status == status {

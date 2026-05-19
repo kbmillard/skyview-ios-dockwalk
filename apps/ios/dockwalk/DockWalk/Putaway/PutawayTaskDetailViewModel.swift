@@ -54,7 +54,7 @@ final class PutawayTaskDetailViewModel {
 
     var availableActions: [PutawayTaskActionKind] {
         guard let task else { return [] }
-        return PutawayTaskActionAvailability.availableActions(for: task.status)
+        return PutawayTaskActionAvailability.availableActions(for: task.status.rawValue)
     }
 
     var defaultCompleteQuantity: Double {
@@ -71,7 +71,7 @@ final class PutawayTaskDetailViewModel {
         do {
             let response = try await apiClient.fetchTask(id: taskId, orgId: environment.orgId)
             dataMode = response.mode
-            task = WarehouseTaskAPIMapping.mapTask(response.item)
+            task = PutawayAPIMapping.mapTask(response.item)
             loadPhase = .loaded
         } catch {
             if task == nil {
@@ -174,10 +174,10 @@ final class PutawayTaskDetailViewModel {
 
             pendingAction = nil
             dataMode = response.mode
-            task = WarehouseTaskAPIMapping.mapTask(response.item)
+            task = PutawayAPIMapping.mapTask(response.item)
             loadPhase = .loaded
 
-            let label = kind.dockTitle(for: task?.status ?? "")
+            let label = kind.dockTitle(for: task?.status.rawValue ?? "")
             if response.isIdempotentReplay {
                 actionBannerMessage = "\(label) already recorded on the server."
                 actionBannerTone = .success

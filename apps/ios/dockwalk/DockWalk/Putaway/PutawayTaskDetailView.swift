@@ -106,7 +106,7 @@ struct PutawayTaskDetailView: View {
                     detailRow("SKU", detail.sku)
                     detailRow("Description", detail.description)
                     detailRow("Quantity", "\(formatQuantity(detail.quantity)) \(detail.uom)")
-                    detailRow("Status", detail.statusDisplay)
+                    detailRow("Status", detail.status.displayName)
                 }
 
                 labeledSection("Locations") {
@@ -141,7 +141,7 @@ struct PutawayTaskDetailView: View {
     @ViewBuilder
     private func headerRow(_ viewModel: PutawayTaskDetailViewModel, detail: PutawayTaskItem) -> some View {
         HStack {
-            StatusChip(label: detail.statusDisplay, tone: statusTone(detail.status))
+            StatusChip(label: detail.status.displayName, tone: detail.status.chipTone)
             Spacer()
             if let mode = viewModel.dataMode {
                 StatusChip(
@@ -157,7 +157,7 @@ struct PutawayTaskDetailView: View {
         let actions = viewModel.availableActions
         if actions.isEmpty {
             labeledSection("Actions") {
-                Text("No actions for \(detail.statusDisplay.lowercased()) tasks.")
+                Text("No actions for \(detail.status.displayName.lowercased()) tasks.")
                     .font(DockWalkTheme.captionFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
             }
@@ -165,11 +165,11 @@ struct PutawayTaskDetailView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Actions")
                     .font(DockWalkTheme.headlineFont)
-                if detail.status == "in_progress" {
+                if detail.status == .inProgress {
                     Text("Already in progress — use Complete or Block (Assign/Start are only for pending or assigned tasks).")
                         .font(DockWalkTheme.captionFont)
                         .foregroundStyle(DockWalkTheme.textSecondary)
-                } else if detail.status == "assigned" {
+                } else if detail.status == .assigned {
                     Text("Assigned — use Start or Block.")
                         .font(DockWalkTheme.captionFont)
                         .foregroundStyle(DockWalkTheme.textSecondary)
@@ -191,7 +191,7 @@ struct PutawayTaskDetailView: View {
                 .foregroundStyle(DockWalkTheme.accent)
 
                 ForEach(actions) { action in
-                    actionButton(viewModel, action: action, taskStatus: detail.status)
+                    actionButton(viewModel, action: action, taskStatus: detail.status.rawValue)
                 }
                 Text("Actions sync when online. If connection fails, they queue for sync (More → Sync or Debug replay). Cancel is not available yet.")
                     .font(DockWalkTheme.captionFont)

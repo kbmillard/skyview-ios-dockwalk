@@ -14,11 +14,52 @@ struct InventoryItem: Identifiable, Equatable {
     let reserved: Int
 }
 
-enum InventoryStatus: String, CaseIterable {
-    case available = "Available"
-    case reserved = "Reserved"
-    case onHold = "On Hold"
-    case damaged = "Damaged"
+enum InventoryStatus: String, CaseIterable, Codable {
+    case available = "available"
+    case reserved = "reserved"
+    case onHold = "on_hold"
+    case damaged = "damaged"
+    
+    var displayName: String {
+        switch self {
+        case .available: return "Available"
+        case .reserved: return "Reserved"
+        case .onHold: return "On Hold"
+        case .damaged: return "Damaged"
+        }
+    }
+    
+    var chipTone: StatusChip.Tone {
+        switch self {
+        case .available: return .success
+        case .reserved: return .neutral
+        case .onHold: return .warning
+        case .damaged: return .danger
+        }
+    }
+    
+    var systemImage: String {
+        switch self {
+        case .available: return "checkmark.circle"
+        case .reserved: return "lock"
+        case .onHold: return "pause.circle"
+        case .damaged: return "exclamationmark.triangle"
+        }
+    }
+}
+
+// MARK: - WorkflowStatus Conformance
+extension InventoryStatus: WorkflowStatus {
+    var id: String { rawValue }
+    
+    var sortOrder: Int {
+        switch self {
+        case .available: return 0
+        case .reserved: return 1
+        case .onHold: return 2
+        case .damaged: return 3
+        }
+    }
 }
 
 struct CycleCountTask: Identifiable, Equatable {
