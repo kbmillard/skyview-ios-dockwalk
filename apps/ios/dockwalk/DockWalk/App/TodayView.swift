@@ -81,10 +81,10 @@ struct TodayView: View {
                     .font(DockWalkTheme.headlineFont)
                 Spacer()
                 Button {
-                    selectedTab = .receive
+                    selectedTab = .receiving
                 } label: {
                     HStack(spacing: 4) {
-                        Text("Open Receive")
+                        Text("Open Receiving")
                             .font(DockWalkTheme.captionFont)
                         Image(systemName: "chevron.right")
                             .font(.caption2)
@@ -109,7 +109,7 @@ struct TodayView: View {
     
     private func inboundGroupCard(_ group: InboundLoadGroup) -> some View {
         Button {
-            selectedTab = .receive
+            selectedTab = .receiving
         } label: {
             SectionCard {
                 HStack {
@@ -208,7 +208,7 @@ struct TodayView: View {
                             .font(DockWalkTheme.bodyFont)
                         Spacer()
                         Button("Sync") {
-                            selectedTab = .more
+                            // Sync now lives in Settings (sheet). No-op in legacy TodayView.
                         }
                         .font(DockWalkTheme.captionFont.weight(.semibold))
                     }
@@ -264,10 +264,10 @@ struct TodayView: View {
                     .font(DockWalkTheme.headlineFont)
                 Spacer()
                 Button {
-                    selectedTab = .ship
+                    selectedTab = .shipping
                 } label: {
                     HStack(spacing: 4) {
-                        Text("Open Ship")
+                        Text("Open Shipping")
                             .font(DockWalkTheme.captionFont)
                         Image(systemName: "chevron.right")
                             .font(.caption2)
@@ -277,7 +277,7 @@ struct TodayView: View {
             }
             
             Button {
-                selectedTab = .ship
+                selectedTab = .shipping
             } label: {
                 SectionCard {
                     HStack(spacing: 16) {
@@ -388,7 +388,7 @@ struct TodayView: View {
                 .font(DockWalkTheme.headlineFont)
             
             Button {
-                selectedTab = .more
+                // Settings/Sync moved out of tab bar; handled via sheet in TodayDashboard.
             } label: {
                 SectionCard {
                     HStack {

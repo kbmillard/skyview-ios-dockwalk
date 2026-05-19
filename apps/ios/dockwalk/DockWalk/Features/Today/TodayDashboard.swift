@@ -9,6 +9,8 @@ struct TodayDashboard: View {
     
     @State private var dashboard = TodayDashboardViewModel()
     @State private var hasInitiallyLoaded = false
+    @State private var showSettings = false
+    @State private var showActivity = false
     
     var body: some View {
         ScrollView {
@@ -39,6 +41,26 @@ struct TodayDashboard: View {
             if !hasInitiallyLoaded {
                 await dashboard.refresh()
                 hasInitiallyLoaded = true
+            }
+        }
+        .sheet(isPresented: $showSettings) {
+            NavigationStack {
+                SettingsView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showSettings = false }
+                        }
+                    }
+            }
+        }
+        .sheet(isPresented: $showActivity) {
+            NavigationStack {
+                ActivityView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showActivity = false }
+                        }
+                    }
             }
         }
     }
@@ -79,8 +101,8 @@ struct TodayDashboard: View {
     
     private var inboundSection: some View {
         VStack(alignment: .leading, spacing: Tokens.Space.base) {
-            sectionHeader(title: "Inbound", actionLabel: "Open Receive") {
-                selectedTab = .receive
+            sectionHeader(title: "Receiving", actionLabel: "Open Receiving") {
+                selectedTab = .receiving
             }
             
             if dashboard.inboundGroups.isEmpty, case .loaded = dashboard.loadPhase {
@@ -94,7 +116,7 @@ struct TodayDashboard: View {
                         subtitle: "\(group.count) load(s)",
                         count: group.count
                     ) {
-                        selectedTab = .receive
+                        selectedTab = .receiving
                     }
                 }
             }
@@ -165,8 +187,8 @@ struct TodayDashboard: View {
     
     private var outboundSection: some View {
         VStack(alignment: .leading, spacing: Tokens.Space.base) {
-            sectionHeader(title: "Outbound", actionLabel: "Open Ship") {
-                selectedTab = .ship
+            sectionHeader(title: "Shipping", actionLabel: "Open Shipping") {
+                selectedTab = .shipping
             }
             
             MetricCard(
@@ -185,7 +207,7 @@ struct TodayDashboard: View {
                     )
                 ],
                 action: {
-                    selectedTab = .ship
+                    selectedTab = .shipping
                 }
             )
         }
@@ -196,8 +218,7 @@ struct TodayDashboard: View {
     private var inventorySection: some View {
         VStack(alignment: .leading, spacing: Tokens.Space.base) {
             sectionHeader(title: "Inventory", actionLabel: "Open Inventory") {
-                // TODO(design): No inventory tab exists yet - this should navigate to InventoryHomeView
-                // For now, no-op until tab structure is finalized
+                selectedTab = .inventory
             }
             
             MetricCard(
@@ -212,7 +233,7 @@ struct TodayDashboard: View {
                     )
                 ],
                 action: {
-                    // TODO(design): Navigate to inventory view
+                    selectedTab = .inventory
                 }
             )
         }
@@ -226,7 +247,7 @@ struct TodayDashboard: View {
                 .font(Tokens.Font.titleSection)
                 .foregroundStyle(Tokens.Color.Ink.primary)
             
-            // Sync row
+            // Sync row — opens settings sheet (sync controls live there).
             SystemRow(
                 icon: "arrow.triangle.2.circlepath",
                 title: "Sync",
@@ -234,17 +255,16 @@ struct TodayDashboard: View {
                 statusLabel: syncStatusLabel,
                 statusColor: syncStatusColor
             ) {
-                selectedTab = .more
+                showSettings = true
             }
             
-            // Activity row
+            // Activity row — audit trail, presented as a sheet.
             SystemRow(
                 icon: "list.bullet.rectangle",
                 title: "Activity",
                 subtitle: "Audit trail"
             ) {
-                // TODO(design): Activity navigation - currently lives in More tab
-                selectedTab = .more
+                showActivity = true
             }
         }
     }

@@ -1,5 +1,11 @@
 import SwiftUI
 
+/// DockWalk by SkyView — root tab bar.
+///
+/// Tab order is fixed by product spec:
+///   Today · Receiving · **Inventory (center)** · Putaway · Shipping
+///
+/// Inventory is the universal lookup hub and must remain visually centered.
 struct MainTabView: View {
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @State private var selectedTab: AppTab = .today
@@ -15,9 +21,15 @@ struct MainTabView: View {
 
                 AppointmentsView()
                     .tabItem {
-                        Label("Receive", systemImage: "arrow.down.to.line")
+                        Label("Receiving", systemImage: "arrow.down.to.line")
                     }
-                    .tag(AppTab.receive)
+                    .tag(AppTab.receiving)
+
+                InventoryHomeView()
+                    .tabItem {
+                        Label("Inventory", systemImage: "shippingbox.fill")
+                    }
+                    .tag(AppTab.inventory)
 
                 PutawayTabRootView()
                     .tabItem {
@@ -27,29 +39,26 @@ struct MainTabView: View {
 
                 ShippingHomeView()
                     .tabItem {
-                        Label("Ship", systemImage: "arrow.up.to.line")
+                        Label("Shipping", systemImage: "arrow.up.to.line")
                     }
-                    .tag(AppTab.ship)
-
-                SettingsView()
-                    .tabItem {
-                        Label("More", systemImage: "ellipsis.circle.fill")
-                    }
-                    .tag(AppTab.more)
+                    .tag(AppTab.shipping)
             }
             .tint(Tokens.Color.Accent.horizon)
             .id(scannerPreferences.revision)
-            
-            // Floating scan disc above tab bar
+
+            // Floating scan disc above the tab bar.
+            // Inventory is the center tab, so this disc visually anchors the
+            // global-lookup scanner when on Inventory, and the work-mode scanner
+            // when on Receiving / Putaway / Shipping.
             floatingScanDisc
                 .offset(y: -58)
         }
     }
-    
+
     private var floatingScanDisc: some View {
         Button {
             Haptics.scanSuccess()
-            // TODO: Open scanner sheet
+            // TODO: Open scanner sheet wired to current tab's ScannerMode.
         } label: {
             ZStack {
                 Circle()
@@ -60,7 +69,7 @@ struct MainTabView: View {
                         radius: 8,
                         y: 3
                     )
-                
+
                 Image(systemName: "barcode.viewfinder")
                     .font(.system(size: 24, weight: .semibold))
                     .foregroundStyle(Tokens.Color.Ink.inverse)
