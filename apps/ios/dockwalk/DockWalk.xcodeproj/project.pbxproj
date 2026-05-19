@@ -48,10 +48,12 @@
 		7149B41791DE5C165DAD3AEC /* TasksHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BFA9D8E39EAE9F0AD4F59CC /* TasksHomeView.swift */; };
 		71AD215D6FACA5CE53BA48D9 /* PutawayTaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72181A510BDB097237BAC204 /* PutawayTaskDetailView.swift */; };
 		73E9FC37F4155133092E99E3 /* WarehouseTaskActionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7CA1D9E2AFB4B1A5DE83BA7 /* WarehouseTaskActionModels.swift */; };
+		76EB3F07DB50CCC775517216 /* PickingTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B18048609170E73FB03B5C /* PickingTasksView.swift */; };
 		78CED7C1E16F0EBD98B9FD36 /* StatusChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC6C7CCE993538213FF044D /* StatusChip.swift */; };
 		7996E42A7A33EFE4AD179DF4 /* InboundWorkflowModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E15A8290CDB296BB353719 /* InboundWorkflowModels.swift */; };
 		7E84CBC872675F0D988454F0 /* AppointmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B0D6FC114C221591F6DE4F /* AppointmentsView.swift */; };
 		7F69F3818A8B0E8E2D25417E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 02D72A64EC3A25E41E5A227A /* Assets.xcassets */; };
+		84B1273341B915333BC86CD5 /* PickingTaskDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 072F7F66629459A2F11266E4 /* PickingTaskDetailViewModel.swift */; };
 		85033374C13847844EEA83A0 /* ScannerPreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CC14C43A95FBC4ECF49497 /* ScannerPreferencesStore.swift */; };
 		8620B1485C9F9FD65C7F1BFF /* ShippingLoadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BDC1863DD35D9217846240 /* ShippingLoadDetailView.swift */; };
 		87576C51E396C8D292D77FE8 /* SystemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AB42286DB335C3BFA16DDC /* SystemRow.swift */; };
@@ -63,6 +65,7 @@
 		95B31D3181C512C6B5F6BE53 /* APIEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3C78FB5F7638E84C64F36F /* APIEndpoint.swift */; };
 		991EEA386E0A466F0F41EF5B /* InventoryHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E08A4D5BF891D9ECAF945C /* InventoryHomeView.swift */; };
 		9CB4D91BE4EC99EF98C979F0 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B484254DAA038107DC998A3E /* RootTabView.swift */; };
+		9F546C71B7A784BD81A5D178 /* PickingTasksViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5061E34D8CBBAB4F10672CBD /* PickingTasksViewModel.swift */; };
 		A199E254249F362F47C3F03D /* InboundLineRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E23B57D58AD0E4F88B0A59 /* InboundLineRowView.swift */; };
 		A34B01C7107D6BB29EE18384 /* PrimaryActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F880B64A0FC1079D74ED7640 /* PrimaryActionButton.swift */; };
 		A3D17E896A53ADBD7A6546DE /* ReceivingEventReplayEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AB148742D39441AF123D35B /* ReceivingEventReplayEngine.swift */; };
@@ -80,6 +83,7 @@
 		C31E417E8A047DA319AF5D80 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D5C08D0A23B801E54197778 /* FeatureFlags.swift */; };
 		C5CCD0539FD94B87C2C9F348 /* APIConnectionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26143E5AAC25ACAFE2804EA3 /* APIConnectionSettingsView.swift */; };
 		C73EB6FDC22D1BE25BEC5777 /* DockWalkModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1033B2B383D9561E19655FFC /* DockWalkModels.swift */; };
+		CC726DB516D0846CAE51E47C /* PickingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9860E9245A61E6B4788C263 /* PickingModels.swift */; };
 		CDF0B471D12A93C26BF7EAC2 /* ExceptionsHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39C4B1F3E1EE296F8007931 /* ExceptionsHomeView.swift */; };
 		D051D1C413AB8915E1BAA8BC /* MockWarehouseFloor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0645ECEC43F353EFE4CBEFFA /* MockWarehouseFloor.swift */; };
 		D571070FE57A1BD038E38654 /* InspectionStubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF38FA4B54C294D6EA9BC63A /* InspectionStubView.swift */; };
@@ -92,6 +96,7 @@
 		E0734098FC9FB4F463DD7615 /* StatusRowCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4739349924333511464D6E /* StatusRowCard.swift */; };
 		E2E0C410D5EE9F851C31AB3F /* OperationalDestinationCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35762B2271979B09C378B109 /* OperationalDestinationCard.swift */; };
 		E6D5FDD597F05971983C4AD7 /* OutboundModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FCB45AEF9A88F60EB5DE2F /* OutboundModels.swift */; };
+		EDF699CFA7832F0DEE1BD816 /* PickingTaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BEA6CA982EA3027620BCF0B /* PickingTaskDetailView.swift */; };
 		EFED66CFBE326B8E88B0E101 /* ReceivingEventModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281BEBC8BDB0B78462A285DD /* ReceivingEventModels.swift */; };
 		F10B4730F25A2DBECFBF5D42 /* ShipmentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 708BF8E60C9C166452BCDFA8 /* ShipmentDetailView.swift */; };
 		F19B91C3117CB3390E9977C2 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC3427C53C00D23834F49FC /* ActivityView.swift */; };
@@ -120,6 +125,7 @@
 		05FCB45AEF9A88F60EB5DE2F /* OutboundModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundModels.swift; sourceTree = "<group>"; };
 		0645ECEC43F353EFE4CBEFFA /* MockWarehouseFloor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockWarehouseFloor.swift; sourceTree = "<group>"; };
 		06B44D071E70EE2F7E60C975 /* LoadPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadPhase.swift; sourceTree = "<group>"; };
+		072F7F66629459A2F11266E4 /* PickingTaskDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickingTaskDetailViewModel.swift; sourceTree = "<group>"; };
 		07E0A14B6660039EC7B49D36 /* FloorWorkSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloorWorkSheets.swift; sourceTree = "<group>"; };
 		081AE12F7D27CC5911984167 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		0A280250101A83D3367606B4 /* ScannerMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerMode.swift; sourceTree = "<group>"; };
@@ -147,10 +153,12 @@
 		4B782D5EF4D98C01F04189DE /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		4C2AAF2FD89A645CF6C24E67 /* LocationLookupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationLookupView.swift; sourceTree = "<group>"; };
 		4FC6C7CCE993538213FF044D /* StatusChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusChip.swift; sourceTree = "<group>"; };
+		5061E34D8CBBAB4F10672CBD /* PickingTasksViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickingTasksViewModel.swift; sourceTree = "<group>"; };
 		53BDC1863DD35D9217846240 /* ShippingLoadDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShippingLoadDetailView.swift; sourceTree = "<group>"; };
 		571E6858262FE4F8EB7E434D /* BarcodeScannerPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerPreviewView.swift; sourceTree = "<group>"; };
 		5821E4E58252DC4AC731F83A /* TodayDashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayDashboardViewModel.swift; sourceTree = "<group>"; };
 		586D4D1AE3B59B6AB13CA45F /* DockWalkTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockWalkTheme.swift; sourceTree = "<group>"; };
+		5BEA6CA982EA3027620BCF0B /* PickingTaskDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickingTaskDetailView.swift; sourceTree = "<group>"; };
 		5C01D2FCFF35EA66A25943EA /* SyncBatchReplayEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncBatchReplayEngine.swift; sourceTree = "<group>"; };
 		5D0622CE00814C219A8DFE74 /* SyncBatchModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncBatchModels.swift; sourceTree = "<group>"; };
 		6109CF949D64AB8B6946F1C9 /* InventoryItemDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryItemDetailView.swift; sourceTree = "<group>"; };
@@ -191,8 +199,10 @@
 		B6E8477044F5641368A3205B /* DebugPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugPanelView.swift; sourceTree = "<group>"; };
 		BFCC73E56CB9BCDFAEBF5481 /* ShipmentDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipmentDetailViewModel.swift; sourceTree = "<group>"; };
 		C6BD6174FDF1330B85CFAE17 /* OutboundViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundViewModel.swift; sourceTree = "<group>"; };
+		C7B18048609170E73FB03B5C /* PickingTasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickingTasksView.swift; sourceTree = "<group>"; };
 		C8949CF18E5F2AF6518FA12B /* DockWalk.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DockWalk.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C8BDD9812E0071A5A35E6B02 /* WarehouseTaskModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarehouseTaskModels.swift; sourceTree = "<group>"; };
+		C9860E9245A61E6B4788C263 /* PickingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickingModels.swift; sourceTree = "<group>"; };
 		CA75C5EC1E5EF2D4B3045CBC /* SyncPreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncPreferencesStore.swift; sourceTree = "<group>"; };
 		CE3C78FB5F7638E84C64F36F /* APIEndpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIEndpoint.swift; sourceTree = "<group>"; };
 		D1D0CBFBC04C29F190F36E43 /* QuickActionsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionsRow.swift; sourceTree = "<group>"; };
@@ -226,6 +236,18 @@
 			path = Features;
 			sourceTree = "<group>";
 		};
+		06A21FE6CCCCFC92834C7206 /* Picking */ = {
+			isa = PBXGroup;
+			children = (
+				C9860E9245A61E6B4788C263 /* PickingModels.swift */,
+				5BEA6CA982EA3027620BCF0B /* PickingTaskDetailView.swift */,
+				072F7F66629459A2F11266E4 /* PickingTaskDetailViewModel.swift */,
+				C7B18048609170E73FB03B5C /* PickingTasksView.swift */,
+				5061E34D8CBBAB4F10672CBD /* PickingTasksViewModel.swift */,
+			);
+			path = Picking;
+			sourceTree = "<group>";
+		};
 		15A7380070423CB4AD5D17CC /* Foundation */ = {
 			isa = PBXGroup;
 			children = (
@@ -254,6 +276,7 @@
 				91851BDB8122C81C66DDD5F3 /* Networking */,
 				9B26BC6E5C2577C8A0BDFDE5 /* Outbound */,
 				B5B695FEE30DAE043E9C8D77 /* Persistence */,
+				06A21FE6CCCCFC92834C7206 /* Picking */,
 				4595CFC0B8D62BFFAECCE600 /* Putaway */,
 				99DEB5DB0B37421338CBC2DC /* Resources */,
 				E274C6FE2FD0D77E542AE903 /* Scanner */,
@@ -671,6 +694,11 @@
 				E2E0C410D5EE9F851C31AB3F /* OperationalDestinationCard.swift in Sources */,
 				E6D5FDD597F05971983C4AD7 /* OutboundModels.swift in Sources */,
 				709FEFB4FB6C2EF3883EB2C0 /* OutboundViewModel.swift in Sources */,
+				CC726DB516D0846CAE51E47C /* PickingModels.swift in Sources */,
+				EDF699CFA7832F0DEE1BD816 /* PickingTaskDetailView.swift in Sources */,
+				84B1273341B915333BC86CD5 /* PickingTaskDetailViewModel.swift in Sources */,
+				76EB3F07DB50CCC775517216 /* PickingTasksView.swift in Sources */,
+				9F546C71B7A784BD81A5D178 /* PickingTasksViewModel.swift in Sources */,
 				A34B01C7107D6BB29EE18384 /* PrimaryActionButton.swift in Sources */,
 				311F0E797DBD81EDDA0259F8 /* PutawayTabRootView.swift in Sources */,
 				71AD215D6FACA5CE53BA48D9 /* PutawayTaskDetailView.swift in Sources */,
