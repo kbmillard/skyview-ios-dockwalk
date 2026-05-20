@@ -3,14 +3,17 @@ import SwiftUI
 /// DockWalk by SkyView — root tab bar.
 ///
 /// Tab order is fixed by product spec:
-///   Today · Receiving · **Inventory (center)** · Putaway · Shipping
+///   Today · Inbound · **Inventory (center)** · Shipping
 ///
 /// Inventory is the universal lookup hub and must remain visually centered.
+/// Putaway is integrated into the Inbound tab.
 struct MainTabView: View {
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @State private var selectedTab: AppTab = .today
     @State private var showFloatingScanner = false
     @State private var showFloatingScanConfirm = false
+    @State private var showInventoryAddOptions = false
+    @State private var showManualInventoryAdd = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -23,21 +26,15 @@ struct MainTabView: View {
 
                 AppointmentsView()
                     .tabItem {
-                        Label("Receiving", systemImage: "arrow.down.to.line")
+                        Label("Inbound", systemImage: "arrow.down.to.line")
                     }
-                    .tag(AppTab.receiving)
+                    .tag(AppTab.inbound)
 
                 InventoryHomeView()
                     .tabItem {
                         Label("Inventory", systemImage: "shippingbox.fill")
                     }
                     .tag(AppTab.inventory)
-
-                PutawayTabRootView()
-                    .tabItem {
-                        Label("Putaway", systemImage: "arrow.left.arrow.right.square")
-                    }
-                    .tag(AppTab.putaway)
 
                 ShippingTabRootView()
                     .tabItem {
@@ -51,7 +48,7 @@ struct MainTabView: View {
             // Floating scan disc above the tab bar.
             // Inventory is the center tab, so this disc visually anchors the
             // global-lookup scanner when on Inventory, and the work-mode scanner
-            // when on Receiving / Putaway / Shipping.
+            // when on Inbound / Shipping.
             floatingScanDisc
                 .offset(y: -58)
         }
@@ -63,6 +60,19 @@ struct MainTabView: View {
         .sheet(isPresented: $showFloatingScanConfirm) {
             ScanConfirmSheet(payload: MockWarehouseFloor.scanConfirmSample)
         }
+        .sheet(isPresented: $showInventoryAddOptions) {
+            InventoryAddOptionsSheet(
+                onScanSelected: {
+                    showFloatingScanner = true
+                },
+                onManualAddSelected: {
+                    showManualInventoryAdd = true
+                }
+            )
+        }
+        .sheet(isPresented: $showManualInventoryAdd) {
+            ManualInventoryAddView()
+        }
         .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showFloatingScanner)
     }
 
@@ -73,12 +83,9 @@ struct MainTabView: View {
             case .today:
                 selectedTab = .inventory
             case .inventory:
-                if scannerPreferences.isScannerActive {
-                    showFloatingScanner = true
-                } else {
-                    showFloatingScanConfirm = true
-                }
-            case .receiving, .putaway, .shipping:
+                // Always show add options sheet for Inventory tab
+                showInventoryAddOptions = true
+            case .inbound, .shipping:
                 showFloatingScanConfirm = true
             }
         } label: {

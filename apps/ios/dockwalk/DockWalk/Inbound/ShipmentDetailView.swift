@@ -14,10 +14,9 @@ struct ShipmentDetailView: View {
     @State private var scanLineMessage: String?
     @State private var scanMatchedLineId: String?
 
-    init(shipment: InboundShipmentItem, appointmentId: String?, environment: AppEnvironment = .shared) {
+    init(load: ReceivingAppointment, environment: AppEnvironment = .shared) {
         viewModel = ShipmentDetailViewModel(
-            shipment: shipment,
-            appointmentId: appointmentId,
+            load: load,
             environment: environment
         )
     }
@@ -26,7 +25,7 @@ struct ShipmentDetailView: View {
         ZStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
-                    ScannerLockChip(mode: .load(loadId: viewModel.shipment.referenceNumber))
+                    ScannerLockChip(mode: .load(loadId: viewModel.load.poNumber))
 
                     shipmentHeader
                     submitSection
@@ -235,17 +234,22 @@ struct ShipmentDetailView: View {
 #Preview {
     NavigationStack {
         ShipmentDetailView(
-            shipment: InboundShipmentItem(
+            load: ReceivingAppointment(
                 id: "ship-1",
-                appointmentId: "apt-1",
-                referenceNumber: "ASN-100",
+                carrier: "Old Dominion",
+                dock: "D-07",
+                scheduledAt: Date(),
                 status: .receiving,
-                expectedAt: nil,
-                receivedAt: nil
-            ),
-            appointmentId: "apt-1"
+                poNumber: "ASN-100",
+                palletCount: 22,
+                vendor: "Midwest Parts",
+                expectedLineCount: 45,
+                receivedLineCount: 28,
+                doorNumber: "D-07"
+            )
         )
     }
     .environment(AppEnvironment.shared)
     .environment(OfflineSyncStore.shared)
+    .environment(ScannerPreferencesStore.shared)
 }
