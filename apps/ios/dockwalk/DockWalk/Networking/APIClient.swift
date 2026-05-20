@@ -4,6 +4,7 @@ enum APIClientError: Error, LocalizedError {
     case invalidURL
     case transport(Error)
     case httpStatus(Int, message: String?)
+    case railwayHostUnavailable
     case decoding(Error)
 
     var errorDescription: String? {
@@ -15,7 +16,24 @@ enum APIClientError: Error, LocalizedError {
                 return "HTTP \(code): \(message)"
             }
             return "HTTP \(code)"
+        case .railwayHostUnavailable:
+            return """
+            DockWalk API host is not deployed on Railway (Application not found). \
+            Redeploy dockwalk-api and confirm the base URL under More → API connection.
+            """
         case .decoding(let error): return error.localizedDescription
+        }
+    }
+
+    /// True when the API host is down or Railway has no app mapped to this domain.
+    var isAPIHostUnreachable: Bool {
+        switch self {
+        case .railwayHostUnavailable, .transport, .invalidURL:
+            return true
+        case .httpStatus(let code, _):
+            return code == 404 || code == 502 || code == 503
+        case .decoding:
+            return false
         }
     }
 }
@@ -138,6 +156,9 @@ struct APIClient {
             throw APIClientError.transport(URLError(.badServerResponse))
         }
         guard (200..<300).contains(http.statusCode) else {
+            if http.statusCode == 404, Self.isRailwayApplicationNotFound(data) {
+                throw APIClientError.railwayHostUnavailable
+            }
             let message = Self.parseAPIErrorMessage(from: data)
             throw APIClientError.httpStatus(http.statusCode, message: message)
         }
@@ -154,6 +175,28 @@ struct APIClient {
             return nil
         }
         return decoded.error.message
+    }
+
+    private struct RailwayPlatformError: Decodable {
+        let status: String?
+        let message: String?
+    }
+
+    static func isRailwayApplicationNotFound(_ data: Data) -> Bool {
+        guard let decoded = try? JSONDecoder().decode(RailwayPlatformError.self, from: data) else {
+            return false
+        }
+        return decoded.status == "error"
+            && decoded.message?.localizedCaseInsensitiveContains("application not found") == true
+    }
+}
+
+extension Error {
+    var isDockWalkAPIHostUnreachable: Bool {
+        if let apiError = self as? APIClientError {
+            return apiError.isAPIHostUnreachable
+        }
+        return false
     }
 }
 

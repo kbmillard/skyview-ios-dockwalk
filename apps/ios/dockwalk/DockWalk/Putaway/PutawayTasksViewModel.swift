@@ -58,6 +58,11 @@ final class PutawayTasksViewModel {
         let apiClient = environment.makeAPIClient()
         let orgId = environment.orgId
 
+        if !(await apiClient.healthCheck()) {
+            applyFoundationFallback(reset: reset)
+            return
+        }
+
         do {
             let response = try await apiClient.fetchTasks(
                 orgId: orgId,
@@ -86,10 +91,31 @@ final class PutawayTasksViewModel {
                 loadPhase = .loaded
             }
         } catch {
+            if reset, error.isDockWalkAPIHostUnreachable {
+                applyFoundationFallback(reset: true)
+                return
+            }
             if reset {
                 tasks = []
                 loadPhase = .error(message: userFacingError(error))
             }
+        }
+    }
+
+    private func applyFoundationFallback(reset: Bool) {
+        let mapped = FoundationOperationalData.putawayTasks(
+            filteredBy: inboundShipmentId,
+            status: statusFilter
+        )
+        if reset {
+            tasks = mapped
+            currentOffset = mapped.count
+            totalCount = mapped.count
+            canLoadMore = false
+            dataMode = "foundation"
+            loadPhase = mapped.isEmpty
+                ? .empty(message: emptyMessage(for: "foundation"))
+                : .loaded
         }
     }
 
@@ -99,6 +125,9 @@ final class PutawayTasksViewModel {
         }
         if mode == "stub" {
             return "No putaway tasks in stub mode — configure Supabase on the API service."
+        }
+        if mode == "foundation" {
+            return "No putaway tasks in offline preview data."
         }
         return "No putaway tasks for this organization."
     }

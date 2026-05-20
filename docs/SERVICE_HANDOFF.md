@@ -88,7 +88,7 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 - **App:** DockWalk · bundle `**io.skyprairie.dockwalk`** (not `.tests`)
 - **SKU:** internal Connect ID only (e.g. `dockwalk`) — not warehouse SKU
 - **Internal group:** DockStockers
-- **API:** `https://dockwalk-api-production.up.railway.app` (default in app)
+- **API:** `https://dockwalk-api-production.up.railway.app` (default in app) — **as of 2026-05-19 this host returns Railway “Application not found”;** redeploy `dockwalk-api` and regenerate the public domain (`railway login` → `railway domain`). iOS build **11+** shows dev-seed **offline preview** on Receiving/Putaway when health fails.
 
 **Repeat upload (CLI)**
 

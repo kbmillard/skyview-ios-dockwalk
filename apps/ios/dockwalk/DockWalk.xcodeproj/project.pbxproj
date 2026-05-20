@@ -82,6 +82,7 @@
 		BB0321EC7B595F3A0FFBF148 /* QuickActionsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D0CBFBC04C29F190F36E43 /* QuickActionsRow.swift */; };
 		BF7190C317CF39D0CD34903C /* OfflineSyncStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BAACA53AE5FDD000E2D76E7 /* OfflineSyncStore.swift */; };
 		C002F18121A3EEA09B9F8073 /* InboundModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D512E2135DA76E6D631C2188 /* InboundModels.swift */; };
+		C0D4E36B589BEBE07709CC43 /* FoundationOperationalData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 737F13D20D5E476F8346EDBF /* FoundationOperationalData.swift */; };
 		C0EC5DDE06E56B9A02683410 /* ShippingTabRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC90F31EA8DA62560C93B957 /* ShippingTabRootView.swift */; };
 		C3113BEA6A2C93F8BCD18796 /* AppTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CFF5D8A3AC0270EF1D616C6 /* AppTab.swift */; };
 		C31E417E8A047DA319AF5D80 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D5C08D0A23B801E54197778 /* FeatureFlags.swift */; };
@@ -174,6 +175,7 @@
 		6F46A38157C5CA497E2122A5 /* AppointmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppointmentsViewModel.swift; sourceTree = "<group>"; };
 		708BF8E60C9C166452BCDFA8 /* ShipmentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipmentDetailView.swift; sourceTree = "<group>"; };
 		72181A510BDB097237BAC204 /* PutawayTaskDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayTaskDetailView.swift; sourceTree = "<group>"; };
+		737F13D20D5E476F8346EDBF /* FoundationOperationalData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationOperationalData.swift; sourceTree = "<group>"; };
 		76E23B57D58AD0E4F88B0A59 /* InboundLineRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundLineRowView.swift; sourceTree = "<group>"; };
 		782030745B983A18F3FF47F5 /* DockWalkTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DockWalkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A978CBA08DF8B85851D865B /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
@@ -327,6 +329,7 @@
 		50A865E3A78418937D16A070 /* Data */ = {
 			isa = PBXGroup;
 			children = (
+				737F13D20D5E476F8346EDBF /* FoundationOperationalData.swift */,
 				0645ECEC43F353EFE4CBEFFA /* MockWarehouseFloor.swift */,
 			);
 			path = Data;
@@ -684,6 +687,7 @@
 				DC66E9C9ADBCD34132E0AADC /* FloorOverviewGrid.swift in Sources */,
 				DC39ADBA5E4923B99BA317ED /* FloorWorkSheets.swift in Sources */,
 				877E615336855977F6C389E5 /* FoundationAreaBanner.swift in Sources */,
+				C0D4E36B589BEBE07709CC43 /* FoundationOperationalData.swift in Sources */,
 				2CC4C078F8DDD91F8DD2FF6F /* Haptics.swift in Sources */,
 				FC946718B654F08B7A27D996 /* InboundAPIMapping.swift in Sources */,
 				A199E254249F362F47C3F03D /* InboundLineRowView.swift in Sources */,

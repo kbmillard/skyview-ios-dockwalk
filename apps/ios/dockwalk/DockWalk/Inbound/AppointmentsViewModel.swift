@@ -20,6 +20,11 @@ final class AppointmentsViewModel {
         let orgId = environment.orgId
         apiReachable = await apiClient.healthCheck()
 
+        if !apiReachable {
+            applyFoundationFallback()
+            return
+        }
+
         do {
             let response: APIListResponse<AppointmentDTO> = try await apiClient.get(
                 .appointments(orgId: orgId)
@@ -45,14 +50,28 @@ final class AppointmentsViewModel {
                 )
             }
         } catch {
+            if error.isDockWalkAPIHostUnreachable {
+                applyFoundationFallback()
+                return
+            }
             appointments = []
             loadPhase = .error(message: userFacingError(error))
         }
     }
 
+    private func applyFoundationFallback() {
+        appointments = FoundationOperationalData.receivingAppointments
+        dataMode = "foundation"
+        apiReachable = false
+        loadPhase = .loaded
+    }
+
     private func emptyMessage(for mode: String) -> String {
         if mode == "stub" {
             return "DockWalk API is in stub mode — connect Supabase on the server to load appointments."
+        }
+        if mode == "foundation" {
+            return "No appointments in offline preview data."
         }
         return "No appointments scheduled for this facility."
     }

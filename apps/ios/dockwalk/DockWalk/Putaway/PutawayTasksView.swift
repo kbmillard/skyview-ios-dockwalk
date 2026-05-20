@@ -67,9 +67,14 @@ struct PutawayTasksView: View {
             if let mode = viewModel.dataMode {
                 Section {
                     StatusChip(
-                        label: mode == "live" ? "Live tasks" : "Stub API",
-                        tone: mode == "live" ? .success : .neutral
+                        label: putawayModeLabel(mode),
+                        tone: mode == "live" ? .success : (mode == "foundation" ? .warning : .neutral)
                     )
+                    if mode == "foundation" {
+                        Text("Showing dev-seed preview data — Railway API host is unreachable. Task writes will fail until the API is restored.")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.warning)
+                    }
                     Text("Tap a task to assign, start, block, or complete. Actions sync online; transport failures queue for More → Sync or Debug replay.")
                         .font(DockWalkTheme.captionFont)
                         .foregroundStyle(DockWalkTheme.textSecondary)
@@ -171,6 +176,14 @@ struct PutawayTasksView: View {
         case "blocked": return .warning
         case "cancelled": return .neutral
         default: return .neutral
+        }
+    }
+
+    private func putawayModeLabel(_ mode: String) -> String {
+        switch mode {
+        case "live": return "Live tasks"
+        case "foundation": return "Offline preview"
+        default: return "Stub API"
         }
     }
 }

@@ -140,7 +140,7 @@ enum APIClientErrorClassifier {
             switch apiError {
             case .transport:
                 return true
-            case .httpStatus, .invalidURL, .decoding:
+            case .httpStatus, .invalidURL, .decoding, .railwayHostUnavailable:
                 return false
             }
         }

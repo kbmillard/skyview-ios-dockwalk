@@ -209,7 +209,7 @@ enum WarehouseTaskActionErrorMapping {
                     isConflict: false,
                     preserveIdempotencyKey: false
                 )
-            case .invalidURL, .decoding:
+            case .invalidURL, .decoding, .railwayHostUnavailable:
                 return MappedError(
                     message: apiError.errorDescription ?? "Request failed.",
                     isConflict: false,

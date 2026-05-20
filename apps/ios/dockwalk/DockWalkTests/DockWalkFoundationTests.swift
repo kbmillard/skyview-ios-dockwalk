@@ -446,6 +446,13 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertEqual(env.apiBaseURL.absoluteString, DeviceConfiguration.railwayProductionAPIBaseURL)
     }
 
+    func testRailwayApplicationNotFoundPayloadIsDetected() {
+        let payload = """
+        {"status":"error","code":404,"message":"Application not found","request_id":"test"}
+        """.data(using: .utf8)!
+        XCTAssertTrue(APIClient.isRailwayApplicationNotFound(payload))
+    }
+
     func testWarehouseTasksEndpointIncludesPutawayFilter() {
         let url = APIEndpoint.warehouseTasks(
             orgId: "00000000-0000-4000-8000-000000000001",

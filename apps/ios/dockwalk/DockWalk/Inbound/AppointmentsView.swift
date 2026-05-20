@@ -83,14 +83,20 @@ struct AppointmentsView: View {
         if let viewModel, let mode = viewModel.dataMode, viewModel.loadPhase == .loaded {
             VStack(spacing: 4) {
                 HStack {
-                    Text(mode == "live" ? "Live API" : "API stub mode")
+                    Text(apiModeLabel(mode))
                         .font(DockWalkTheme.captionFont)
                     Spacer()
                     if replayCoordinator.isReplaying {
                         StatusChip(label: "Syncing receive", tone: .info)
                     } else if !viewModel.apiReachable {
-                        StatusChip(label: "Health offline", tone: .warning)
+                        StatusChip(label: mode == "foundation" ? "API offline" : "Health offline", tone: .warning)
                     }
+                }
+                if mode == "foundation" {
+                    Text("Showing dev-seed preview data — Railway API host is unreachable. Redeploy dockwalk-api or update the base URL in More → API connection.")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.warning)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 if syncStore.pendingReceivingEventCount > 0 {
                     Text("\(syncStore.pendingReceivingEventCount) receive event(s) queued")
@@ -102,6 +108,14 @@ struct AppointmentsView: View {
             .padding(.horizontal, DockWalkTheme.screenPadding)
             .padding(.vertical, 6)
             .background(DockWalkTheme.cardBackground)
+        }
+    }
+
+    private func apiModeLabel(_ mode: String) -> String {
+        switch mode {
+        case "live": return "Live API"
+        case "foundation": return "Offline preview"
+        default: return "API stub mode"
         }
     }
 }
