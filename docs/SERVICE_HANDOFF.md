@@ -1,6 +1,6 @@
 # DockWalk iOS — 
 
-**Last updated:** 2026-05-18 (TestFlight **0.1.0 (10)** — Phase 2b prototype alignment; `CFBundleVersion` now follows `CURRENT_PROJECT_VERSION`)
+**Last updated:** 2026-05-19 (TestFlight **0.1.0 (10)** — Cross-repo status restructure + registry abstraction)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -48,7 +48,7 @@
 **Paste block for a new chat**
 
 ```text
-DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Tabs: Today / Receiving / Inventory / Putaway / Shipping (Inventory center). TestFlight 0.1.0 (10). Prototype-aligned Today + ScannerLockChip on work modes + floor bottom sheets (exception, scan confirm, dock door). Scanner Debug-gated. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Tabs: Today / Receiving / Inventory / Putaway / Shipping (Inventory center). TestFlight 0.1.0 (10) — cross-repo status restructure + registry abstraction. Status enums now match backend 1:1. Scanner Debug-gated. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
 ```
 
 ---
@@ -70,8 +70,8 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | TestFlight **0.1.0 (6)**                             | Superseded by build **7**                                                                           |
 | TestFlight **0.1.0 (7)**                             | Superseded by build **8**                                                                           |
 | TestFlight **0.1.0 (8)**                             | Superseded by build **9**–**10** (see note below)                                                   |
-| TestFlight **0.1.0 (9)**                             | Upload attempt; `Info.plist` still pinned `CFBundleVersion` **7** until fixed below                  |
-| TestFlight **0.1.0 (10)**                            | **Current** — Phase 2b: prototype UI (scanner chips, floor sheets, Today layout) (`f74ec16`)         |
+| TestFlight **0.1.0 (9)**                             | Superseded by build **10**                                                                           |
+| TestFlight **0.1.0 (10)**                            | **Current** — Cross-repo restructure: unified status enums + registry abstraction (`1a247db`)        |
 | Export compliance                                    | `**ITSAppUsesNonExemptEncryption = false`** (build **7** archive)                                   |
 | Device QA                                            | Build **3** + **6** smoke **passed** (Receive, Putaway complete/block, Activity, Sync; scanner off) |
 | IA/copy cleanup                                      | In builds **4+** (`c8e53f4`)                                                                        |
@@ -101,7 +101,38 @@ xcodebuild -exportArchive -archivePath build/DockWalk.xcarchive \
   -exportPath build/export -exportOptionsPlist ExportOptions.plist -allowProvisioningUpdates
 ```
 
-Bump `**CURRENT_PROJECT_VERSION**` / `CFBundleVersion` before each new TestFlight build.
+Bump `**CURRENT_PROJECT_VERSION**` in `project.yml` before each new TestFlight build (current: **10**, next: **11**).
+
+---
+
+## TestFlight 0.1.0 (10) (2026-05-19)
+
+**Scope:** Cross-repo status restructure + registry abstraction for future extensibility. **No** new user-facing features, backend routes, auth, payments, Gemini, direct Supabase, or task cancel.
+
+| Item                 | Detail                                                                |
+| -------------------- | --------------------------------------------------------------------- |
+| Marketing version    | **0.1.0** (unchanged)                                                 |
+| Build                | **10**                                                                |
+| Bundle ID            | `io.skyprairie.dockwalk`                                              |
+| Compile scanner flag | `liveScannerEnabled` **false**                                        |
+| Camera plist         | `NSCameraUsageDescription` present                                    |
+| Export compliance    | `ITSAppUsesNonExemptEncryption = false`                               |
+| Archive              | **ARCHIVE SUCCEEDED**                                                 |
+| Export/upload        | **EXPORT SUCCEEDED** — Upload succeeded (processing)                  |
+
+**Includes:**
+- **Cross-repo restructure:** Unified status enums with 1:1 API slug mapping (iOS + backend alignment)
+- **Registry abstraction:** `WorkflowStatus` protocol + `DefaultStatusRegistry` for future customer-configurable workflows
+- **Dedicated Putaway module:** `PutawayModels.swift` + `PutawayAPIMapping.swift` with unified `PutawayTaskStatus`
+- **Status enum fixes:** `PickTaskStatus`, `PickLineStatus`, `PickPriority`, `InventoryStatus` now use API slugs as rawValue with displayName/chipTone properties
+- **Backend contract docs:** New `/docs/contracts/status-enums.md` in backend repo documenting all Zod status schemas
+- **All previous functionality:** Phase 1G + 1H + 1I + 2 + 2b workflows unchanged (Receive, Putaway, Ship, Inventory, Today)
+
+**Still OFF:** AI/Gemini, OCR cloud, image upload, payments, auth, direct Supabase, task cancel. No new backend routes.
+
+**Why build 10:** Architectural foundation for extensibility. Status enums now match backend 1:1. Registry abstraction enables future migration to customer-configurable workflow statuses without refactoring client code. Offline-first preserved (deterministic enums now, cached schemas later).
+
+**Next:** Device smoke testing on build 10; verify that status display remains correct across all workflows (Receive, Putaway, Inventory, Ship, Today).
 
 ---
 
