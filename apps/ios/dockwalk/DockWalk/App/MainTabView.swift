@@ -113,5 +113,8 @@ struct MainTabView: View {
         .environment(OfflineSyncStore.shared)
         .environment(SyncPreferencesStore.shared)
         .environment(ScannerPreferencesStore.shared)
+        .environment(DemoOperationalDataStore.shared)
+        .environment(InboundSessionStore.shared)
+        .environment(AppointmentsViewModel())
         .environment(ReceivingEventReplayCoordinator.shared)
 }

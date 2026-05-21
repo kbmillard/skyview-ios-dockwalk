@@ -70,6 +70,7 @@
 		930923F681F65DFC36AA9E2A /* BarcodeScanDeduplicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FA772116FF8B752A2075FA /* BarcodeScanDeduplicator.swift */; };
 		94C749C228748CAAAE053225 /* PickingTabRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2533F1A02DCF5D55D917DE25 /* PickingTabRootView.swift */; };
 		95B31D3181C512C6B5F6BE53 /* APIEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3C78FB5F7638E84C64F36F /* APIEndpoint.swift */; };
+		96DEFD4DD11F7BE9657E022C /* InboundSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7948BFB5B975BEA85AB926 /* InboundSessionStore.swift */; };
 		991EEA386E0A466F0F41EF5B /* InventoryHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E08A4D5BF891D9ECAF945C /* InventoryHomeView.swift */; };
 		9A7AFF2C4E42131A04D82700 /* DemoOperationalDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D97F76AD1B779111A2794DB /* DemoOperationalDataStore.swift */; };
 		9CB4D91BE4EC99EF98C979F0 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B484254DAA038107DC998A3E /* RootTabView.swift */; };
@@ -229,6 +230,7 @@
 		C9860E9245A61E6B4788C263 /* PickingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickingModels.swift; sourceTree = "<group>"; };
 		CA75C5EC1E5EF2D4B3045CBC /* SyncPreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncPreferencesStore.swift; sourceTree = "<group>"; };
 		CE3C78FB5F7638E84C64F36F /* APIEndpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIEndpoint.swift; sourceTree = "<group>"; };
+		CE7948BFB5B975BEA85AB926 /* InboundSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundSessionStore.swift; sourceTree = "<group>"; };
 		D1D0CBFBC04C29F190F36E43 /* QuickActionsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionsRow.swift; sourceTree = "<group>"; };
 		D1D58A15DC729A16961EEABA /* InventoryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryModels.swift; sourceTree = "<group>"; };
 		D512E2135DA76E6D631C2188 /* InboundModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundModels.swift; sourceTree = "<group>"; };
@@ -490,6 +492,7 @@
 			children = (
 				3D97F76AD1B779111A2794DB /* DemoOperationalDataStore.swift */,
 				83F6D71C779925A575BDE126 /* DeviceConfigurationStore.swift */,
+				CE7948BFB5B975BEA85AB926 /* InboundSessionStore.swift */,
 				0BAACA53AE5FDD000E2D76E7 /* OfflineSyncStore.swift */,
 				32AE8B706344E937315DEE42 /* ReceivingEventReplayCoordinator.swift */,
 				3AB148742D39441AF123D35B /* ReceivingEventReplayEngine.swift */,
@@ -724,6 +727,7 @@
 				A199E254249F362F47C3F03D /* InboundLineRowView.swift in Sources */,
 				58A5EC78C9570705C5057C13 /* InboundLineScanMatcher.swift in Sources */,
 				C002F18121A3EEA09B9F8073 /* InboundModels.swift in Sources */,
+				96DEFD4DD11F7BE9657E022C /* InboundSessionStore.swift in Sources */,
 				4A2DBD6C503609EECDD9C5DB /* InboundWeekSchedule.swift in Sources */,
 				F53B85A8C0D722F551686BB7 /* InboundWeekScheduleStrip.swift in Sources */,
 				7996E42A7A33EFE4AD179DF4 /* InboundWorkflowModels.swift in Sources */,

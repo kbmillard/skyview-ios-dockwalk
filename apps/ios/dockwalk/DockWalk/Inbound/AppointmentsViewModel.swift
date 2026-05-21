@@ -9,12 +9,24 @@ final class AppointmentsViewModel {
     private(set) var apiReachable = false
 
     private let environment: AppEnvironment
+    private let session: InboundSessionStore
 
-    init(environment: AppEnvironment = .shared) {
+    init(
+        environment: AppEnvironment = .shared,
+        session: InboundSessionStore = .shared
+    ) {
         self.environment = environment
+        self.session = session
     }
 
-    func refresh(syncStore: OfflineSyncStore = .shared) async {
+    func refresh(
+        syncStore: OfflineSyncStore = .shared,
+        forceReseedDemo: Bool = false
+    ) async {
+        if forceReseedDemo, FeatureFlags.foundationInboundDemoEnabled {
+            session.resetDemoLoads()
+        }
+
         loadPhase = .loading
         let apiClient = environment.makeAPIClient()
         let orgId = environment.orgId
@@ -72,13 +84,13 @@ final class AppointmentsViewModel {
     }
 
     private func applyFoundationDemoData() {
-        appointments = FoundationOperationalData.receivingAppointments
+        appointments = session.seedDemoLoadsIfNeeded()
         dataMode = "foundation-demo"
         loadPhase = .loaded
     }
 
     private func applyFoundationFallback() {
-        appointments = FoundationOperationalData.receivingAppointments
+        appointments = session.seedDemoLoadsIfNeeded()
         dataMode = "foundation"
         apiReachable = false
         loadPhase = .loaded
@@ -100,20 +112,28 @@ final class AppointmentsViewModel {
         }
         return error.localizedDescription
     }
-    
+
     func createLoad(_ load: ReceivingAppointment) {
-        appointments.insert(load, at: 0)
+        if FeatureFlags.foundationInboundDemoEnabled {
+            session.insertLoad(load)
+            appointments = session.seedDemoLoadsIfNeeded()
+        } else {
+            appointments.insert(load, at: 0)
+        }
         if case .empty = loadPhase {
             loadPhase = .loaded
         }
     }
 
     func updateLoad(_ load: ReceivingAppointment) {
-        guard let index = appointments.firstIndex(where: { $0.id == load.id }) else { return }
-        appointments[index] = load
+        if FeatureFlags.foundationInboundDemoEnabled {
+            session.updateLoad(load)
+            appointments = session.seedDemoLoadsIfNeeded()
+        } else if let index = appointments.firstIndex(where: { $0.id == load.id }) {
+            appointments[index] = load
+        }
     }
 
-    /// Door ids assigned to other loads (excludes `excludingLoadId` so the editor keeps its current door selectable).
     func occupiedDoorIds(excludingLoadId: String? = nil) -> Set<String> {
         Set(
             appointments

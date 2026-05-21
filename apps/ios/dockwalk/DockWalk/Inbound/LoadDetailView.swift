@@ -1,19 +1,32 @@
 import SwiftUI
 
 struct LoadDetailView: View {
+    @Environment(InboundSessionStore.self) private var inboundSession
     @Binding var load: ReceivingAppointment
     let viewModel: AppointmentsViewModel
     let environment: AppEnvironment
 
     @State private var showEditSheet = false
     @State private var showDoorSelector = false
+    private var canEditLoad: Bool {
+        switch load.status {
+        case .scheduled, .checkedIn, .staged, .receiving:
+            return true
+        case .complete, .cancelled:
+            return false
+        }
+    }
+
+    private var savedReceivedItems: [ReceiveInventoryDraft] {
+        inboundSession.receivedItems(for: load.id).filter(\.isSaved)
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
                 loadSummaryCard
                 actionButtons
-                lineItemsSection
+                receivedSummarySection
             }
             .padding(DockWalkTheme.screenPadding)
         }
@@ -21,7 +34,7 @@ struct LoadDetailView: View {
         .navigationTitle(load.poNumber)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if load.status == .scheduled || load.status == .checkedIn {
+            if canEditLoad {
                 ToolbarItem(placement: .primaryAction) {
                     Button("Edit") {
                         showEditSheet = true
@@ -47,6 +60,7 @@ struct LoadDetailView: View {
                 }
             }
         }
+        .id(inboundSession.revision)
     }
 
     private func assignDoor(_ doorId: String) {
@@ -73,6 +87,29 @@ struct LoadDetailView: View {
 
     private func checkIn() {
         applyDoor(load.assignedDoorNumber, status: .checkedIn)
+    }
+
+    private func ensureReceivingStatus() {
+        guard load.status != .receiving else { return }
+        let updated = copyLoad(status: .receiving)
+        load = updated
+        viewModel.updateLoad(updated)
+    }
+
+    private func copyLoad(status: InboundLoadStatus, receivedLineCount: Int? = nil) -> ReceivingAppointment {
+        ReceivingAppointment(
+            id: load.id,
+            carrier: load.carrier,
+            dock: load.dock,
+            scheduledAt: load.scheduledAt,
+            status: status,
+            poNumber: load.poNumber,
+            palletCount: load.palletCount,
+            vendor: load.vendor,
+            expectedLineCount: load.expectedLineCount,
+            receivedLineCount: receivedLineCount ?? load.receivedLineCount,
+            doorNumber: load.doorNumber
+        )
     }
 
     private var loadSummaryCard: some View {
@@ -140,28 +177,31 @@ struct LoadDetailView: View {
                 PrimaryActionButton(title: "Assign Door", systemImage: "door.left.hand.open", style: .primary) {
                     showDoorSelector = true
                 }
-                NavigationLink {
-                    ShipmentDetailView(load: $load, appointmentsViewModel: viewModel)
-                } label: {
-                    actionLinkLabel(title: "Start Receiving", systemImage: "arrow.down.doc", isPrimary: false)
-                }
-                .buttonStyle(.plain)
 
-            case .staged, .receiving:
+            case .staged:
                 NavigationLink {
-                    ShipmentDetailView(load: $load, appointmentsViewModel: viewModel)
-                } label: {
-                    actionLinkLabel(
-                        title: load.status == .receiving ? "Resume Receiving" : "Start Receiving",
-                        systemImage: "arrow.down.doc",
-                        isPrimary: true
+                    ShipmentDetailView(
+                        load: $load,
+                        appointmentsViewModel: viewModel,
+                        environment: environment
                     )
+                    .onAppear { ensureReceivingStatus() }
+                } label: {
+                    actionLinkLabel(title: "Start Receiving", systemImage: "arrow.down.doc", isPrimary: true)
                 }
                 .buttonStyle(.plain)
 
-                PrimaryActionButton(title: "Add Exception", systemImage: "exclamationmark.triangle", style: .secondary) {
-                    // Add exception action
+            case .receiving:
+                NavigationLink {
+                    ShipmentDetailView(
+                        load: $load,
+                        appointmentsViewModel: viewModel,
+                        environment: environment
+                    )
+                } label: {
+                    actionLinkLabel(title: "Resume Receiving", systemImage: "arrow.down.doc", isPrimary: true)
                 }
+                .buttonStyle(.plain)
 
             case .complete:
                 PrimaryActionButton(title: "View Receipt", systemImage: "doc.text", style: .secondary) {
@@ -191,15 +231,48 @@ struct LoadDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: DockWalkTheme.cornerRadius, style: .continuous))
     }
 
-    private var lineItemsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if load.status == .receiving || load.status == .complete {
-                Text("Line Items")
-                    .font(DockWalkTheme.headlineFont)
+    @ViewBuilder
+    private var receivedSummarySection: some View {
+        if !savedReceivedItems.isEmpty || load.status == .receiving || load.status == .complete {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("Received inventory")
+                        .font(DockWalkTheme.headlineFont)
+                    Spacer()
+                    if load.status == .receiving {
+                        NavigationLink("View all") {
+                            ShipmentDetailView(
+                                load: $load,
+                                appointmentsViewModel: viewModel,
+                                environment: environment
+                            )
+                        }
+                        .font(DockWalkTheme.captionFont.weight(.semibold))
+                    }
+                }
 
-                Text("Line items will appear here during receiving")
-                    .font(DockWalkTheme.captionFont)
-                    .foregroundStyle(DockWalkTheme.textSecondary)
+                if savedReceivedItems.isEmpty {
+                    Text("No items saved yet — start receiving to scan and capture inventory.")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                } else {
+                    ForEach(savedReceivedItems) { item in
+                        SectionCard {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.sku)
+                                        .font(DockWalkTheme.bodyFont.weight(.semibold))
+                                    Text("\(item.quantity) ea · \(item.location)")
+                                        .font(DockWalkTheme.captionFont)
+                                        .foregroundStyle(DockWalkTheme.textSecondary)
+                                }
+                                Spacer()
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(DockWalkTheme.accent)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -228,4 +301,5 @@ struct LoadDetailView: View {
             environment: .shared
         )
     }
+    .environment(InboundSessionStore.shared)
 }

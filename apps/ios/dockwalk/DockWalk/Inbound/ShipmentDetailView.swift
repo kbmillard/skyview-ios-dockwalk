@@ -4,12 +4,13 @@ import SwiftUI
 struct ShipmentDetailView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
+    @Environment(InboundSessionStore.self) private var inboundSession
     @Binding var load: ReceivingAppointment
     let appointmentsViewModel: AppointmentsViewModel
 
-    @Bindable var viewModel: ShipmentDetailViewModel
+    @State private var viewModel: ShipmentDetailViewModel
     @State private var showLineScanner = false
-    @State private var showDockDoors = false
+    @State private var showEditSheet = false
 
     init(
         load: Binding<ReceivingAppointment>,
@@ -18,10 +19,7 @@ struct ShipmentDetailView: View {
     ) {
         _load = load
         self.appointmentsViewModel = appointmentsViewModel
-        viewModel = ShipmentDetailViewModel(
-            load: load.wrappedValue,
-            environment: environment
-        )
+        _viewModel = State(initialValue: ShipmentDetailViewModel(loadId: load.wrappedValue.id, environment: environment))
     }
 
     var body: some View {
@@ -37,6 +35,7 @@ struct ShipmentDetailView: View {
                             showLineScanner = true
                         } else {
                             viewModel.addFromScan("SCAN-\(Int.random(in: 1000...9999))")
+                            syncReceivedLineCount()
                         }
                     }
 
@@ -44,12 +43,6 @@ struct ShipmentDetailView: View {
                         viewModel.addEmptyCard()
                     } label: {
                         Label("Add inventory card", systemImage: "plus.rectangle.on.rectangle")
-                            .font(DockWalkTheme.captionFont.weight(.semibold))
-                    }
-                    .foregroundStyle(DockWalkTheme.accent)
-
-                    Button { showDockDoors = true } label: {
-                        Label("Change door", systemImage: "door.left.hand.open")
                             .font(DockWalkTheme.captionFont.weight(.semibold))
                     }
                     .foregroundStyle(DockWalkTheme.accent)
@@ -67,30 +60,26 @@ struct ShipmentDetailView: View {
         .background(DockWalkTheme.background)
         .navigationTitle(load.poNumber)
         .navigationBarTitleDisplayMode(.inline)
-        .task(id: environment.configRevision) {
-            promoteToReceivingIfNeeded()
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Edit") {
+                    showEditSheet = true
+                }
+            }
+        }
+        .sheet(isPresented: $showEditSheet) {
+            EditLoadView(load: $load, viewModel: appointmentsViewModel)
+        }
+        .task(id: "\(environment.configRevision)-\(inboundSession.revision)") {
             await viewModel.load()
         }
         .sheet(isPresented: $showLineScanner) {
             BarcodeScannerSheet(title: "Scan item") { result in
                 viewModel.addFromScan(result.value)
+                syncReceivedLineCount()
             }
         }
-        .sheet(isPresented: $showDockDoors) {
-            DockDoorSelectorSheet(
-                loadReference: load.poNumber,
-                doorOptions: appointmentsViewModel.doorPickerOptions(
-                    forLoadId: load.id,
-                    currentSelection: load.assignedDoorNumber
-                ),
-                initialSelection: load.assignedDoorNumber,
-                allowsClear: false
-            ) { doorId in
-                if let doorId {
-                    applyDoor(doorId)
-                }
-            }
-        }
+        .id(inboundSession.revision)
     }
 
     private var loadHeader: some View {
@@ -125,7 +114,15 @@ struct ShipmentDetailView: View {
                             ReceiveInventoryCardView(
                                 item: binding,
                                 index: index + 1,
-                                onRemove: { viewModel.removeItem(id: item.id) }
+                                onSave: {
+                                    if viewModel.saveItem(id: item.id) {
+                                        syncReceivedLineCount()
+                                    }
+                                },
+                                onRemove: {
+                                    viewModel.removeItem(id: item.id)
+                                    syncReceivedLineCount()
+                                }
                             )
                         }
                     }
@@ -147,45 +144,24 @@ struct ShipmentDetailView: View {
         )
     }
 
-    private func promoteToReceivingIfNeeded() {
-        guard load.status != .receiving else { return }
-        let updated = copyLoad(status: .receiving)
-        load = updated
-        appointmentsViewModel.updateLoad(updated)
-    }
-
-    private func applyDoor(_ doorId: String) {
+    private func syncReceivedLineCount() {
+        let count = viewModel.savedItemCount
+        guard load.receivedLineCount != count else { return }
         let updated = ReceivingAppointment(
             id: load.id,
             carrier: load.carrier,
-            dock: doorId,
+            dock: load.dock,
             scheduledAt: load.scheduledAt,
             status: load.status,
             poNumber: load.poNumber,
             palletCount: load.palletCount,
             vendor: load.vendor,
             expectedLineCount: load.expectedLineCount,
-            receivedLineCount: load.receivedLineCount,
-            doorNumber: doorId
+            receivedLineCount: count,
+            doorNumber: load.doorNumber
         )
         load = updated
         appointmentsViewModel.updateLoad(updated)
-    }
-
-    private func copyLoad(status: InboundLoadStatus) -> ReceivingAppointment {
-        ReceivingAppointment(
-            id: load.id,
-            carrier: load.carrier,
-            dock: load.dock,
-            scheduledAt: load.scheduledAt,
-            status: status,
-            poNumber: load.poNumber,
-            palletCount: load.palletCount,
-            vendor: load.vendor,
-            expectedLineCount: load.expectedLineCount,
-            receivedLineCount: load.receivedLineCount,
-            doorNumber: load.doorNumber
-        )
     }
 }
 
@@ -212,4 +188,5 @@ struct ShipmentDetailView: View {
     }
     .environment(AppEnvironment.shared)
     .environment(ScannerPreferencesStore.shared)
+    .environment(InboundSessionStore.shared)
 }

@@ -8,6 +8,8 @@ struct DockWalkApp: App {
     @State private var syncPreferences = SyncPreferencesStore.shared
     @State private var scannerPreferences = ScannerPreferencesStore.shared
     @State private var demoOperationalData = DemoOperationalDataStore.shared
+    @State private var inboundSession = InboundSessionStore.shared
+    @State private var appointmentsViewModel = AppointmentsViewModel()
     @State private var replayCoordinator = ReceivingEventReplayCoordinator.shared
 
     var body: some Scene {
@@ -18,6 +20,8 @@ struct DockWalkApp: App {
                 .environment(syncPreferences)
                 .environment(scannerPreferences)
                 .environment(demoOperationalData)
+                .environment(inboundSession)
+                .environment(appointmentsViewModel)
                 .environment(replayCoordinator)
                 .onChange(of: scenePhase) { _, phase in
                     guard phase == .active else { return }

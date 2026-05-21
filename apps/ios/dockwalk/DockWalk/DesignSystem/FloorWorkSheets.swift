@@ -226,47 +226,57 @@ struct DockDoorSelectorSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Pick a door for **\(loadReference)**. Doors assigned to other loads are unavailable.")
-                        .font(DockWalkTheme.bodyFont)
-                        .foregroundStyle(DockWalkTheme.textSecondary)
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Pick a door for **\(loadReference)**. Doors assigned to other loads are unavailable.")
+                            .font(DockWalkTheme.bodyFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
 
-                    LazyVGrid(columns: columns, spacing: 6) {
-                        ForEach(doorOptions) { door in
-                            doorCell(door)
+                        LazyVGrid(columns: columns, spacing: 6) {
+                            ForEach(doorOptions) { door in
+                                doorCell(door)
+                            }
                         }
                     }
-
-                    HStack(spacing: 12) {
-                        Button("Cancel") { dismiss() }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(DockWalkTheme.cardBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
-
-                        Button(confirmTitle) {
-                            onAssign?(selectedDoorId)
-                            dismiss()
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .foregroundStyle(.white)
-                        .background(Color(red: 0.04, green: 0.08, blue: 0.16))
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .disabled(selectedDoorId == nil)
-                        .opacity(selectedDoorId == nil ? 0.45 : 1)
-                    }
-                    .font(.system(.body, design: .rounded).weight(.semibold))
+                    .padding(DockWalkTheme.screenPadding)
+                    .padding(.bottom, 8)
                 }
-                .padding(DockWalkTheme.screenPadding)
+
+                doorSheetFooter
             }
             .background(DockWalkTheme.background)
             .navigationTitle("Select dock door")
             .navigationBarTitleDisplayMode(.inline)
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large])
         .presentationDragIndicator(.visible)
+    }
+
+    private var doorSheetFooter: some View {
+        HStack(spacing: 12) {
+            Button("Cancel") { dismiss() }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(DockWalkTheme.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+
+            Button(confirmTitle) {
+                onAssign?(selectedDoorId)
+                dismiss()
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .foregroundStyle(.white)
+            .background(Color(red: 0.04, green: 0.08, blue: 0.16))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .disabled(selectedDoorId == nil)
+            .opacity(selectedDoorId == nil ? 0.45 : 1)
+        }
+        .font(.system(.body, design: .rounded).weight(.semibold))
+        .padding(.horizontal, DockWalkTheme.screenPadding)
+        .padding(.vertical, 12)
+        .background(DockWalkTheme.cardBackground)
     }
 
     private var confirmTitle: String {

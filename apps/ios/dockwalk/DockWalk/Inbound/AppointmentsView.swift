@@ -5,17 +5,28 @@ struct AppointmentsView: View {
     @Environment(OfflineSyncStore.self) private var syncStore
     @Environment(ReceivingEventReplayCoordinator.self) private var replayCoordinator
     @Environment(DemoOperationalDataStore.self) private var demoOperationalData
-    @State private var viewModel: AppointmentsViewModel?
-    @State private var selectedStage: InboundStageFilter = .scheduled
-    @State private var selectedScheduleDay = InboundWeekSchedule.demoInboundQueueDay()
+    @Environment(InboundSessionStore.self) private var inboundSession
+    @Environment(AppointmentsViewModel.self) private var viewModel
+
     @State private var showingCreateLoad = false
+    @State private var didInitialLoad = false
 
     private let calendar = Calendar.current
+
+    private var selectedStage: InboundStageFilter {
+        get {
+            InboundStageFilter(rawValue: inboundSession.selectedStageRaw) ?? .scheduled
+        }
+    }
+
+    private var selectedScheduleDay: Date {
+        inboundSession.selectedScheduleDay
+    }
 
     var body: some View {
         NavigationStack {
             ZStack {
-                if viewModel?.loadPhase == .loaded {
+                if viewModel.loadPhase == .loaded {
                     ScrollView {
                         VStack(spacing: 0) {
                             weekScheduleStrip
@@ -23,13 +34,13 @@ struct AppointmentsView: View {
                             loadsList
                         }
                     }
-                } else if let viewModel {
+                } else {
                     LoadStateView(phase: viewModel.loadPhase) {
-                        Task { await viewModel.refresh() }
+                        Task { await loadInbound(forceReseedDemo: false) }
                     }
                 }
 
-                if case .loading? = viewModel?.loadPhase {
+                if case .loading = viewModel.loadPhase {
                     LoadStateView(phase: .loading)
                         .background(.ultraThinMaterial)
                 }
@@ -45,7 +56,7 @@ struct AppointmentsView: View {
                 }
             }
             .refreshable {
-                await viewModel?.refresh(syncStore: syncStore)
+                await loadInbound(forceReseedDemo: true)
             }
             .safeAreaInset(edge: .top) {
                 statusBanner
@@ -54,22 +65,35 @@ struct AppointmentsView: View {
                 CreateLoadView(viewModel: viewModel)
             }
         }
-        .onAppear {
-            if viewModel == nil {
-                viewModel = AppointmentsViewModel(environment: environment)
-            }
+        .task(id: environment.configRevision) {
+            await loadOnceIfNeeded()
         }
-        .task(id: "\(environment.configRevision)-\(demoOperationalData.revision)") {
-            if viewModel == nil {
-                viewModel = AppointmentsViewModel(environment: environment)
-            }
-            await viewModel?.refresh(syncStore: syncStore)
-            if viewModel?.dataMode == "foundation-demo" {
-                selectedScheduleDay = InboundWeekSchedule.demoInboundQueueDay(calendar: calendar)
-            }
+        .onChange(of: demoOperationalData.revision) { _, _ in
+            inboundSession.resetDemoLoads()
+            didInitialLoad = false
+            Task { await loadInbound(forceReseedDemo: false) }
         }
+        .id(inboundSession.revision)
     }
-    
+
+    private func loadOnceIfNeeded() async {
+        guard !didInitialLoad else { return }
+        didInitialLoad = true
+        await loadInbound(forceReseedDemo: false)
+    }
+
+    private func loadInbound(forceReseedDemo: Bool) async {
+        await viewModel.refresh(syncStore: syncStore, forceReseedDemo: forceReseedDemo)
+    }
+
+    private func setSelectedStage(_ stage: InboundStageFilter) {
+        inboundSession.selectedStageRaw = stage.rawValue
+    }
+
+    private func setSelectedScheduleDay(_ day: Date) {
+        inboundSession.selectedScheduleDay = day
+    }
+
     private var weekScheduleStrip: some View {
         InboundWeekScheduleStrip(
             weekDays: InboundWeekSchedule.weekDays(containing: selectedScheduleDay, calendar: calendar),
@@ -77,7 +101,7 @@ struct AppointmentsView: View {
             scheduledCount: { day in
                 scheduledLoads(on: day).count
             },
-            onSelectDay: { selectedScheduleDay = $0 }
+            onSelectDay: { setSelectedScheduleDay($0) }
         )
     }
 
@@ -90,7 +114,7 @@ struct AppointmentsView: View {
                         count: countForStageTab(stage),
                         isSelected: selectedStage == stage
                     ) {
-                        selectedStage = stage
+                        setSelectedStage(stage)
                     }
                 }
             }
@@ -99,7 +123,7 @@ struct AppointmentsView: View {
         }
         .background(DockWalkTheme.background)
     }
-    
+
     private var loadsList: some View {
         VStack(spacing: 12) {
             let loads = loadsForStage(selectedStage)
@@ -108,7 +132,7 @@ struct AppointmentsView: View {
                     .padding(.vertical, 40)
             } else {
                 ForEach(loads) { load in
-                    if let viewModel, let binding = loadBinding(for: load, viewModel: viewModel) {
+                    if let binding = loadBinding(for: load) {
                         NavigationLink {
                             LoadDetailView(
                                 load: binding,
@@ -125,7 +149,7 @@ struct AppointmentsView: View {
             }
         }
     }
-    
+
     private var emptyStageView: some View {
         VStack(spacing: 8) {
             Image(systemName: selectedStage.status.systemImage)
@@ -143,9 +167,9 @@ struct AppointmentsView: View {
             }
         }
     }
-    
+
     private func appointmentsForStage(_ stage: InboundStageFilter) -> [ReceivingAppointment] {
-        viewModel?.appointments.filter { $0.status == stage.status } ?? []
+        viewModel.appointments.filter { $0.status == stage.status }
     }
 
     private func scheduledLoads(on day: Date) -> [ReceivingAppointment] {
@@ -176,10 +200,7 @@ struct AppointmentsView: View {
         return load.scheduledAt.formatted(date: .abbreviated, time: .shortened)
     }
 
-    private func loadBinding(
-        for load: ReceivingAppointment,
-        viewModel: AppointmentsViewModel
-    ) -> Binding<ReceivingAppointment>? {
+    private func loadBinding(for load: ReceivingAppointment) -> Binding<ReceivingAppointment>? {
         Binding(
             get: {
                 viewModel.appointments.first(where: { $0.id == load.id }) ?? load
@@ -200,14 +221,14 @@ struct AppointmentsView: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(DockWalkTheme.textSecondary)
                 }
-                
+
                 HStack(spacing: 12) {
                     Label(load.doorAssignmentLabel, systemImage: "door.left.hand.open")
                     Label(scheduleLabel(for: load), systemImage: "clock")
                 }
                 .font(DockWalkTheme.captionFont)
                 .foregroundStyle(DockWalkTheme.textSecondary)
-                
+
                 HStack {
                     Text(load.poNumber)
                         .font(DockWalkTheme.captionFont)
@@ -223,7 +244,7 @@ struct AppointmentsView: View {
 
     @ViewBuilder
     private var statusBanner: some View {
-        if let viewModel, let mode = viewModel.dataMode, viewModel.loadPhase == .loaded {
+        if let mode = viewModel.dataMode, viewModel.loadPhase == .loaded {
             VStack(spacing: 4) {
                 HStack {
                     Text(apiModeLabel(mode))
@@ -276,7 +297,7 @@ private struct StageTabButton: View {
     let count: Int
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
@@ -305,4 +326,7 @@ private struct StageTabButton: View {
         .environment(SyncPreferencesStore.shared)
         .environment(ScannerPreferencesStore.shared)
         .environment(ReceivingEventReplayCoordinator.shared)
+        .environment(DemoOperationalDataStore.shared)
+        .environment(InboundSessionStore.shared)
+        .environment(AppointmentsViewModel())
 }

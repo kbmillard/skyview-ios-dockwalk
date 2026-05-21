@@ -154,6 +154,7 @@ struct ReceiveInventoryDraft: Identifiable, Equatable {
     var itemName: String
     var quantity: String
     var location: String
+    var isSaved: Bool = false
 
     static func empty() -> ReceiveInventoryDraft {
         ReceiveInventoryDraft(
