@@ -33,6 +33,17 @@ final class TodayDashboardViewModel {
 
     func refresh() async {
         loadPhase = .loading
+
+        if FeatureFlags.foundationInboundDemoEnabled {
+            inboundGroups = Self.inboundGroupsFromFoundationAppointments()
+            putawayGroups = []
+            totalPutawayTasks = 0
+            dockDoors = FoundationOperationalData.dockDoors
+            loadPhase = .loaded
+            hasLoadedOnce = true
+            return
+        }
+
         let apiClient = environment.makeAPIClient()
         let orgId = environment.orgId
 
@@ -131,14 +142,34 @@ final class TodayDashboardViewModel {
     // MARK: - Foundation Data
     
     private func loadDockDoorFoundationData() -> [DockDoorStatus] {
-        // Stable local foundation data for dock doors
-        // No live API route yet - this is intentional preview structure
-        return [
-            DockDoorStatus(id: "door-1", doorNumber: "Door 1", status: .open, assignedLoad: nil),
-            DockDoorStatus(id: "door-2", doorNumber: "Door 2", status: .occupied, assignedLoad: "APT-1002"),
-            DockDoorStatus(id: "door-3", doorNumber: "Door 3", status: .open, assignedLoad: nil),
-            DockDoorStatus(id: "door-4", doorNumber: "Door 4", status: .open, assignedLoad: nil),
-        ]
+        FoundationOperationalData.dockDoors
+    }
+
+    private static func inboundGroupsFromFoundationAppointments() -> [InboundLoadGroup] {
+        let loads = FoundationOperationalData.receivingAppointments.map { apt in
+            InboundLoad(
+                id: apt.id,
+                referenceNumber: apt.poNumber,
+                carrier: apt.carrier,
+                status: apt.status,
+                scheduledAt: apt.scheduledAt,
+                doorAssignment: apt.doorNumber
+            )
+        }
+
+        var groups: [InboundLoadGroup] = []
+        let displayStatuses: [InboundLoadStatus] = [.scheduled, .checkedIn, .staged, .receiving]
+        for status in displayStatuses {
+            let filtered = loads.filter { $0.status == status }
+            if !filtered.isEmpty || status == .scheduled || status == .checkedIn {
+                groups.append(InboundLoadGroup(
+                    status: status,
+                    count: filtered.count,
+                    loads: filtered
+                ))
+            }
+        }
+        return groups
     }
     
     private func loadFoundationSummaryData() {

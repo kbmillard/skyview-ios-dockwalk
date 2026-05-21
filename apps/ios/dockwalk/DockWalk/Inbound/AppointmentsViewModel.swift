@@ -20,6 +20,18 @@ final class AppointmentsViewModel {
         let orgId = environment.orgId
         apiReachable = await apiClient.healthCheck()
 
+        if FeatureFlags.foundationInboundDemoEnabled {
+            applyFoundationDemoData()
+            if apiReachable {
+                await ReceivingEventReplayCoordinator.shared.attemptAutoReplayIfNeeded(
+                    environment: environment,
+                    syncStore: syncStore,
+                    trigger: "receive_loaded"
+                )
+            }
+            return
+        }
+
         if !apiReachable {
             applyFoundationFallback()
             return
@@ -59,6 +71,12 @@ final class AppointmentsViewModel {
         }
     }
 
+    private func applyFoundationDemoData() {
+        appointments = FoundationOperationalData.receivingAppointments
+        dataMode = "foundation-demo"
+        loadPhase = .loaded
+    }
+
     private func applyFoundationFallback() {
         appointments = FoundationOperationalData.receivingAppointments
         dataMode = "foundation"
@@ -81,5 +99,41 @@ final class AppointmentsViewModel {
             return apiError.errorDescription ?? "Request failed."
         }
         return error.localizedDescription
+    }
+    
+    func createLoad(_ load: ReceivingAppointment) {
+        appointments.insert(load, at: 0)
+        if case .empty = loadPhase {
+            loadPhase = .loaded
+        }
+    }
+
+    func updateLoad(_ load: ReceivingAppointment) {
+        guard let index = appointments.firstIndex(where: { $0.id == load.id }) else { return }
+        appointments[index] = load
+    }
+
+    /// Door ids assigned to other loads (excludes `excludingLoadId` so the editor keeps its current door selectable).
+    func occupiedDoorIds(excludingLoadId: String? = nil) -> Set<String> {
+        Set(
+            appointments
+                .filter { $0.id != excludingLoadId }
+                .compactMap(\.assignedDoorNumber)
+        )
+    }
+
+    func doorPickerOptions(forLoadId loadId: String?, currentSelection: String?) -> [DockDoorPickerOption] {
+        let occupied = occupiedDoorIds(excludingLoadId: loadId)
+        return FoundationOperationalData.dockDoors.map { door in
+            let doorId = door.doorNumber
+            let isCurrent = currentSelection == doorId
+            let isOccupied = occupied.contains(doorId) && !isCurrent
+            return DockDoorPickerOption(
+                id: doorId,
+                label: doorId,
+                statusLabel: isOccupied ? "In use" : (isCurrent ? "Selected" : "Open"),
+                isAvailable: !isOccupied
+            )
+        }
     }
 }

@@ -105,7 +105,7 @@ struct TodayDashboard: View {
 
     private var liveNowSection: some View {
         LiveNowBanner(item: MockWarehouseFloor.liveNow) {
-            selectedTab = .receiving
+            selectedTab = .inbound
         }
     }
 

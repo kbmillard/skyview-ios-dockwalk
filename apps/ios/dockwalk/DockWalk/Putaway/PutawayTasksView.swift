@@ -3,6 +3,7 @@ import SwiftUI
 struct PutawayTasksView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
+    @Environment(DemoOperationalDataStore.self) private var demoOperationalData
     @State private var viewModel: PutawayTasksViewModel?
     @State private var selectedTask: PutawayTaskItem?
 
@@ -50,7 +51,7 @@ struct PutawayTasksView: View {
                 )
             }
         }
-        .task(id: environment.configRevision) {
+        .task(id: "\(environment.configRevision)-\(demoOperationalData.revision)") {
             if viewModel == nil {
                 viewModel = PutawayTasksViewModel(
                     environment: environment,
@@ -70,6 +71,11 @@ struct PutawayTasksView: View {
                         label: putawayModeLabel(mode),
                         tone: mode == "live" ? .success : (mode == "foundation" ? .warning : .neutral)
                     )
+                    if mode == "foundation-demo" {
+                        Text("Demo mode — putaway list is empty until you receive on a load. Live API task seeds are hidden.")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                    }
                     if mode == "foundation" {
                         Text("Showing dev-seed preview data — Railway API host is unreachable. Task writes will fail until the API is restored.")
                             .font(DockWalkTheme.captionFont)
@@ -182,6 +188,7 @@ struct PutawayTasksView: View {
     private func putawayModeLabel(_ mode: String) -> String {
         switch mode {
         case "live": return "Live tasks"
+        case "foundation-demo": return "Demo (no tasks)"
         case "foundation": return "Offline preview"
         default: return "Stub API"
         }

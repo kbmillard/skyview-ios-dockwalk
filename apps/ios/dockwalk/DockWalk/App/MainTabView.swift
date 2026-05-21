@@ -2,11 +2,9 @@ import SwiftUI
 
 /// DockWalk by SkyView — root tab bar.
 ///
-/// Tab order is fixed by product spec:
-///   Today · Inbound · **Inventory (center)** · Shipping
+/// Tab order: Today · Inbound · Inventory · Putaway · Picking · Shipping
 ///
-/// Inventory is the universal lookup hub and must remain visually centered.
-/// Putaway is integrated into the Inbound tab.
+/// Putaway and Picking have the most users (40+ floor workers vs 5 receivers).
 struct MainTabView: View {
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @State private var selectedTab: AppTab = .today
@@ -36,6 +34,18 @@ struct MainTabView: View {
                     }
                     .tag(AppTab.inventory)
 
+                PutawayTabRootView()
+                    .tabItem {
+                        Label("Putaway", systemImage: "arrow.down.to.line.compact")
+                    }
+                    .tag(AppTab.putaway)
+
+                PickingTabRootView()
+                    .tabItem {
+                        Label("Picking", systemImage: "cart")
+                    }
+                    .tag(AppTab.picking)
+
                 ShippingTabRootView()
                     .tabItem {
                         Label("Shipping", systemImage: "arrow.up.to.line")
@@ -46,9 +56,7 @@ struct MainTabView: View {
             .id(scannerPreferences.revision)
 
             // Floating scan disc above the tab bar.
-            // Inventory is the center tab, so this disc visually anchors the
-            // global-lookup scanner when on Inventory, and the work-mode scanner
-            // when on Inbound / Shipping.
+            // Opens inventory lookup from any tab.
             floatingScanDisc
                 .offset(y: -58)
         }
@@ -79,15 +87,7 @@ struct MainTabView: View {
     private var floatingScanDisc: some View {
         Button {
             Haptics.scanSuccess()
-            switch selectedTab {
-            case .today:
-                selectedTab = .inventory
-            case .inventory:
-                // Always show add options sheet for Inventory tab
-                showInventoryAddOptions = true
-            case .inbound, .shipping:
-                showFloatingScanConfirm = true
-            }
+            selectedTab = .inventory
         } label: {
             ZStack {
                 Circle()

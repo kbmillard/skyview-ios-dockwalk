@@ -10,10 +10,6 @@ struct ShippingHomeView: View {
             VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
                 workflowSummary
                 
-                readyToPickSection
-                
-                pickingSection
-                
                 stagedSection
                 
                 loadingSection

@@ -80,10 +80,6 @@ struct InventoryItemDetailView: View {
                     Divider()
                     metadataRow(label: "Part Number", value: partNumber)
                 }
-                if let upc = item.upc {
-                    Divider()
-                    metadataRow(label: "UPC", value: upc)
-                }
                 Divider()
                 metadataRow(label: "Location", value: item.location, icon: "mappin.and.ellipse")
             }
@@ -315,7 +311,7 @@ struct InventoryItemDetailView: View {
     InventoryItemDetailView(item: InventoryItem(
         id: "1",
         sku: "BR-8821",
-        upc: "00938122",
+        upc: nil,
         partNumber: "ABC-123",
         itemName: "Brake Rotor Assembly",
         description: "Brake Rotor Assembly",

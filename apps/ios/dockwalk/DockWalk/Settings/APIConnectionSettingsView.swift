@@ -4,6 +4,7 @@ struct APIConnectionSettingsView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
     @Environment(ReceivingEventReplayCoordinator.self) private var replayCoordinator
+    @Environment(DemoOperationalDataStore.self) private var demoOperationalData
 
     @State private var apiBaseURLString: String = ""
     @State private var orgId: String = ""
@@ -108,6 +109,18 @@ struct APIConnectionSettingsView: View {
                         .font(DockWalkTheme.captionFont)
                         .foregroundStyle(DockWalkTheme.textSecondary)
                 }
+            }
+
+            Section {
+                Toggle(isOn: Binding(
+                    get: { demoOperationalData.useFoundationInboundDemo },
+                    set: { demoOperationalData.useFoundationInboundDemo = $0 }
+                )) {
+                    Text("Use demo inbound queue (30 loads)")
+                }
+            } footer: {
+                Text("Uses local floor data for testing: 30 inbound loads (T-4401…T-4430), empty putaway/inventory lists. Hides live API seeds such as SKU-DEV tasks. Default on in Debug builds.")
+                    .font(DockWalkTheme.captionFont)
             }
 
             Section("Connection test") {
@@ -226,6 +239,7 @@ struct APIConnectionSettingsView: View {
             .environment(OfflineSyncStore.shared)
             .environment(SyncPreferencesStore.shared)
             .environment(ScannerPreferencesStore.shared)
+            .environment(DemoOperationalDataStore.shared)
             .environment(ReceivingEventReplayCoordinator.shared)
     }
 }

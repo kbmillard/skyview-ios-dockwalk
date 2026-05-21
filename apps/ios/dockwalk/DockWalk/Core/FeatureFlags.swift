@@ -15,4 +15,9 @@ enum FeatureFlags {
     static var isReceivingEventAutoReplayPermitted: Bool {
         offlineSyncEnabled && receivingEventAutoReplayAvailable
     }
+
+    /// Local T-4401…T-4430 inbound queue; ignores live appointment list when on.
+    static var foundationInboundDemoEnabled: Bool {
+        DemoOperationalDataStore.shared.useFoundationInboundDemo
+    }
 }

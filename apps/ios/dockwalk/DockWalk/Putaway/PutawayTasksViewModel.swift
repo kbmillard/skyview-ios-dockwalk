@@ -55,6 +55,11 @@ final class PutawayTasksViewModel {
             loadPhase = .loading
         }
 
+        if FeatureFlags.foundationInboundDemoEnabled {
+            applyFoundationFallback(reset: reset, demoMode: true)
+            return
+        }
+
         let apiClient = environment.makeAPIClient()
         let orgId = environment.orgId
 
@@ -102,7 +107,7 @@ final class PutawayTasksViewModel {
         }
     }
 
-    private func applyFoundationFallback(reset: Bool) {
+    private func applyFoundationFallback(reset: Bool, demoMode: Bool = false) {
         let mapped = FoundationOperationalData.putawayTasks(
             filteredBy: inboundShipmentId,
             status: statusFilter
@@ -112,9 +117,10 @@ final class PutawayTasksViewModel {
             currentOffset = mapped.count
             totalCount = mapped.count
             canLoadMore = false
-            dataMode = "foundation"
+            dataMode = demoMode ? "foundation-demo" : "foundation"
+            let modeKey = demoMode ? "foundation-demo" : "foundation"
             loadPhase = mapped.isEmpty
-                ? .empty(message: emptyMessage(for: "foundation"))
+                ? .empty(message: emptyMessage(for: modeKey))
                 : .loaded
         }
     }
@@ -125,6 +131,9 @@ final class PutawayTasksViewModel {
         }
         if mode == "stub" {
             return "No putaway tasks in stub mode — configure Supabase on the API service."
+        }
+        if mode == "foundation-demo" {
+            return "No putaway tasks in demo mode — complete receiving on a load first."
         }
         if mode == "foundation" {
             return "No putaway tasks in offline preview data."

@@ -1,162 +1,46 @@
 import Foundation
 import Observation
 
-enum ReceiveSubmitResult: Equatable {
-    case success(idempotent: Bool, mode: String, eventId: String?)
-    case queuedOffline
-    case failure(String)
-}
-
 @Observable
 final class ShipmentDetailViewModel {
-    let shipment: InboundShipmentItem
-    let appointmentId: String?
+    let load: ReceivingAppointment
 
-    private(set) var lines: [InboundLineItem] = []
+    private(set) var receivedItems: [ReceiveInventoryDraft] = []
     private(set) var loadPhase: LoadPhase = .idle
     private(set) var dataMode: String?
-    private(set) var isSubmitting = false
-    private(set) var receivingLineId: String?
-    private(set) var lastSubmitResult: ReceiveSubmitResult?
 
     private let environment: AppEnvironment
-    private let syncStore: OfflineSyncStore
 
     init(
-        shipment: InboundShipmentItem,
-        appointmentId: String?,
-        environment: AppEnvironment = .shared,
-        syncStore: OfflineSyncStore = .shared
+        load: ReceivingAppointment,
+        environment: AppEnvironment = .shared
     ) {
-        self.shipment = shipment
-        self.appointmentId = appointmentId
+        self.load = load
         self.environment = environment
-        self.syncStore = syncStore
     }
 
+    /// Receive work mode uses local capture only — no shipment lines API.
     func load() async {
         loadPhase = .loading
-        let apiClient = environment.makeAPIClient()
-        let orgId = environment.orgId
-
-        do {
-            let response: InboundLinesResponse = try await apiClient.get(
-                .inboundShipmentLines(shipmentId: shipment.id, orgId: orgId)
-            )
-            dataMode = response.mode
-            lines = response.items.map(InboundAPIMapping.mapInboundLine)
-
-            if lines.isEmpty {
-                loadPhase = .empty(
-                    message: response.message ?? emptyMessage(for: response.mode)
-                )
-            } else {
-                loadPhase = .loaded
-            }
-        } catch {
-            lines = []
-            loadPhase = .error(message: userFacingError(error))
-        }
+        receivedItems = []
+        dataMode = FeatureFlags.foundationInboundDemoEnabled ? "foundation-demo" : "local"
+        loadPhase = .loaded
     }
 
-    func setReceiveAllRemaining() {
-        for index in lines.indices {
-            lines[index].receiveNow = lines[index].remainingQty
-        }
+    func addFromScan(_ code: String) {
+        receivedItems.insert(ReceiveInventoryDraft.fromScan(code), at: 0)
     }
 
-    func updateReceiveNow(lineId: String, quantity: Double) {
-        guard let index = lines.firstIndex(where: { $0.id == lineId }) else { return }
-        lines[index].receiveNow = max(0, quantity)
+    func addEmptyCard() {
+        receivedItems.insert(ReceiveInventoryDraft.empty(), at: 0)
     }
 
-    func receiveOne(lineId: String) async {
-        guard let line = lines.first(where: { $0.id == lineId }) else { return }
-        guard line.remainingQty > 0 else {
-            lastSubmitResult = .failure("This line is already fully received.")
-            return
-        }
-
-        let idempotencyKey = CreateReceivingEventRequest.makeIdempotencyKey()
-        let request = ReceivingEventBuilder.buildSingleLineReceive(
-            environment: environment,
-            appointmentId: appointmentId,
-            shipmentId: shipment.id,
-            line: line,
-            quantity: 1,
-            idempotencyKey: idempotencyKey
-        )
-        await submit(request: request, receivingLineId: lineId)
+    func removeItem(id: String) {
+        receivedItems.removeAll { $0.id == id }
     }
 
-    func submitReceive() async {
-        let linesToReceive = lines.filter { $0.receiveNow > 0 }
-        guard !linesToReceive.isEmpty else {
-            lastSubmitResult = .failure("Enter a receive quantity for at least one line.")
-            return
-        }
-
-        let request = ReceivingEventBuilder.buildRequest(
-            environment: environment,
-            appointmentId: appointmentId,
-            shipmentId: shipment.id,
-            lines: linesToReceive
-        )
-        guard !request.lines.isEmpty else {
-            lastSubmitResult = .failure("No valid lines to receive.")
-            return
-        }
-        await submit(request: request, receivingLineId: nil)
-    }
-
-    private func submit(request: CreateReceivingEventRequest, receivingLineId: String?) async {
-        isSubmitting = true
-        self.receivingLineId = receivingLineId
-        defer {
-            isSubmitting = false
-            self.receivingLineId = nil
-        }
-
-        let apiClient = environment.makeAPIClient()
-        do {
-            let response: ReceivingEventResponse = try await apiClient.post(
-                .receivingEvents,
-                body: request
-            )
-            guard response.isSuccess else {
-                lastSubmitResult = .failure(response.message ?? "Receive was not recorded.")
-                return
-            }
-            lastSubmitResult = .success(
-                idempotent: response.isIdempotentReplay,
-                mode: response.mode,
-                eventId: response.item?.id
-            )
-            await load()
-        } catch {
-            if APIClientErrorClassifier.shouldQueueOffline(for: error) {
-                syncStore.enqueueReceivingEvent(
-                    request,
-                    summary: "Receive \(shipment.referenceNumber) — \(request.lines.count) line(s)"
-                )
-                lastSubmitResult = .queuedOffline
-            } else {
-                lastSubmitResult = .failure(userFacingError(error))
-            }
-        }
-    }
-
-    private func emptyMessage(for mode: String) -> String {
-        if mode == "stub" {
-            return "No lines in stub mode. Connect Supabase on the server or add lines via the API."
-        }
-        return "No inbound lines on this shipment yet."
-    }
-
-    private func userFacingError(_ error: Error) -> String {
-        if let apiError = error as? APIClientError {
-            return apiError.errorDescription ?? "Request failed."
-        }
-        return error.localizedDescription
+    func updateItem(_ item: ReceiveInventoryDraft) {
+        guard let index = receivedItems.firstIndex(where: { $0.id == item.id }) else { return }
+        receivedItems[index] = item
     }
 }

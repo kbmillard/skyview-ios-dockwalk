@@ -106,7 +106,7 @@ struct LocationLookupView: View {
             InventoryItem(
                 id: "inv-1",
                 sku: "SKU-44102",
-                upc: "00844711002",
+                upc: nil,
                 partNumber: "BEV-CS-01",
                 itemName: "Cases — beverage",
                 description: "Cases — beverage",
@@ -119,7 +119,7 @@ struct LocationLookupView: View {
             InventoryItem(
                 id: "inv-2",
                 sku: "SKU-99201",
-                upc: "00992010001",
+                upc: nil,
                 partNumber: "CHEM-DR-01",
                 itemName: "Drums — chemical",
                 description: "Drums — chemical",
@@ -132,7 +132,7 @@ struct LocationLookupView: View {
             InventoryItem(
                 id: "inv-3",
                 sku: "SKU-22018",
-                upc: "00220180001",
+                upc: nil,
                 partNumber: "RET-PAL-01",
                 itemName: "Pallet — mixed retail",
                 description: "Pallet — mixed retail",

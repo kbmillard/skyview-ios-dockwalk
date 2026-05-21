@@ -178,21 +178,62 @@ struct ScanConfirmSheet: View {
 
 struct DockDoorSelectorSheet: View {
     @Environment(\.dismiss) private var dismiss
-    let loadId: String
-    @State private var selectedDoorId = "D-10"
+    let loadReference: String
+    let doorOptions: [DockDoorPickerOption]
+    var initialSelection: String?
+    var allowsClear: Bool = true
+    var onAssign: ((String?) -> Void)?
+
+    @State private var selectedDoorId: String?
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 4)
+
+    init(
+        loadReference: String,
+        doorOptions: [DockDoorPickerOption],
+        initialSelection: String? = nil,
+        allowsClear: Bool = true,
+        onAssign: ((String?) -> Void)? = nil
+    ) {
+        self.loadReference = loadReference
+        self.doorOptions = doorOptions
+        self.initialSelection = initialSelection
+        self.allowsClear = allowsClear
+        self.onAssign = onAssign
+        let firstOpen = doorOptions.first(where: \.isAvailable)?.id
+        _selectedDoorId = State(initialValue: initialSelection ?? firstOpen)
+    }
+
+    /// Legacy entry — uses static open doors only (no cross-load occupancy).
+    init(loadId: String, onAssign: ((String) -> Void)? = nil) {
+        self.init(
+            loadReference: loadId,
+            doorOptions: FoundationOperationalData.dockDoors.map { door in
+                DockDoorPickerOption(
+                    id: door.doorNumber,
+                    label: door.doorNumber,
+                    statusLabel: "Open",
+                    isAvailable: true
+                )
+            },
+            initialSelection: "D-01",
+            allowsClear: false,
+            onAssign: { doorId in
+                if let doorId { onAssign?(doorId) }
+            }
+        )
+    }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Pick an available door for **\(loadId)**. Busy doors are shown but disabled.")
+                    Text("Pick a door for **\(loadReference)**. Doors assigned to other loads are unavailable.")
                         .font(DockWalkTheme.bodyFont)
                         .foregroundStyle(DockWalkTheme.textSecondary)
 
                     LazyVGrid(columns: columns, spacing: 6) {
-                        ForEach(MockWarehouseFloor.dockDoors) { door in
+                        ForEach(doorOptions) { door in
                             doorCell(door)
                         }
                     }
@@ -204,34 +245,44 @@ struct DockDoorSelectorSheet: View {
                             .background(DockWalkTheme.cardBackground)
                             .clipShape(RoundedRectangle(cornerRadius: 14))
 
-                        Button("Assign \(selectedDoorId)") { dismiss() }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .foregroundStyle(.white)
-                            .background(Color(red: 0.04, green: 0.08, blue: 0.16))
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                        Button(confirmTitle) {
+                            onAssign?(selectedDoorId)
+                            dismiss()
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .foregroundStyle(.white)
+                        .background(Color(red: 0.04, green: 0.08, blue: 0.16))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .disabled(selectedDoorId == nil)
+                        .opacity(selectedDoorId == nil ? 0.45 : 1)
                     }
                     .font(.system(.body, design: .rounded).weight(.semibold))
                 }
                 .padding(DockWalkTheme.screenPadding)
             }
             .background(DockWalkTheme.background)
-            .navigationTitle("Assign dock door")
+            .navigationTitle("Select dock door")
             .navigationBarTitleDisplayMode(.inline)
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }
 
-    private func doorCell(_ door: MockWarehouseFloor.DockDoorOption) -> some View {
+    private var confirmTitle: String {
+        if let selectedDoorId { return "Assign \(selectedDoorId)" }
+        return "Assign door"
+    }
+
+    private func doorCell(_ door: DockDoorPickerOption) -> some View {
         Button {
-            guard !door.isBusy else { return }
+            guard door.isAvailable else { return }
             selectedDoorId = door.id
         } label: {
             VStack(spacing: 2) {
                 Text(door.label)
                     .font(.system(.caption, design: .monospaced).weight(.semibold))
-                Text(door.status)
+                Text(door.statusLabel)
                     .font(.system(size: 9, design: .monospaced))
                     .textCase(.uppercase)
             }
@@ -244,9 +295,9 @@ struct DockDoorSelectorSheet: View {
                           ? Color(red: 0.04, green: 0.08, blue: 0.16)
                           : DockWalkTheme.cardBackground)
             )
-            .opacity(door.isBusy ? 0.45 : 1)
+            .opacity(door.isAvailable ? 1 : 0.45)
         }
         .buttonStyle(.plain)
-        .disabled(door.isBusy)
+        .disabled(!door.isAvailable)
     }
 }

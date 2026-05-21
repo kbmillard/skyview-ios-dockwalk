@@ -87,8 +87,7 @@ struct ManualInventoryAddView: View {
                     // Save button
                     PrimaryActionButton(
                         title: "Add to Inventory",
-                        systemImage: "checkmark.circle.fill",
-                        isLoading: isSaving
+                        systemImage: "checkmark.circle.fill"
                     ) {
                         saveInventory()
                     }
@@ -206,6 +205,7 @@ struct ManualInventoryAddView: View {
                 let newItem = InventoryItem(
                     id: UUID().uuidString,
                     sku: sku.trimmingCharacters(in: .whitespacesAndNewlines),
+                    upc: nil,
                     partNumber: partNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                         ? nil
                         : partNumber.trimmingCharacters(in: .whitespacesAndNewlines),

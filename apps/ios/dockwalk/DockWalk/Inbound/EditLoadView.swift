@@ -1,15 +1,15 @@
 import SwiftUI
 
-struct CreateLoadView: View {
+struct EditLoadView: View {
     @Environment(\.dismiss) private var dismiss
-    let viewModel: AppointmentsViewModel?
+    @Binding var load: ReceivingAppointment
+    let viewModel: AppointmentsViewModel
 
     @State private var carrier = ""
     @State private var poNumber = ""
     @State private var vendor = ""
     @State private var scheduledAt = Date()
     @State private var palletCount = ""
-    @State private var notes = ""
     @State private var selectedStatus: InboundLoadStatus = .scheduled
     @State private var selectedDoorNumber: String?
     @State private var showDoorPicker = false
@@ -18,13 +18,13 @@ struct CreateLoadView: View {
         [.scheduled, .checkedIn, .staged, .receiving, .complete, .cancelled]
     }
 
-    private var doorDisplayLabel: String {
-        selectedDoorNumber ?? "Not assigned"
-    }
-
-    var canSave: Bool {
+    private var canSave: Bool {
         !carrier.trimmingCharacters(in: .whitespaces).isEmpty
             && !poNumber.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    private var doorDisplayLabel: String {
+        selectedDoorNumber ?? "Not assigned"
     }
 
     var body: some View {
@@ -45,7 +45,9 @@ struct CreateLoadView: View {
                     )
 
                     FormValueRow(label: "Expected pallets", text: $palletCount, placeholder: "Optional", keyboardType: .numberPad)
+                }
 
+                Section {
                     Picker("Status", selection: $selectedStatus) {
                         ForEach(editableStatuses, id: \.self) { status in
                             Text(status.displayName).tag(status)
@@ -66,67 +68,65 @@ struct CreateLoadView: View {
                                 .foregroundStyle(DockWalkTheme.textSecondary)
                         }
                     }
-                    .disabled(viewModel == nil)
                 } footer: {
-                    Text("Optional door — 30 dock doors; busy doors are unavailable. Status sets the inbound stage tab.")
+                    Text("Status drives which stage tab lists this load. Assigning a door moves Scheduled → Staged; clearing door moves Staged → Scheduled.")
                         .font(DockWalkTheme.captionFont)
                 }
-
-                Section {
-                    TextField("Notes (optional)", text: $notes, axis: .vertical)
-                        .lineLimit(3...6)
-                }
             }
-            .navigationTitle("Create Load")
+            .navigationTitle("Edit Load")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+                    Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Create") {
-                        createLoad()
-                    }
-                    .disabled(!canSave)
+                    Button("Save") { saveChanges() }
+                        .disabled(!canSave)
                 }
             }
             .sheet(isPresented: $showDoorPicker) {
-                if let viewModel {
-                    DockDoorSelectorSheet(
-                        loadReference: poNumber.isEmpty ? "New load" : poNumber,
-                        doorOptions: viewModel.doorPickerOptions(
-                            forLoadId: nil,
-                            currentSelection: selectedDoorNumber
-                        ),
-                        initialSelection: selectedDoorNumber,
-                        allowsClear: false
-                    ) { doorId in
-                        selectedDoorNumber = doorId
-                    }
+                DockDoorSelectorSheet(
+                    loadReference: poNumber.isEmpty ? load.poNumber : poNumber,
+                    doorOptions: viewModel.doorPickerOptions(
+                        forLoadId: load.id,
+                        currentSelection: selectedDoorNumber
+                    ),
+                    initialSelection: selectedDoorNumber,
+                    allowsClear: false
+                ) { doorId in
+                    selectedDoorNumber = doorId
                 }
+            }
+            .onAppear {
+                carrier = load.carrier
+                poNumber = load.poNumber
+                vendor = load.vendor ?? ""
+                scheduledAt = load.scheduledAt
+                palletCount = load.palletCount > 0 ? String(load.palletCount) : ""
+                selectedDoorNumber = load.assignedDoorNumber
+                selectedStatus = load.status
             }
         }
     }
 
-    private func createLoad() {
-        let status = resolvedStatus()
-        let newLoad = ReceivingAppointment(
-            id: "LOCAL-\(UUID().uuidString.prefix(8))",
+    private func saveChanges() {
+        let updated = ReceivingAppointment(
+            id: load.id,
             carrier: carrier.trimmingCharacters(in: .whitespaces),
             dock: selectedDoorNumber ?? "",
             scheduledAt: scheduledAt,
-            status: status,
+            status: resolvedStatus(),
             poNumber: poNumber.trimmingCharacters(in: .whitespaces),
             palletCount: Int(palletCount) ?? 0,
-            vendor: vendor.isEmpty ? nil : vendor.trimmingCharacters(in: .whitespaces),
-            expectedLineCount: 0,
-            receivedLineCount: 0,
+            vendor: vendor.trimmingCharacters(in: .whitespaces).isEmpty
+                ? nil
+                : vendor.trimmingCharacters(in: .whitespaces),
+            expectedLineCount: load.expectedLineCount,
+            receivedLineCount: load.receivedLineCount,
             doorNumber: selectedDoorNumber
         )
-
-        viewModel?.createLoad(newLoad)
+        load = updated
+        viewModel.updateLoad(updated)
         dismiss()
     }
 
@@ -139,8 +139,4 @@ struct CreateLoadView: View {
         }
         return selectedStatus
     }
-}
-
-#Preview {
-    CreateLoadView(viewModel: AppointmentsViewModel())
 }

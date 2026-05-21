@@ -23,12 +23,18 @@ enum InboundAPIMapping {
         let carrier = metadata["carrier_name"]?.stringValue
             ?? metadata["carrier"]?.stringValue
             ?? shortLabel(prefix: "Carrier", id: dto.carrierId)
-        let dock = metadata["dock_name"]?.stringValue
+        let dock = metadata["door_number"]?.stringValue
+            ?? metadata["dock_name"]?.stringValue
             ?? metadata["dock"]?.stringValue
-            ?? shortLabel(prefix: "Dock", id: dto.dockId)
+            ?? ""
         let pallets = metadata["pallet_count"]?.intValue
             ?? metadata["pallets"]?.intValue
             ?? 0
+        let vendor = metadata["vendor_name"]?.stringValue
+            ?? metadata["vendor"]?.stringValue
+        let expectedLineCount = metadata["expected_line_count"]?.intValue ?? 0
+        let receivedLineCount = metadata["received_line_count"]?.intValue ?? 0
+        let doorNumber = metadata["door_number"]?.stringValue
 
         return ReceivingAppointment(
             id: dto.id,
@@ -37,18 +43,11 @@ enum InboundAPIMapping {
             scheduledAt: parseDate(dto.scheduledAt) ?? .now,
             status: mapInboundLoadStatus(dto.status),
             poNumber: dto.referenceNumber ?? "—",
-            palletCount: pallets
-        )
-    }
-
-    static func mapInboundShipment(_ dto: InboundShipmentDTO) -> InboundShipmentItem {
-        InboundShipmentItem(
-            id: dto.id,
-            appointmentId: dto.appointmentId,
-            referenceNumber: dto.referenceNumber ?? "—",
-            status: mapInboundLoadStatus(dto.status),
-            expectedAt: parseDate(dto.expectedAt),
-            receivedAt: parseDate(dto.receivedAt)
+            palletCount: pallets,
+            vendor: vendor,
+            expectedLineCount: expectedLineCount,
+            receivedLineCount: receivedLineCount,
+            doorNumber: doorNumber
         )
     }
 
@@ -65,15 +64,6 @@ enum InboundAPIMapping {
             receiveNow: max(0, expected - received),
             uom: dto.uom ?? "ea",
             status: dto.status ?? "expected"
-        )
-    }
-
-    static func mapShipmentToReceivedLine(_ shipment: InboundShipmentItem) -> ReceivedLine {
-        ReceivedLine(
-            id: shipment.id,
-            sku: shipment.referenceNumber,
-            description: "Inbound shipment · \(shipment.status.displayName)",
-            quantity: 1
         )
     }
 

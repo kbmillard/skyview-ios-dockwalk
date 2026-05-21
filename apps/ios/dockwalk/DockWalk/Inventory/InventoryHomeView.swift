@@ -50,7 +50,7 @@ struct InventoryHomeView: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 48))
                 .foregroundStyle(DockWalkTheme.textSecondary.opacity(0.5))
-            Text("Search UPC, SKU, part, bin, or item")
+            Text("Search SKU, part, bin, or item")
                 .font(DockWalkTheme.bodyFont)
                 .foregroundStyle(DockWalkTheme.textSecondary)
                 .multilineTextAlignment(.center)
@@ -68,7 +68,7 @@ struct InventoryHomeView: View {
         HStack {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(DockWalkTheme.textSecondary)
-            TextField("Search UPC, SKU, part, bin, or item", text: $viewModel.searchQuery)
+            TextField("Search SKU, part, bin, or item", text: $viewModel.searchQuery)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
             if !viewModel.searchQuery.isEmpty {
@@ -120,7 +120,7 @@ struct InventoryHomeView: View {
                             .font(DockWalkTheme.headlineFont)
                             .foregroundStyle(DockWalkTheme.textPrimary)
                         
-                        Text("SKU \(item.sku) · UPC \(item.upc ?? "N/A")")
+                        Text("SKU \(item.sku)")
                             .font(DockWalkTheme.captionFont)
                             .foregroundStyle(DockWalkTheme.textSecondary)
                         

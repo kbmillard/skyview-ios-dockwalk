@@ -4,6 +4,7 @@ struct TodayView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
+    @Environment(DemoOperationalDataStore.self) private var demoOperationalData
     @Binding var selectedTab: AppTab
 
     @State private var dashboard = TodayDashboardViewModel()
@@ -37,11 +38,9 @@ struct TodayView: View {
             .refreshable {
                 await dashboard.refresh()
             }
-            .task {
-                if !hasInitiallyLoaded {
-                    await dashboard.refresh()
-                    hasInitiallyLoaded = true
-                }
+            .task(id: "\(environment.configRevision)-\(demoOperationalData.revision)") {
+                await dashboard.refresh()
+                hasInitiallyLoaded = true
             }
             .sheet(isPresented: $showScanner) {
                 NavigationStack {
@@ -81,10 +80,10 @@ struct TodayView: View {
                     .font(DockWalkTheme.headlineFont)
                 Spacer()
                 Button {
-                    selectedTab = .receiving
+                    selectedTab = .inbound
                 } label: {
                     HStack(spacing: 4) {
-                        Text("Open Receiving")
+                        Text("Open Inbound")
                             .font(DockWalkTheme.captionFont)
                         Image(systemName: "chevron.right")
                             .font(.caption2)
@@ -109,7 +108,7 @@ struct TodayView: View {
     
     private func inboundGroupCard(_ group: InboundLoadGroup) -> some View {
         Button {
-            selectedTab = .receiving
+            selectedTab = .inbound
         } label: {
             SectionCard {
                 HStack {
@@ -187,7 +186,7 @@ struct TodayView: View {
                     .font(DockWalkTheme.headlineFont)
                 Spacer()
                 Button {
-                    selectedTab = .putaway
+                    selectedTab = .inbound
                 } label: {
                     HStack(spacing: 4) {
                         Text("Open Queue")
@@ -231,7 +230,7 @@ struct TodayView: View {
     
     private func putawayGroupCard(_ group: PutawayQueueGroup) -> some View {
         Button {
-            selectedTab = .putaway
+            selectedTab = .inbound
         } label: {
             SectionCard {
                 HStack {

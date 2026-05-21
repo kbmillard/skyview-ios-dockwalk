@@ -1,11 +1,12 @@
 import Foundation
 
-/// DockWalk by SkyView — five primary tabs, in display order.
-/// Inventory is intentionally the center tab (the universal lookup hub).
+/// DockWalk by SkyView — six primary tabs, in display order.
+/// Today · Inbound · Inventory · Putaway · Picking · Shipping
 enum AppTab: Int, Hashable, CaseIterable {
     case today
-    case receiving
+    case inbound
     case inventory
     case putaway
+    case picking
     case shipping
 }
