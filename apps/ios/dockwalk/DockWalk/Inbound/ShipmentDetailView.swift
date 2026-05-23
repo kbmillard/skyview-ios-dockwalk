@@ -3,14 +3,19 @@ import SwiftUI
 /// Receive work mode — scan and capture inventory onto the load (no legacy shipment-lines API).
 struct ShipmentDetailView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(ReceiveScannerCoordinator.self) private var receiveScannerCoordinator
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
-    @Environment(InboundSessionStore.self) private var inboundSession
     @Binding var load: ReceivingAppointment
     let appointmentsViewModel: AppointmentsViewModel
 
     @State private var viewModel: ShipmentDetailViewModel
     @State private var showLineScanner = false
     @State private var showEditSheet = false
+    @State private var editingItem: ReceiveInventoryDraft?
+    @State private var pendingScanCode: String?
+    @State private var lastHandledScanToken = 0
+    @State private var skuPendingClone: String?
+    @State private var showAddAnotherUPCAlert = false
 
     init(
         load: Binding<ReceivingAppointment>,
@@ -27,27 +32,8 @@ struct ShipmentDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
                     ScannerLockChip(mode: .load(loadId: load.poNumber))
-
-                    loadHeader
-
-                    PrimaryActionButton(title: "Scan Item", systemImage: "barcode.viewfinder") {
-                        if scannerPreferences.isScannerActive {
-                            showLineScanner = true
-                        } else {
-                            viewModel.addFromScan("SCAN-\(Int.random(in: 1000...9999))")
-                            syncReceivedLineCount()
-                        }
-                    }
-
-                    Button {
-                        viewModel.addEmptyCard()
-                    } label: {
-                        Label("Add inventory card", systemImage: "plus.rectangle.on.rectangle")
-                            .font(DockWalkTheme.captionFont.weight(.semibold))
-                    }
-                    .foregroundStyle(DockWalkTheme.accent)
-
-                    receivedItemsSection
+                    hubSnapshot
+                    inventoryBubbles
                 }
                 .padding(DockWalkTheme.screenPadding)
             }
@@ -58,9 +44,17 @@ struct ShipmentDetailView: View {
             }
         }
         .background(DockWalkTheme.background)
-        .navigationTitle(load.poNumber)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                VStack(spacing: 2) {
+                    Text(load.poNumber)
+                        .font(.headline)
+                    Text(load.carrier)
+                        .font(.caption)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                }
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button("Edit") {
                     showEditSheet = true
@@ -70,69 +64,139 @@ struct ShipmentDetailView: View {
         .sheet(isPresented: $showEditSheet) {
             EditLoadView(load: $load, viewModel: appointmentsViewModel)
         }
-        .task(id: "\(environment.configRevision)-\(inboundSession.revision)") {
+        .task(id: environment.configRevision) {
             await viewModel.load()
         }
+        .onAppear {
+            receiveScannerCoordinator.setReceiveHubActive(true)
+            handleFloatingScanRequestIfNeeded()
+        }
+        .onDisappear {
+            receiveScannerCoordinator.setReceiveHubActive(false)
+        }
+        .onChange(of: receiveScannerCoordinator.openScannerToken) { _, _ in
+            handleFloatingScanRequestIfNeeded()
+        }
         .sheet(isPresented: $showLineScanner) {
-            BarcodeScannerSheet(title: "Scan item") { result in
-                viewModel.addFromScan(result.value)
-                syncReceivedLineCount()
+            BarcodeScannerSheet(
+                title: "Scan UPC",
+                applyStyle: .direct,
+                applyButtonTitle: "Use this UPC",
+                manualEntryPlaceholder: "UPC"
+            ) { result in
+                pendingScanCode = result.value
+                showLineScanner = false
             }
         }
-        .id(inboundSession.revision)
-    }
-
-    private var loadHeader: some View {
-        SectionCard {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(load.carrier)
-                    .font(DockWalkTheme.headlineFont)
-                StatusChip(label: load.status.displayName, tone: load.status.chipTone)
-                Text("Receive work mode — add inventory cards for each SKU you put away.")
-                    .font(DockWalkTheme.captionFont)
-                    .foregroundStyle(DockWalkTheme.textSecondary)
+        .onChange(of: showLineScanner) { _, isShowing in
+            guard !isShowing else { return }
+            if let code = pendingScanCode {
+                if let sku = skuPendingClone {
+                    presentReceiveEntryCloningSKU(sku: sku, upc: code)
+                } else {
+                    presentReceiveEntry(for: code)
+                }
+                pendingScanCode = nil
+                skuPendingClone = nil
+            } else {
+                skuPendingClone = nil
+            }
+        }
+        .alert("Add another UPC for this SKU?", isPresented: $showAddAnotherUPCAlert) {
+            Button("Yes") {
+                showLineScanner = true
+            }
+            Button("Cancel", role: .cancel) {
+                skuPendingClone = nil
+            }
+        }
+        .fullScreenCover(item: $editingItem) { item in
+            if let binding = binding(for: item) {
+                InventoryEntryView(
+                    item: binding,
+                    onSave: {
+                        let success = viewModel.saveItem(id: item.id)
+                        if success {
+                            syncReceivedLineCount()
+                        }
+                        return success
+                    },
+                    onCancel: {
+                        if !item.isSaved {
+                            viewModel.removeItem(id: item.id)
+                        }
+                    }
+                )
             }
         }
     }
 
     @ViewBuilder
-    private var receivedItemsSection: some View {
-        switch viewModel.loadPhase {
-        case .loaded:
+    private var hubSnapshot: some View {
+        if viewModel.loadPhase == .loaded {
+            ReceiveHubSnapshot(
+                totalUPCs: viewModel.totalUPCs,
+                totalCases: viewModel.totalCases,
+                totalEaches: viewModel.totalEaches,
+                uniqueSKUs: viewModel.uniqueSKUs,
+                skuGroups: viewModel.skuGroups,
+                onAddAnotherUPC: { sku in
+                    skuPendingClone = sku
+                    showAddAnotherUPCAlert = true
+                }
+            )
+        }
+    }
+    
+    @ViewBuilder
+    private var inventoryBubbles: some View {
+        if viewModel.loadPhase == .loaded {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Received inventory")
+                Text("Received Items")
                     .font(DockWalkTheme.headlineFont)
-
-                if viewModel.receivedItems.isEmpty {
-                    Text("Scan a barcode or tap Add inventory card to record what you received.")
+                
+                if viewModel.savedItemCount == 0 {
+                    Text("Tap the scanner button to add inventory items.")
                         .font(DockWalkTheme.captionFont)
                         .foregroundStyle(DockWalkTheme.textSecondary)
                         .padding(.vertical, 8)
                 } else {
-                    ForEach(Array(viewModel.receivedItems.enumerated()), id: \.element.id) { index, item in
-                        if let binding = binding(for: item) {
-                            ReceiveInventoryCardView(
-                                item: binding,
-                                index: index + 1,
-                                onSave: {
-                                    if viewModel.saveItem(id: item.id) {
-                                        syncReceivedLineCount()
-                                    }
-                                },
-                                onRemove: {
-                                    viewModel.removeItem(id: item.id)
-                                    syncReceivedLineCount()
-                                }
-                            )
+                    ForEach(viewModel.receivedItems.filter(\.isSaved)) { item in
+                        InventoryBubbleRow(item: item) {
+                            editingItem = item
                         }
                     }
                 }
             }
-        case .idle, .loading:
-            EmptyView()
-        case .empty, .error:
-            EmptyView()
         }
+    }
+
+    private func handleFloatingScanRequestIfNeeded() {
+        let token = receiveScannerCoordinator.openScannerToken
+        guard token > lastHandledScanToken else { return }
+        lastHandledScanToken = token
+        if scannerPreferences.isScannerActive {
+            showLineScanner = true
+        } else {
+            presentReceiveEntry(for: "SCAN-\(Int.random(in: 1000...9999))")
+        }
+    }
+
+    private func presentReceiveEntry(for code: String) {
+        skuPendingClone = nil
+        let newItem = ReceiveInventoryDraft.fromScan(code)
+        viewModel.addItem(newItem)
+        editingItem = newItem
+    }
+
+    private func presentReceiveEntryCloningSKU(sku: String, upc: String) {
+        guard let template = viewModel.templateItem(forSKU: sku) else {
+            presentReceiveEntry(for: upc)
+            return
+        }
+        let newItem = ReceiveInventoryDraft.cloningSKU(from: template, upc: upc)
+        viewModel.addItem(newItem)
+        editingItem = newItem
     }
 
     private func binding(for item: ReceiveInventoryDraft) -> Binding<ReceiveInventoryDraft>? {
@@ -187,6 +251,8 @@ struct ShipmentDetailView: View {
         )
     }
     .environment(AppEnvironment.shared)
-    .environment(ScannerPreferencesStore.shared)
     .environment(InboundSessionStore.shared)
+    .environment(InventoryCatalogStore.shared)
+    .environment(ReceiveScannerCoordinator.shared)
+    .environment(ScannerPreferencesStore.shared)
 }

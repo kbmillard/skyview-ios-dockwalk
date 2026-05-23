@@ -10,18 +10,10 @@ struct AppointmentsView: View {
 
     @State private var showingCreateLoad = false
     @State private var didInitialLoad = false
+    @State private var selectedStage: InboundStageFilter = .scheduled
+    @State private var selectedScheduleDay = InboundWeekSchedule.demoInboundQueueDay()
 
     private let calendar = Calendar.current
-
-    private var selectedStage: InboundStageFilter {
-        get {
-            InboundStageFilter(rawValue: inboundSession.selectedStageRaw) ?? .scheduled
-        }
-    }
-
-    private var selectedScheduleDay: Date {
-        inboundSession.selectedScheduleDay
-    }
 
     var body: some View {
         NavigationStack {
@@ -65,15 +57,48 @@ struct AppointmentsView: View {
                 CreateLoadView(viewModel: viewModel)
             }
         }
+        .onAppear {
+            restoreInboundListPrefs()
+        }
         .task(id: environment.configRevision) {
             await loadOnceIfNeeded()
         }
         .onChange(of: demoOperationalData.revision) { _, _ in
             inboundSession.resetDemoLoads()
+            if demoOperationalData.useFoundationInboundDemo {
+                alignScheduleDayToDemoQueue()
+            }
             didInitialLoad = false
             Task { await loadInbound(forceReseedDemo: false) }
         }
-        .id(inboundSession.revision)
+        .onChange(of: viewModel.loadPhase) { _, phase in
+            guard phase == .loaded else { return }
+            ensureDemoQueueDayVisibleIfNeeded()
+        }
+    }
+
+    private func restoreInboundListPrefs() {
+        selectedStage = InboundStageFilter(rawValue: inboundSession.selectedStageRaw) ?? .scheduled
+        if demoOperationalData.useFoundationInboundDemo {
+            alignScheduleDayToDemoQueue()
+        } else {
+            selectedScheduleDay = inboundSession.selectedScheduleDay
+        }
+    }
+
+    /// All 30 demo loads (T-4401…T-4430) are scheduled on the demo queue Friday — snap there when demo mode is on.
+    private func alignScheduleDayToDemoQueue() {
+        let queueDay = InboundWeekSchedule.demoInboundQueueDay(calendar: calendar)
+        selectedScheduleDay = queueDay
+        inboundSession.selectedScheduleDay = queueDay
+    }
+
+    private func ensureDemoQueueDayVisibleIfNeeded() {
+        guard demoOperationalData.useFoundationInboundDemo else { return }
+        guard selectedStage == .scheduled else { return }
+        guard !viewModel.appointments.isEmpty else { return }
+        guard scheduledLoads(on: selectedScheduleDay).isEmpty else { return }
+        alignScheduleDayToDemoQueue()
     }
 
     private func loadOnceIfNeeded() async {
@@ -87,10 +112,12 @@ struct AppointmentsView: View {
     }
 
     private func setSelectedStage(_ stage: InboundStageFilter) {
+        selectedStage = stage
         inboundSession.selectedStageRaw = stage.rawValue
     }
 
     private func setSelectedScheduleDay(_ day: Date) {
+        selectedScheduleDay = day
         inboundSession.selectedScheduleDay = day
     }
 
@@ -160,6 +187,17 @@ struct AppointmentsView: View {
                     .font(DockWalkTheme.bodyFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
                     .multilineTextAlignment(.center)
+                if demoOperationalData.useFoundationInboundDemo {
+                    Button("Show demo queue day") {
+                        alignScheduleDayToDemoQueue()
+                    }
+                    .font(DockWalkTheme.captionFont.weight(.semibold))
+                } else if viewModel.dataMode == "live" {
+                    Text("Turn on “Use demo inbound queue (30 loads)” in More → API connection for local T-4401…T-4430.")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
             } else {
                 Text("No \(selectedStage.displayName.lowercased()) loads")
                     .font(DockWalkTheme.bodyFont)

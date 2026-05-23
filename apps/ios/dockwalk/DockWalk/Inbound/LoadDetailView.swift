@@ -18,7 +18,8 @@ struct LoadDetailView: View {
     }
 
     private var savedReceivedItems: [ReceiveInventoryDraft] {
-        inboundSession.receivedItems(for: load.id).filter(\.isSaved)
+        let _ = inboundSession.receivedInventoryRevision
+        return inboundSession.receivedItems(for: load.id).filter(\.isSaved)
     }
 
     var body: some View {
@@ -45,6 +46,9 @@ struct LoadDetailView: View {
         .sheet(isPresented: $showEditSheet) {
             EditLoadView(load: $load, viewModel: viewModel)
         }
+        .onAppear {
+            let _ = inboundSession.receivedInventoryRevision
+        }
         .sheet(isPresented: $showDoorSelector) {
             DockDoorSelectorSheet(
                 loadReference: load.poNumber,
@@ -60,7 +64,6 @@ struct LoadDetailView: View {
                 }
             }
         }
-        .id(inboundSession.revision)
     }
 
     private func assignDoor(_ doorId: String) {
@@ -236,8 +239,15 @@ struct LoadDetailView: View {
         if !savedReceivedItems.isEmpty || load.status == .receiving || load.status == .complete {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("Received inventory")
-                        .font(DockWalkTheme.headlineFont)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Received inventory")
+                            .font(DockWalkTheme.headlineFont)
+                        if !savedReceivedItems.isEmpty {
+                            Text("\(savedReceivedItems.count) saved")
+                                .font(DockWalkTheme.captionFont)
+                                .foregroundStyle(DockWalkTheme.textSecondary)
+                        }
+                    }
                     Spacer()
                     if load.status == .receiving {
                         NavigationLink("View all") {
@@ -260,9 +270,14 @@ struct LoadDetailView: View {
                         SectionCard {
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(item.sku)
+                                    Text(item.sku.isEmpty ? item.upc : item.sku)
                                         .font(DockWalkTheme.bodyFont.weight(.semibold))
-                                    Text("\(item.quantity) ea · \(item.location)")
+                                    if !item.sku.isEmpty, !item.upc.isEmpty, item.sku != item.upc {
+                                        Text("UPC \(item.upc)")
+                                            .font(DockWalkTheme.captionFont)
+                                            .foregroundStyle(DockWalkTheme.textSecondary)
+                                    }
+                                    Text("\(item.quantityDisplay) · \(item.location)")
                                         .font(DockWalkTheme.captionFont)
                                         .foregroundStyle(DockWalkTheme.textSecondary)
                                 }

@@ -1,10 +1,19 @@
 import SwiftUI
 
 struct ReceiveInventoryCardView: View {
+    @Environment(InventoryCatalogStore.self) private var inventoryCatalog
     @Binding var item: ReceiveInventoryDraft
     let index: Int
     let onSave: () -> Void
     let onRemove: () -> Void
+
+    private var skuSuggestions: [InventoryItem] {
+        inventoryCatalog.suggestions(matchingSKU: item.sku)
+    }
+
+    private var partDescriptionSuggestions: [InventoryItem] {
+        inventoryCatalog.suggestions(matchingPartDescription: item.partDescription)
+    }
 
     var body: some View {
         SectionCard {
@@ -26,11 +35,29 @@ struct ReceiveInventoryCardView: View {
                     }
                 }
 
-                FormValueRow(label: "SKU", text: $item.sku, placeholder: "SKU", autocapitalization: .characters)
-                FormValueRow(label: "Part #", text: $item.partNumber, placeholder: "Optional")
-                FormValueRow(label: "Item name", text: $item.itemName, placeholder: "Description")
-                FormValueRow(label: "Qty", text: $item.quantity, placeholder: "0", keyboardType: .numberPad)
-                FormValueRow(label: "Location", text: $item.location, placeholder: "Bin", autocapitalization: .characters)
+                FormCatalogSuggestRow(
+                    label: "SKU",
+                    kind: .sku,
+                    text: $item.sku,
+                    placeholder: "",
+                    suggestions: skuSuggestions,
+                    onSelect: applyFromSKUSuggestion
+                )
+                FormValueRow(label: "UPC", text: $item.upc, placeholder: "", autocapitalizationType: .allCharacters)
+                FormValueRow(label: "Part name", text: $item.itemName, placeholder: "")
+                FormCatalogSuggestRow(
+                    label: "Part description",
+                    kind: .partDescription,
+                    text: $item.partDescription,
+                    placeholder: "Optional",
+                    suggestions: partDescriptionSuggestions,
+                    onSelect: applyFromPartDescriptionSuggestion
+                )
+                FormReceiveCasesEachesRow(
+                    casesQty: $item.casesQty,
+                    eachesQty: $item.eachesQty
+                )
+                FormValueRow(label: "Location", text: $item.location, placeholder: "", autocapitalizationType: .allCharacters)
 
                 PrimaryActionButton(
                     title: item.isSaved ? "Update" : "Save",
@@ -41,5 +68,19 @@ struct ReceiveInventoryCardView: View {
                 }
             }
         }
+    }
+
+    /// SKU autoguess: part description + part name only — never UPC.
+    private func applyFromSKUSuggestion(_ catalogItem: InventoryItem) {
+        item.sku = catalogItem.sku
+        item.partDescription = catalogItem.partDescription ?? ""
+        item.itemName = catalogItem.itemName
+    }
+
+    /// Part description autoguess: same fields, never UPC.
+    private func applyFromPartDescriptionSuggestion(_ catalogItem: InventoryItem) {
+        item.partDescription = catalogItem.partDescription ?? ""
+        item.sku = catalogItem.sku
+        item.itemName = catalogItem.itemName
     }
 }

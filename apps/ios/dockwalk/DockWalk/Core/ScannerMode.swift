@@ -26,6 +26,12 @@ enum ScannerMode: Equatable {
         }
     }
 
+    /// Single-line label for receive load bar (work mode + lock target).
+    var receiveLoadBarLabel: String? {
+        guard case .load(let loadId) = self else { return nil }
+        return "Receive load mode - Scanner locked to \(loadId)"
+    }
+
     /// Right value on the scanner chip.
     var chipValue: String {
         switch self {

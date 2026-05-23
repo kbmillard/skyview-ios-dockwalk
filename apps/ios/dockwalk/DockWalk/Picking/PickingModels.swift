@@ -19,7 +19,7 @@ struct PickLine: Identifiable, Codable, Equatable {
     let taskId: String
     let sku: String
     let upc: String?
-    let partNumber: String?
+    let partDescription: String?
     let itemName: String
     let description: String
     let fromLocation: String

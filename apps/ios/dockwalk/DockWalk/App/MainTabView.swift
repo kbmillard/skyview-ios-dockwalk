@@ -7,11 +7,9 @@ import SwiftUI
 /// Putaway and Picking have the most users (40+ floor workers vs 5 receivers).
 struct MainTabView: View {
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
+    @Environment(InventoryScannerCoordinator.self) private var inventoryScannerCoordinator
+    @Environment(ReceiveScannerCoordinator.self) private var receiveScannerCoordinator
     @State private var selectedTab: AppTab = .today
-    @State private var showFloatingScanner = false
-    @State private var showFloatingScanConfirm = false
-    @State private var showInventoryAddOptions = false
-    @State private var showManualInventoryAdd = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -55,39 +53,23 @@ struct MainTabView: View {
             .tint(Tokens.Color.Accent.horizon)
             .id(scannerPreferences.revision)
 
-            // Floating scan disc above the tab bar.
-            // Opens inventory lookup from any tab.
+            // Floating scan disc: receive hub → Scan UPC on load; otherwise → Inventory lookup.
             floatingScanDisc
                 .offset(y: -58)
         }
-        .sheet(isPresented: $showFloatingScanner) {
-            BarcodeScannerSheet(title: "Scan inventory") { _ in
-                showFloatingScanConfirm = true
-            }
-        }
-        .sheet(isPresented: $showFloatingScanConfirm) {
-            ScanConfirmSheet(payload: MockWarehouseFloor.scanConfirmSample)
-        }
-        .sheet(isPresented: $showInventoryAddOptions) {
-            InventoryAddOptionsSheet(
-                onScanSelected: {
-                    showFloatingScanner = true
-                },
-                onManualAddSelected: {
-                    showManualInventoryAdd = true
-                }
-            )
-        }
-        .sheet(isPresented: $showManualInventoryAdd) {
-            ManualInventoryAddView()
-        }
-        .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showFloatingScanner)
     }
 
     private var floatingScanDisc: some View {
         Button {
             Haptics.scanSuccess()
-            selectedTab = .inventory
+            if receiveScannerCoordinator.isReceiveHubActive {
+                receiveScannerCoordinator.requestOpenScanner()
+            } else {
+                selectedTab = .inventory
+                if scannerPreferences.isScannerActive {
+                    inventoryScannerCoordinator.requestOpenScanner()
+                }
+            }
         } label: {
             ZStack {
                 Circle()
@@ -116,5 +98,8 @@ struct MainTabView: View {
         .environment(DemoOperationalDataStore.shared)
         .environment(InboundSessionStore.shared)
         .environment(AppointmentsViewModel())
+        .environment(InventoryScannerCoordinator.shared)
+        .environment(ReceiveScannerCoordinator.shared)
+        .environment(InventoryCatalogStore.shared)
         .environment(ReceivingEventReplayCoordinator.shared)
 }

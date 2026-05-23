@@ -402,7 +402,7 @@ struct PickingTaskDetailView: View {
                 taskId: "pick-1",
                 sku: "BR-8821",
                 upc: "00938122",
-                partNumber: "AUTO-BR-01",
+                partDescription: "AUTO-BR-01",
                 itemName: "Brake Rotor Assembly",
                 description: "Brake Rotor Assembly",
                 fromLocation: "A-14",

@@ -31,12 +31,12 @@ struct CreateLoadView: View {
         NavigationStack {
             Form {
                 Section {
-                    FormValueRow(label: "Carrier", text: $carrier, placeholder: "Required", autocapitalization: .words)
-                    FormValueRow(label: "PO Number", text: $poNumber, placeholder: "Required", autocapitalization: .characters)
+                    FormValueRow(label: "Carrier", text: $carrier, placeholder: "Required", autocapitalizationType: .words)
+                    FormValueRow(label: "PO Number", text: $poNumber, placeholder: "Required", autocapitalizationType: .allCharacters)
                 }
 
                 Section {
-                    FormValueRow(label: "Vendor", text: $vendor, placeholder: "Optional", autocapitalization: .words)
+                    FormValueRow(label: "Vendor", text: $vendor, placeholder: "Optional", autocapitalizationType: .words)
 
                     DatePicker(
                         "Scheduled Arrival",

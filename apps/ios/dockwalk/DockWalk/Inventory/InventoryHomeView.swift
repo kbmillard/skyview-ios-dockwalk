@@ -2,16 +2,20 @@ import SwiftUI
 
 struct InventoryHomeView: View {
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
+    @Environment(InventoryScannerCoordinator.self) private var inventoryScannerCoordinator
+    @Environment(InventoryCatalogStore.self) private var inventoryCatalog
     @State private var viewModel = InventoryViewModel()
     @State private var showScanner = false
+    @State private var showAddInventory = false
     @State private var selectedItem: InventoryItem?
+    @State private var lastHandledScanToken = 0
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 searchField
                     .padding(DockWalkTheme.screenPadding)
-                
+
                 if !viewModel.searchQuery.isEmpty {
                     itemsSection
                 } else {
@@ -20,31 +24,47 @@ struct InventoryHomeView: View {
             }
             .background(DockWalkTheme.background)
             .navigationTitle("Inventory")
-            .toolbar {
-                if scannerPreferences.isScannerActive {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showScanner = true
-                        } label: {
-                            Image(systemName: "barcode.viewfinder")
-                                .font(.body.weight(.semibold))
-                        }
-                    }
+            .sheet(isPresented: $showScanner) {
+                BarcodeScannerSheet(title: "Scan inventory", applyStyle: .direct) { result in
+                    applyScannedCode(result.value)
                 }
             }
-            .sheet(isPresented: $showScanner) {
-                BarcodeScannerSheet(title: "Scan inventory") { result in
-                    viewModel.searchQuery = result.value
-                    showScanner = false
+            .sheet(isPresented: $showAddInventory) {
+                InventoryAddSheet(initialCode: viewModel.searchQuery) { _ in
+                    viewModel.refreshFromCatalog()
                 }
             }
             .sheet(item: $selectedItem) { item in
                 InventoryItemDetailView(item: item)
             }
             .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showScanner)
+            .onAppear {
+                viewModel.refreshFromCatalog()
+                handleFloatingScanRequestIfNeeded()
+            }
+            .onChange(of: inventoryScannerCoordinator.openScannerToken) { _, _ in
+                handleFloatingScanRequestIfNeeded()
+            }
+            .onChange(of: inventoryCatalog.revision) { _, _ in
+                viewModel.refreshFromCatalog()
+            }
         }
     }
-    
+
+    private func applyScannedCode(_ value: String) {
+        viewModel.searchQuery = value
+        showScanner = false
+        viewModel.refreshFromCatalog()
+    }
+
+    private func handleFloatingScanRequestIfNeeded() {
+        let token = inventoryScannerCoordinator.openScannerToken
+        guard token != lastHandledScanToken else { return }
+        lastHandledScanToken = token
+        guard scannerPreferences.isScannerActive else { return }
+        showScanner = true
+    }
+
     private var emptySearchState: some View {
         VStack(spacing: 16) {
             Image(systemName: "magnifyingglass")
@@ -55,9 +75,10 @@ struct InventoryHomeView: View {
                 .foregroundStyle(DockWalkTheme.textSecondary)
                 .multilineTextAlignment(.center)
             if scannerPreferences.isScannerActive {
-                Text("Tap \(Image(systemName: "barcode.viewfinder")) to scan")
+                Text("Use the scan button below to scan a barcode")
                     .font(DockWalkTheme.captionFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
+                    .multilineTextAlignment(.center)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -87,17 +108,8 @@ struct InventoryHomeView: View {
 
     private var itemsSection: some View {
         ScrollView {
-            if viewModel.filteredItems.isEmpty {
-                VStack(spacing: 16) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 48))
-                        .foregroundStyle(DockWalkTheme.textSecondary.opacity(0.5))
-                    Text("No items match '\(viewModel.searchQuery)'")
-                        .font(DockWalkTheme.bodyFont)
-                        .foregroundStyle(DockWalkTheme.textSecondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(DockWalkTheme.screenPadding)
+            if viewModel.isScannedCodeNotFound {
+                upcNotFoundState
             } else {
                 LazyVStack(spacing: 12) {
                     ForEach(viewModel.filteredItems) { item in
@@ -108,7 +120,28 @@ struct InventoryHomeView: View {
             }
         }
     }
-    
+
+    private var upcNotFoundState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "barcode.viewfinder")
+                .font(.system(size: 48))
+                .foregroundStyle(DockWalkTheme.textSecondary.opacity(0.5))
+            Text("UPC not found")
+                .font(DockWalkTheme.headlineFont)
+            Text(viewModel.searchQuery)
+                .font(.system(.body, design: .monospaced).weight(.semibold))
+            Text("No inventory matches this code.")
+                .font(DockWalkTheme.captionFont)
+                .foregroundStyle(DockWalkTheme.textSecondary)
+                .multilineTextAlignment(.center)
+            PrimaryActionButton(title: "Add inventory?", systemImage: "plus.rectangle.on.rectangle") {
+                showAddInventory = true
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(DockWalkTheme.screenPadding)
+    }
+
     private func itemCard(_ item: InventoryItem) -> some View {
         Button {
             selectedItem = item
@@ -119,11 +152,11 @@ struct InventoryHomeView: View {
                         Text(item.description)
                             .font(DockWalkTheme.headlineFont)
                             .foregroundStyle(DockWalkTheme.textPrimary)
-                        
+
                         Text("SKU \(item.sku)")
                             .font(DockWalkTheme.captionFont)
                             .foregroundStyle(DockWalkTheme.textSecondary)
-                        
+
                         HStack(spacing: 12) {
                             Text("Qty \(item.onHand)")
                                 .font(DockWalkTheme.bodyFont)
@@ -142,9 +175,9 @@ struct InventoryHomeView: View {
                         .font(DockWalkTheme.captionFont)
                         .foregroundStyle(DockWalkTheme.textSecondary)
                     }
-                    
+
                     Spacer()
-                    
+
                     Image(systemName: "chevron.right")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(DockWalkTheme.textSecondary)
@@ -158,4 +191,6 @@ struct InventoryHomeView: View {
 #Preview {
     InventoryHomeView()
         .environment(ScannerPreferencesStore.shared)
+        .environment(InventoryScannerCoordinator.shared)
+        .environment(InventoryCatalogStore.shared)
 }

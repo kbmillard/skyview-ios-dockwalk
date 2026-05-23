@@ -149,31 +149,170 @@ struct DockDoorPickerOption: Identifiable, Equatable {
 /// In-progress inventory captured during receive work mode (local until synced).
 struct ReceiveInventoryDraft: Identifiable, Equatable {
     let id: String
+    var upc: String
     var sku: String
-    var partNumber: String
+    var partDescription: String
     var itemName: String
-    var quantity: String
+    /// Number of cases (boxes/packages).
+    var casesQty: String
+    /// Eaches per case when cases are set; total eaches when cases are empty.
+    var eachesQty: String
     var location: String
+    var quantity: String
+    var status: InventoryStatus
     var isSaved: Bool = false
+    var isCommittedToCatalog: Bool = false
+
+    var parsedCases: Int? {
+        let value = Int(casesQty.trimmingCharacters(in: .whitespaces)) ?? 0
+        return value > 0 ? value : nil
+    }
+
+    var parsedEaches: Int? {
+        let value = Int(eachesQty.trimmingCharacters(in: .whitespaces)) ?? 0
+        return value > 0 ? value : nil
+    }
+
+    /// Total pieces: cases × eaches per case, or whichever single field is set.
+    var totalEaches: Int? {
+        switch (parsedCases, parsedEaches) {
+        case let (cases?, eachesPerCase?):
+            return cases * eachesPerCase
+        case let (cases?, nil):
+            return cases
+        case let (nil, eaches?):
+            return eaches
+        case (nil, nil):
+            return nil
+        }
+    }
+
+    var quantityDisplay: String {
+        if parsedCases != nil || parsedEaches != nil {
+            switch (parsedCases, parsedEaches, totalEaches) {
+            case let (cases?, eachesPerCase?, total?):
+                return "\(cases) CS × \(eachesPerCase) = \(total) EA"
+            case let (cases?, nil, _):
+                return "\(cases) CS"
+            case let (nil, eaches?, _):
+                return "\(eaches) EA"
+            default:
+                return "—"
+            }
+        }
+        if let qty = parsedQuantity {
+            return "\(qty) ea"
+        }
+        return "—"
+    }
+
+    /// Compact qty for SKU list UPC sub-rows.
+    var upcLineQuantityLabel: String {
+        quantityDisplay
+    }
+
+    var hasIdentifier: Bool {
+        !sku.trimmingCharacters(in: .whitespaces).isEmpty
+            || !upc.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    var hasQuantityInput: Bool {
+        parsedQuantity != nil || parsedCases != nil || parsedEaches != nil
+    }
+
+    var parsedQuantity: Int? {
+        let value = Int(quantity.trimmingCharacters(in: .whitespaces)) ?? 0
+        return value > 0 ? value : nil
+    }
+
+    /// Quantity used for hub totals and catalog commit.
+    var committedQuantity: Int {
+        if parsedCases != nil || parsedEaches != nil {
+            return totalEaches ?? 0
+        }
+        return parsedQuantity ?? 0
+    }
+
+    func makeInventoryItem() -> InventoryItem? {
+        let qty = committedQuantity
+        guard qty > 0 else { return nil }
+        let trimmedSKU = sku.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedUPC = upc.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedName = itemName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedLocation = location.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedSKU.isEmpty || !trimmedUPC.isEmpty else { return nil }
+        guard !trimmedName.isEmpty, !trimmedLocation.isEmpty else { return nil }
+
+        let trimmedPart = partDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        let resolvedSKU = trimmedSKU.isEmpty ? trimmedUPC : trimmedSKU
+        return InventoryItem(
+            id: id,
+            sku: resolvedSKU,
+            upc: trimmedUPC.isEmpty ? nil : trimmedUPC,
+            partDescription: trimmedPart.isEmpty ? nil : trimmedPart,
+            itemName: trimmedName,
+            description: trimmedName,
+            quantity: qty,
+            location: trimmedLocation,
+            status: status,
+            onHand: qty,
+            reserved: 0
+        )
+    }
 
     static func empty() -> ReceiveInventoryDraft {
         ReceiveInventoryDraft(
             id: UUID().uuidString,
+            upc: "",
             sku: "",
-            partNumber: "",
+            partDescription: "",
             itemName: "",
+            casesQty: "",
+            eachesQty: "",
+            location: "RECV-STAGE",
             quantity: "",
-            location: "RECV-STAGE"
+            status: .available
         )
     }
 
-    static func fromScan(_ code: String) -> ReceiveInventoryDraft {
+    static func fromScan(_ upcCode: String) -> ReceiveInventoryDraft {
         var draft = empty()
-        draft.sku = code
-        draft.itemName = "Scanned item"
-        draft.quantity = "1"
+        draft.upc = upcCode
         return draft
     }
+
+    /// New UPC line for an existing SKU — copies metadata, clears qty fields.
+    static func cloningSKU(from template: ReceiveInventoryDraft, upc: String) -> ReceiveInventoryDraft {
+        ReceiveInventoryDraft(
+            id: UUID().uuidString,
+            upc: upc,
+            sku: template.sku,
+            partDescription: template.partDescription,
+            itemName: template.itemName,
+            casesQty: "",
+            eachesQty: "",
+            location: template.location,
+            quantity: "",
+            status: template.status
+        )
+    }
+}
+
+/// Hub SKU list row with nested UPC lines from saved receive drafts.
+struct ReceiveSKUGroup: Identifiable, Equatable {
+    var id: String { sku }
+    let sku: String
+    let name: String
+    let description: String
+    let upcLines: [ReceiveUPCLine]
+}
+
+struct ReceiveUPCLine: Identifiable, Equatable {
+    let id: String
+    let upc: String
+    let quantityLabel: String
+    let location: String
+    let status: InventoryStatus
 }
 
 struct ReceivedLine: Identifiable, Equatable {

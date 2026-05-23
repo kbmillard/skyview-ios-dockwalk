@@ -24,7 +24,7 @@ final class AppointmentsViewModel {
         forceReseedDemo: Bool = false
     ) async {
         if forceReseedDemo, FeatureFlags.foundationInboundDemoEnabled {
-            session.resetDemoLoads()
+            session.resetDemoLoadsCache()
         }
 
         loadPhase = .loading

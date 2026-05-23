@@ -4,7 +4,7 @@ struct InventoryItem: Identifiable, Equatable {
     let id: String
     let sku: String
     let upc: String?
-    let partNumber: String?
+    let partDescription: String?
     let itemName: String
     let description: String
     var quantity: Int

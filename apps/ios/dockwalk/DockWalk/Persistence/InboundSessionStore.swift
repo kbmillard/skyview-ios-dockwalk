@@ -10,6 +10,8 @@ final class InboundSessionStore {
     private static let scheduleDayKey = "SkyView.inboundSelectedScheduleDay"
 
     private(set) var revision = 0
+    /// Bumped when received inventory is saved or cleared; used by Load Detail without resetting navigation.
+    private(set) var receivedInventoryRevision = 0
     private var demoLoads: [ReceivingAppointment]?
     private var receivedByLoadId: [String: [ReceiveInventoryDraft]] = [:]
 
@@ -29,10 +31,18 @@ final class InboundSessionStore {
         return seeded
     }
 
-    func resetDemoLoads() {
+    func resetDemoLoads(clearReceivedInventory: Bool = true) {
         demoLoads = nil
-        receivedByLoadId = [:]
+        if clearReceivedInventory {
+            receivedByLoadId = [:]
+            bumpReceivedInventoryRevision()
+        }
         bumpRevision()
+    }
+
+    /// Resets cached demo loads only (keeps receive drafts on pull-to-refresh).
+    func resetDemoLoadsCache() {
+        resetDemoLoads(clearReceivedInventory: false)
     }
 
     func updateLoad(_ load: ReceivingAppointment) {
@@ -41,14 +51,12 @@ final class InboundSessionStore {
         else { return }
         loads[index] = load
         demoLoads = loads
-        bumpRevision()
     }
 
     func insertLoad(_ load: ReceivingAppointment) {
         var loads = demoLoads ?? seedDemoLoadsIfNeeded()
         loads.insert(load, at: 0)
         demoLoads = loads
-        bumpRevision()
     }
 
     // MARK: - Received inventory
@@ -59,17 +67,37 @@ final class InboundSessionStore {
 
     func saveReceivedItems(loadId: String, items: [ReceiveInventoryDraft]) {
         receivedByLoadId[loadId] = items
-        bumpRevision()
+        bumpReceivedInventoryRevision()
+    }
+
+    /// Promotes saved receive drafts to the global inventory catalog when a load is finalized.
+    @discardableResult
+    func commitReceivedInventoryToCatalog(
+        loadId: String,
+        catalog: InventoryCatalogStore = .shared
+    ) -> Int {
+        let items = receivedItems(for: loadId)
+        var committed = 0
+        var updated = items
+        for index in updated.indices {
+            guard updated[index].isSaved, !updated[index].isCommittedToCatalog else { continue }
+            guard let inventoryItem = updated[index].makeInventoryItem() else { continue }
+            catalog.add(inventoryItem)
+            updated[index].isCommittedToCatalog = true
+            committed += 1
+        }
+        if committed > 0 {
+            receivedByLoadId[loadId] = updated
+            bumpReceivedInventoryRevision()
+        }
+        return committed
     }
 
     // MARK: - Inbound list UI prefs
 
     var selectedStageRaw: String {
         get { defaults.string(forKey: Self.stageKey) ?? InboundStageFilter.scheduled.rawValue }
-        set {
-            defaults.set(newValue, forKey: Self.stageKey)
-            bumpRevision()
-        }
+        set { defaults.set(newValue, forKey: Self.stageKey) }
     }
 
     var selectedScheduleDay: Date {
@@ -80,13 +108,14 @@ final class InboundSessionStore {
             }
             return InboundWeekSchedule.demoInboundQueueDay()
         }
-        set {
-            defaults.set(newValue.timeIntervalSince1970, forKey: Self.scheduleDayKey)
-            bumpRevision()
-        }
+        set { defaults.set(newValue.timeIntervalSince1970, forKey: Self.scheduleDayKey) }
     }
 
     private func bumpRevision() {
         revision += 1
+    }
+
+    private func bumpReceivedInventoryRevision() {
+        receivedInventoryRevision += 1
     }
 }

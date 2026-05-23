@@ -21,24 +21,82 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertEqual(mapped.poNumber, "PO-1")
     }
 
-    func testInboundShipmentFiltersByAppointment() {
-        let shipment = InboundShipmentItem(
-            id: "s1",
-            appointmentId: "apt-1",
-            referenceNumber: "ASN-9",
-            status: "receiving",
-            expectedAt: nil,
-            receivedAt: nil
-        )
-        let line = InboundAPIMapping.mapShipmentToReceivedLine(shipment)
-        XCTAssertEqual(line.sku, "ASN-9")
+    func testInboundLoadStatusMappingReceiving() {
+        XCTAssertEqual(InboundAPIMapping.mapInboundLoadStatus("receiving"), .receiving)
+        XCTAssertEqual(InboundAPIMapping.mapInboundLoadStatus("arrived"), .checkedIn)
+    }
+
+    func testReceiveDraftDoesNotCommitUntilFinalize() {
+        let suite = "DockWalkTests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            XCTFail("Could not create test defaults suite")
+            return
+        }
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        let inbound = InboundSessionStore(defaults: defaults)
+        let catalog = InventoryCatalogStore(defaults: defaults)
+        let loadId = "T-test-receive"
+        var draft = ReceiveInventoryDraft.fromScan("1111111")
+        draft.sku = "SKU-RCV-1"
+        draft.itemName = "Test Part"
+        draft.casesQty = "2"
+        draft.eachesQty = "5"
+        draft.location = "RECV-STAGE"
+        draft.isSaved = true
+        inbound.saveReceivedItems(loadId: loadId, items: [draft])
+
+        XCTAssertTrue(catalog.search(query: "1111111").isEmpty)
+
+        let committed = inbound.commitReceivedInventoryToCatalog(loadId: loadId, catalog: catalog)
+        XCTAssertEqual(committed, 1)
+        XCTAssertEqual(catalog.search(query: "1111111").count, 1)
+        XCTAssertEqual(catalog.search(query: "1111111").first?.quantity, 10)
+    }
+
+    func testReceiveDraftQuantityCSOnlyOrEAOnly() {
+        var csOnly = ReceiveInventoryDraft.empty()
+        csOnly.casesQty = "10"
+        XCTAssertTrue(csOnly.hasQuantityInput)
+        XCTAssertEqual(csOnly.committedQuantity, 10)
+
+        var eaOnly = ReceiveInventoryDraft.empty()
+        eaOnly.eachesQty = "50"
+        XCTAssertTrue(eaOnly.hasQuantityInput)
+        XCTAssertEqual(eaOnly.committedQuantity, 50)
+
+        var both = ReceiveInventoryDraft.empty()
+        both.casesQty = "10"
+        both.eachesQty = "5"
+        XCTAssertEqual(both.committedQuantity, 50)
+        XCTAssertEqual(both.quantityDisplay, "10 CS × 5 = 50 EA")
+    }
+
+    func testReceiveInventoryDraftCloningSKU() {
+        var template = ReceiveInventoryDraft.fromScan("111")
+        template.sku = "SKU-A"
+        template.itemName = "Part"
+        template.partDescription = "Desc"
+        template.location = "BIN-1"
+        template.status = .reserved
+        template.casesQty = "5"
+        template.eachesQty = "2"
+
+        let clone = ReceiveInventoryDraft.cloningSKU(from: template, upc: "222")
+        XCTAssertEqual(clone.sku, "SKU-A")
+        XCTAssertEqual(clone.upc, "222")
+        XCTAssertEqual(clone.itemName, "Part")
+        XCTAssertEqual(clone.location, "BIN-1")
+        XCTAssertEqual(clone.status, .reserved)
+        XCTAssertTrue(clone.casesQty.isEmpty)
+        XCTAssertTrue(clone.eachesQty.isEmpty)
     }
 
     func testInventoryFilterBySKU() {
         let viewModel = InventoryViewModel()
-        viewModel.searchQuery = "99201"
+        viewModel.searchQuery = "BR-8821"
         XCTAssertEqual(viewModel.filteredItems.count, 1)
-        XCTAssertEqual(viewModel.filteredItems.first?.sku, "SKU-99201")
+        XCTAssertEqual(viewModel.filteredItems.first?.sku, "BR-8821")
     }
 
     func testFeatureFlagsDefaults() {
@@ -475,10 +533,10 @@ final class DockWalkFoundationTests: XCTestCase {
         "inbound_shipment_id":"00000000-0000-4000-8000-000000000201"}
         """.data(using: .utf8)!
         let dto = try JSONDecoder().decode(WarehouseTaskDTO.self, from: json)
-        let item = WarehouseTaskAPIMapping.mapTask(dto)
+        let item = PutawayAPIMapping.mapTask(dto)
         XCTAssertEqual(item.sku, "SKU-DEV-001")
         XCTAssertEqual(item.routeLabel, "RECV-STAGE → BIN-A-01")
-        XCTAssertEqual(item.status, "pending")
+        XCTAssertEqual(item.status, .pending)
     }
 
     func testSyncBatchResponseDuplicateIsSuccess() throws {
@@ -509,7 +567,7 @@ final class DockWalkFoundationTests: XCTestCase {
             ),
         ]
 
-        let outcome = await SyncBatchReplayEngine.replay(actions: actions) { envelope in
+        let batchResult = await SyncBatchReplayEngine.replay(actions: actions) { envelope in
             XCTAssertEqual(envelope.events.count, 2)
             XCTAssertEqual(envelope.events[0].idempotencyKey, "batch-key-1")
             return SyncBatchResponse(
@@ -527,9 +585,9 @@ final class DockWalkFoundationTests: XCTestCase {
             )
         }
 
-        XCTAssertEqual(outcome.succeeded, 2)
-        XCTAssertEqual(outcome.failed, 0)
-        XCTAssertEqual(Set(outcome.removedActionIDs), Set([id1, id2]))
+        XCTAssertEqual(batchResult.outcome.succeeded, 2)
+        XCTAssertEqual(batchResult.outcome.failed, 0)
+        XCTAssertEqual(Set(batchResult.outcome.removedActionIDs), Set([id1, id2]))
     }
 
     func testSyncBatchEnvelopeOmitsIdempotencyKeyInsidePayload() throws {
@@ -767,7 +825,7 @@ final class DockWalkFoundationTests: XCTestCase {
                 taskActionPayload: nil
             ),
         ]
-        let batchResult = await SyncBatchReplayEngine.replay(actions: actions) { _ in
+        let emptyBatch = await SyncBatchReplayEngine.replay(actions: actions) { _ in
             XCTFail("Should not post when nothing syncable")
             return SyncBatchResponse(
                 mode: "live",
@@ -775,7 +833,7 @@ final class DockWalkFoundationTests: XCTestCase {
                 summary: SyncBatchSummary(accepted: 0, duplicate: 0, rejected: 0)
             )
         }
-        XCTAssertEqual(batchResult.outcome.succeeded, 0)
+        XCTAssertEqual(emptyBatch.outcome.succeeded, 0)
     }
 
     func testShipmentDetailViewModelTreatsIdempotentAsSuccess() {

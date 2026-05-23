@@ -2,6 +2,8 @@ import SwiftUI
 
 struct EditLoadView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(InboundSessionStore.self) private var inboundSession
+    @Environment(InventoryCatalogStore.self) private var inventoryCatalog
     @Binding var load: ReceivingAppointment
     let viewModel: AppointmentsViewModel
 
@@ -31,12 +33,12 @@ struct EditLoadView: View {
         NavigationStack {
             Form {
                 Section {
-                    FormValueRow(label: "Carrier", text: $carrier, placeholder: "Required", autocapitalization: .words)
-                    FormValueRow(label: "PO Number", text: $poNumber, placeholder: "Required", autocapitalization: .characters)
+                    FormValueRow(label: "Carrier", text: $carrier, placeholder: "Required", autocapitalizationType: .words)
+                    FormValueRow(label: "PO Number", text: $poNumber, placeholder: "Required", autocapitalizationType: .allCharacters)
                 }
 
                 Section {
-                    FormValueRow(label: "Vendor", text: $vendor, placeholder: "Optional", autocapitalization: .words)
+                    FormValueRow(label: "Vendor", text: $vendor, placeholder: "Optional", autocapitalizationType: .words)
 
                     DatePicker(
                         "Scheduled Arrival",
@@ -71,6 +73,39 @@ struct EditLoadView: View {
                 } footer: {
                     Text("Status drives which stage tab lists this load. Assigning a door moves Scheduled → Staged; clearing door moves Staged → Scheduled.")
                         .font(DockWalkTheme.captionFont)
+                }
+                
+                if load.status == .receiving {
+                    Section {
+                        VStack(spacing: 16) {
+                            Text("Complete this load and move it to the Complete stage.")
+                                .font(DockWalkTheme.captionFont)
+                                .foregroundStyle(DockWalkTheme.textSecondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            FinalizeLoadButton {
+                                finalizeLoad()
+                            }
+                        }
+                        .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                    } header: {
+                        Text("Finalize Load")
+                    }
+                } else if load.status == .complete {
+                    Section {
+                        Button {
+                            reopenLoad()
+                        } label: {
+                            HStack {
+                                Image(systemName: "arrow.counterclockwise")
+                                Text("Re-open Load")
+                            }
+                            .frame(maxWidth: .infinity)
+                            .foregroundStyle(DockWalkTheme.accent)
+                        }
+                    } header: {
+                        Text("Load Actions")
+                    }
                 }
             }
             .navigationTitle("Edit Load")
@@ -138,5 +173,16 @@ struct EditLoadView: View {
             return .scheduled
         }
         return selectedStatus
+    }
+    
+    private func finalizeLoad() {
+        inboundSession.commitReceivedInventoryToCatalog(loadId: load.id, catalog: inventoryCatalog)
+        selectedStatus = .complete
+        saveChanges()
+    }
+    
+    private func reopenLoad() {
+        selectedStatus = .receiving
+        saveChanges()
     }
 }

@@ -10,15 +10,23 @@ struct ScannerLockChip: View {
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(mode.isGlobal ? DockWalkTheme.textSecondary : Color(red: 0.18, green: 0.44, blue: 0.90))
 
-            Text(mode.chipCaption)
-                .font(.system(size: 10.5, design: .monospaced))
-                .foregroundStyle(mode.isGlobal ? DockWalkTheme.textSecondary : Color(white: 0.66))
+            if let receiveLabel = mode.receiveLoadBarLabel {
+                Text(receiveLabel)
+                    .font(.system(size: 10.5, design: .monospaced).weight(.semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+            } else {
+                Text(mode.chipCaption)
+                    .font(.system(size: 10.5, design: .monospaced))
+                    .foregroundStyle(mode.isGlobal ? DockWalkTheme.textSecondary : Color(white: 0.66))
 
-            Spacer(minLength: 4)
+                Spacer(minLength: 4)
 
-            Text(mode.chipValue)
-                .font(.system(size: 10.5, design: .monospaced).weight(.semibold))
-                .foregroundStyle(mode.isGlobal ? DockWalkTheme.textPrimary : .white)
+                Text(mode.chipValue)
+                    .font(.system(size: 10.5, design: .monospaced).weight(.semibold))
+                    .foregroundStyle(mode.isGlobal ? DockWalkTheme.textPrimary : .white)
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -33,7 +41,7 @@ struct ScannerLockChip: View {
                 }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(mode.chipCaption) \(mode.chipValue)")
+        .accessibilityLabel(mode.receiveLoadBarLabel ?? "\(mode.chipCaption) \(mode.chipValue)")
     }
 }
 

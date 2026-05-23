@@ -72,18 +72,6 @@ struct TodayDashboard: View {
                 .font(Tokens.Font.titleSection)
                 .foregroundStyle(Tokens.Color.Ink.primary)
 
-            HStack(spacing: 4) {
-                Text("DockWalk")
-                    .font(Tokens.Font.bodySecondary.weight(.semibold))
-                    .foregroundStyle(Tokens.Color.Ink.primary)
-                Text("by")
-                    .font(Tokens.Font.bodySecondary)
-                    .foregroundStyle(Tokens.Color.Ink.secondary)
-                Text("SkyView")
-                    .font(Tokens.Font.bodySecondary.weight(.semibold))
-                    .foregroundStyle(Tokens.Color.Accent.horizon)
-            }
-
             HStack(spacing: 6) {
                 Image(systemName: "mappin.and.ellipse")
                     .font(.caption)

@@ -4,9 +4,11 @@ import SwiftUI
 struct ManualInventoryAddView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppEnvironment.self) private var appEnvironment
+    @Environment(InventoryCatalogStore.self) private var catalog
     
     @State private var sku = ""
-    @State private var partNumber = ""
+    @State private var upc = ""
+    @State private var partDescription = ""
     @State private var itemName = ""
     @State private var quantity = ""
     @State private var location = ""
@@ -22,36 +24,43 @@ struct ManualInventoryAddView: View {
                     VStack(spacing: Tokens.Space.base) {
                         formField(
                             label: "SKU",
-                            placeholder: "e.g., BR-8821",
+                            placeholder: "",
                             text: $sku,
                             isRequired: true
                         )
-                        
+
                         formField(
-                            label: "Part Number",
-                            placeholder: "Optional",
-                            text: $partNumber,
+                            label: "UPC",
+                            placeholder: "",
+                            text: $upc,
                             isRequired: false
                         )
-                        
+
                         formField(
-                            label: "Item Name",
-                            placeholder: "e.g., Brake Rotor Assembly",
+                            label: "Part name",
+                            placeholder: "",
                             text: $itemName,
                             isRequired: true
                         )
-                        
+
                         formField(
-                            label: "Quantity",
-                            placeholder: "e.g., 36",
+                            label: "Part description",
+                            placeholder: "Optional",
+                            text: $partDescription,
+                            isRequired: false
+                        )
+
+                        formField(
+                            label: "Qty",
+                            placeholder: "",
                             text: $quantity,
                             isRequired: true,
                             keyboardType: .numberPad
                         )
-                        
+
                         formField(
                             label: "Location",
-                            placeholder: "e.g., A-14",
+                            placeholder: "",
                             text: $location,
                             isRequired: true
                         )
@@ -129,18 +138,21 @@ struct ManualInventoryAddView: View {
                 }
             }
             
-            TextField(placeholder, text: text)
-                .textInputAutocapitalization(keyboardType == .numberPad ? .never : .words)
-                .autocorrectionDisabled()
-                .keyboardType(keyboardType)
-                .font(Tokens.Font.bodyDefault)
-                .padding(Tokens.Space.base)
-                .background(Tokens.Color.Surface.card)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(Tokens.Color.Divider.hairline, lineWidth: 0.5)
-                )
+            CursorAtEndTextField(
+                placeholder: placeholder,
+                text: text,
+                keyboardType: keyboardType,
+                autocapitalizationType: keyboardType == .numberPad ? .none : .words,
+                textAlignment: .natural
+            )
+            .font(Tokens.Font.bodyDefault)
+            .padding(Tokens.Space.base)
+            .background(Tokens.Color.Surface.card)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Tokens.Color.Divider.hairline, lineWidth: 0.5)
+            )
         }
     }
     
@@ -202,13 +214,14 @@ struct ManualInventoryAddView: View {
                 }
                 
                 // Create the inventory item
+                let trimmedUPC = upc.trimmingCharacters(in: .whitespacesAndNewlines)
                 let newItem = InventoryItem(
                     id: UUID().uuidString,
                     sku: sku.trimmingCharacters(in: .whitespacesAndNewlines),
-                    upc: nil,
-                    partNumber: partNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    upc: trimmedUPC.isEmpty ? nil : trimmedUPC,
+                    partDescription: partDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                         ? nil
-                        : partNumber.trimmingCharacters(in: .whitespacesAndNewlines),
+                        : partDescription.trimmingCharacters(in: .whitespacesAndNewlines),
                     itemName: itemName.trimmingCharacters(in: .whitespacesAndNewlines),
                     description: itemName.trimmingCharacters(in: .whitespacesAndNewlines),
                     quantity: quantityInt,
@@ -218,15 +231,15 @@ struct ManualInventoryAddView: View {
                     reserved: 0
                 )
                 
-                // Save to API
-                let client = appEnvironment.makeAPIClient()
-                try await client.addInventoryItem(newItem)
-                
                 await MainActor.run {
+                    catalog.add(newItem)
                     isSaving = false
                     Haptics.scanSuccess()
                     dismiss()
                 }
+
+                let client = appEnvironment.makeAPIClient()
+                try? await client.addInventoryItem(newItem)
             } catch {
                 await MainActor.run {
                     isSaving = false
@@ -264,4 +277,5 @@ extension APIClient {
 #Preview {
     ManualInventoryAddView()
         .environment(AppEnvironment.shared)
+        .environment(InventoryCatalogStore.shared)
 }

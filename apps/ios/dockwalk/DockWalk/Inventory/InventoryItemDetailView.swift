@@ -76,9 +76,9 @@ struct InventoryItemDetailView: View {
         SectionCard {
             VStack(alignment: .leading, spacing: 12) {
                 metadataRow(label: "SKU", value: item.sku)
-                if let partNumber = item.partNumber {
+                if let partDescription = item.partDescription {
                     Divider()
-                    metadataRow(label: "Part Number", value: partNumber)
+                    metadataRow(label: "Part description", value: partDescription)
                 }
                 Divider()
                 metadataRow(label: "Location", value: item.location, icon: "mappin.and.ellipse")
@@ -312,7 +312,7 @@ struct InventoryItemDetailView: View {
         id: "1",
         sku: "BR-8821",
         upc: nil,
-        partNumber: "ABC-123",
+        partDescription: "ABC-123",
         itemName: "Brake Rotor Assembly",
         description: "Brake Rotor Assembly",
         quantity: 36,
