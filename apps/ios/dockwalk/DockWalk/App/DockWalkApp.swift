@@ -12,6 +12,8 @@ struct DockWalkApp: App {
     @State private var appointmentsViewModel = AppointmentsViewModel()
     @State private var inventoryScannerCoordinator = InventoryScannerCoordinator.shared
     @State private var receiveScannerCoordinator = ReceiveScannerCoordinator.shared
+    @State private var putawayScannerCoordinator = PutawayScannerCoordinator.shared
+    @State private var putawaySession = PutawaySessionStore.shared
     @State private var inventoryCatalog = InventoryCatalogStore.shared
     @State private var replayCoordinator = ReceivingEventReplayCoordinator.shared
 
@@ -27,6 +29,8 @@ struct DockWalkApp: App {
                 .environment(appointmentsViewModel)
                 .environment(inventoryScannerCoordinator)
                 .environment(receiveScannerCoordinator)
+                .environment(putawayScannerCoordinator)
+                .environment(putawaySession)
                 .environment(inventoryCatalog)
                 .environment(replayCoordinator)
                 .onChange(of: scenePhase) { _, phase in

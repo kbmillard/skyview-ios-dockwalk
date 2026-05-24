@@ -5,7 +5,6 @@ struct PutawayTasksView: View {
     @Environment(OfflineSyncStore.self) private var syncStore
     @Environment(DemoOperationalDataStore.self) private var demoOperationalData
     @State private var viewModel: PutawayTasksViewModel?
-    @State private var selectedTask: PutawayTaskItem?
 
     private let inboundShipmentId: String?
     private let navigationTitle: String
@@ -37,11 +36,6 @@ struct PutawayTasksView: View {
         .navigationBarTitleDisplayMode(inboundShipmentId == nil ? .large : .inline)
         .refreshable {
             await viewModel?.refresh()
-        }
-        .sheet(item: $selectedTask) { task in
-            PutawayTaskDetailView(initialTask: task) {
-                Task { await viewModel?.refresh() }
-            }
         }
         .onAppear {
             if viewModel == nil {
@@ -96,14 +90,26 @@ struct PutawayTasksView: View {
                 statusFilterChips(viewModel)
             }
 
+            if !viewModel.tasks.isEmpty {
+                Section {
+                    PutawayQueueSnapshot(
+                        tasks: viewModel.tasks,
+                        shipmentLabel: inboundShipmentId
+                    )
+                    .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
+                    .listRowBackground(Color.clear)
+                }
+            }
+
             Section {
                 ForEach(viewModel.tasks) { task in
-                    Button {
-                        selectedTask = task
+                    NavigationLink {
+                        PutawayTaskHubView(initialTask: task) {
+                            Task { await viewModel.refresh() }
+                        }
                     } label: {
                         putawayRow(task)
                     }
-                    .buttonStyle(.plain)
                 }
 
                 if viewModel.canLoadMore {

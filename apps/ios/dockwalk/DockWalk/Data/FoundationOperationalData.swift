@@ -91,7 +91,55 @@ enum FoundationOperationalData {
         filteredBy inboundShipmentId: String?,
         status: PutawayTaskStatusFilter
     ) -> [PutawayTaskItem] {
-        []
+        let seeds = demoPutawaySeeds(forShipment: inboundShipmentId)
+        guard let apiStatus = status.apiStatus else { return seeds }
+        return seeds.filter { $0.status.rawValue == apiStatus }
+    }
+
+    /// Local demo seeds so the putaway micro-workflow is testable on TestFlight
+    /// without the Railway API. Returns shipment-scoped tasks for known demo loads
+    /// and an unscoped sampler otherwise.
+    private static func demoPutawaySeeds(forShipment shipmentId: String?) -> [PutawayTaskItem] {
+        let now = Date()
+        let baseShipment = shipmentId ?? "T-4401"
+        return [
+            PutawayTaskItem(
+                id: "PUT-\(baseShipment)-001",
+                sku: "SKU-100200",
+                description: "Bearing assembly, 6 in.",
+                quantity: 24,
+                uom: "EA",
+                status: .pending,
+                fromLocationCode: "RECV-STAGE",
+                toLocationCode: "A-12-03",
+                inboundShipmentId: baseShipment,
+                createdAt: now
+            ),
+            PutawayTaskItem(
+                id: "PUT-\(baseShipment)-002",
+                sku: "SKU-100201",
+                description: "Hydraulic seal kit",
+                quantity: 12,
+                uom: "EA",
+                status: .assigned,
+                fromLocationCode: "RECV-STAGE",
+                toLocationCode: "B-04-11",
+                inboundShipmentId: baseShipment,
+                createdAt: now
+            ),
+            PutawayTaskItem(
+                id: "PUT-\(baseShipment)-003",
+                sku: "SKU-100202",
+                description: "Belt, 72 in.",
+                quantity: 6,
+                uom: "EA",
+                status: .pending,
+                fromLocationCode: "RECV-STAGE",
+                toLocationCode: "C-08-02",
+                inboundShipmentId: baseShipment,
+                createdAt: now
+            )
+        ]
     }
     
     // 30 dock doors for assignment

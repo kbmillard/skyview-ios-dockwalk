@@ -9,6 +9,7 @@ struct MainTabView: View {
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @Environment(InventoryScannerCoordinator.self) private var inventoryScannerCoordinator
     @Environment(ReceiveScannerCoordinator.self) private var receiveScannerCoordinator
+    @Environment(PutawayScannerCoordinator.self) private var putawayScannerCoordinator
     @State private var selectedTab: AppTab = .today
 
     var body: some View {
@@ -64,6 +65,8 @@ struct MainTabView: View {
             Haptics.scanSuccess()
             if receiveScannerCoordinator.isReceiveHubActive {
                 receiveScannerCoordinator.requestOpenScanner()
+            } else if putawayScannerCoordinator.isPutawayHubActive {
+                putawayScannerCoordinator.requestOpenScanner()
             } else {
                 selectedTab = .inventory
                 if scannerPreferences.isScannerActive {
@@ -100,6 +103,8 @@ struct MainTabView: View {
         .environment(AppointmentsViewModel())
         .environment(InventoryScannerCoordinator.shared)
         .environment(ReceiveScannerCoordinator.shared)
+        .environment(PutawayScannerCoordinator.shared)
+        .environment(PutawaySessionStore.shared)
         .environment(InventoryCatalogStore.shared)
         .environment(ReceivingEventReplayCoordinator.shared)
 }

@@ -207,6 +207,12 @@ struct LoadDetailView: View {
                 .buttonStyle(.plain)
 
             case .complete:
+                NavigationLink {
+                    PutawayTasksView(inboundShipmentId: load.id)
+                } label: {
+                    actionLinkLabel(title: "Putaway for this load", systemImage: "arrow.down.to.line.compact", isPrimary: true)
+                }
+                .buttonStyle(.plain)
                 PrimaryActionButton(title: "View Receipt", systemImage: "doc.text", style: .secondary) {
                     // View receipt action
                 }
