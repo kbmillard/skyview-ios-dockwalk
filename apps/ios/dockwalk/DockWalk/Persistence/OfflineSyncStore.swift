@@ -7,6 +7,8 @@ final class OfflineSyncStore {
 
     static let receivingEventKind = "inbound.receiving_event"
     static let taskActionKind = "task_action"
+    static let finalizeLoadKind = "inbound.finalize_load"
+    static let inventoryMovementKind = "inventory.movement"
 
     private(set) var queuedActions: [QueuedSyncAction] = []
     var status: SyncStatus = .online
@@ -45,6 +47,38 @@ final class OfflineSyncStore {
             kind: Self.taskActionKind,
             summary: summary,
             taskActionPayload: payload
+        )
+        queuedActions.append(action)
+        persist()
+        refreshStatus()
+    }
+
+    func enqueueFinalizeLoad(loadId: String, payload: InboundFinalizeRequest, summary: String) {
+        guard FeatureFlags.offlineSyncEnabled else { return }
+        let action = QueuedSyncAction(
+            kind: Self.finalizeLoadKind,
+            summary: summary,
+            finalizePayload: payload,
+            inboundLoadId: loadId
+        )
+        queuedActions.append(action)
+        persist()
+        refreshStatus()
+    }
+
+    func enqueueInventoryMovement(
+        payload: InventoryMovementRequest,
+        loadId: String?,
+        clientLineId: String,
+        summary: String
+    ) {
+        guard FeatureFlags.offlineSyncEnabled else { return }
+        let action = QueuedSyncAction(
+            kind: Self.inventoryMovementKind,
+            summary: summary,
+            movementPayload: payload,
+            inboundLoadId: loadId,
+            clientLineId: clientLineId
         )
         queuedActions.append(action)
         persist()

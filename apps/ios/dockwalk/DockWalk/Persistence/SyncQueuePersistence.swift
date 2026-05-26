@@ -9,6 +9,11 @@ struct QueuedSyncAction: Identifiable, Equatable, Codable {
     var receivingEventPayload: CreateReceivingEventRequest?
     /// Persisted putaway task action when `kind == task_action`.
     var taskActionPayload: QueuedTaskActionPayload?
+    var finalizePayload: InboundFinalizeRequest?
+    var movementPayload: InventoryMovementRequest?
+    /// Load id for FIFO dependency (movement waits for finalize).
+    var inboundLoadId: String?
+    var clientLineId: String?
     /// Last batch replay rejection or transport summary for display.
     var lastError: String?
 
@@ -19,6 +24,10 @@ struct QueuedSyncAction: Identifiable, Equatable, Codable {
         createdAt: Date = .now,
         receivingEventPayload: CreateReceivingEventRequest? = nil,
         taskActionPayload: QueuedTaskActionPayload? = nil,
+        finalizePayload: InboundFinalizeRequest? = nil,
+        movementPayload: InventoryMovementRequest? = nil,
+        inboundLoadId: String? = nil,
+        clientLineId: String? = nil,
         lastError: String? = nil
     ) {
         self.id = id
@@ -27,6 +36,10 @@ struct QueuedSyncAction: Identifiable, Equatable, Codable {
         self.createdAt = createdAt
         self.receivingEventPayload = receivingEventPayload
         self.taskActionPayload = taskActionPayload
+        self.finalizePayload = finalizePayload
+        self.movementPayload = movementPayload
+        self.inboundLoadId = inboundLoadId
+        self.clientLineId = clientLineId
         self.lastError = lastError
     }
 }

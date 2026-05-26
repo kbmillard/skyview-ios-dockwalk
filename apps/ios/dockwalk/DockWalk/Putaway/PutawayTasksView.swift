@@ -93,7 +93,7 @@ struct PutawayTasksView: View {
             if !viewModel.tasks.isEmpty {
                 Section {
                     PutawayQueueSnapshot(
-                        tasks: viewModel.tasks,
+                        cards: viewModel.tasks,
                         shipmentLabel: inboundShipmentId
                     )
                     .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
@@ -158,10 +158,15 @@ struct PutawayTasksView: View {
     private func putawayRow(_ task: PutawayTaskItem) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(task.sku)
-                    .font(DockWalkTheme.headlineFont)
+                Text(task.upc)
+                    .font(.system(.headline, design: .monospaced))
                 Spacer()
                 StatusChip(label: task.status.displayName, tone: task.status.chipTone)
+            }
+            if let sku = task.secondarySKULabel {
+                Text(sku)
+                    .font(DockWalkTheme.captionFont)
+                    .foregroundStyle(DockWalkTheme.textSecondary)
             }
             Text("\(formatQuantity(task.quantity)) \(task.uom)")
                 .font(DockWalkTheme.bodyFont)

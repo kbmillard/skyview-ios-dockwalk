@@ -16,8 +16,15 @@ enum FeatureFlags {
         offlineSyncEnabled && receivingEventAutoReplayAvailable
     }
 
-    /// Local T-4401…T-4430 inbound queue; ignores live appointment list when on.
+    /// DEBUG-only gate for local demo loads / foundation putaway seeds.
+    #if DEBUG
+    static let allowFoundationDemoData = true
+    #else
+    static let allowFoundationDemoData = false
+    #endif
+
+    /// Local T-4401…T-4430 inbound queue; ignores live appointment list when on (DEBUG + toggle).
     static var foundationInboundDemoEnabled: Bool {
-        DemoOperationalDataStore.shared.useFoundationInboundDemo
+        allowFoundationDemoData && DemoOperationalDataStore.shared.useFoundationInboundDemo
     }
 }

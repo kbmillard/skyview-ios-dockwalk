@@ -26,6 +26,16 @@ final class InventoryCatalogStore {
         bumpRevision()
     }
 
+    /// Exact UPC match for scan-first putaway.
+    func item(matchingUPC code: String) -> InventoryItem? {
+        let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        return items.first {
+            ($0.upc ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                .compare(trimmed, options: .caseInsensitive) == .orderedSame
+        }
+    }
+
     func search(query: String) -> [InventoryItem] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return [] }

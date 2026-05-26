@@ -65,9 +65,26 @@ final class InboundSessionStore {
         receivedByLoadId[loadId] ?? []
     }
 
+    /// Load ids that have at least one received inventory draft stored.
+    func loadIdsWithReceivedItems() -> [String] {
+        receivedByLoadId.keys
+            .filter { !(receivedByLoadId[$0]?.isEmpty ?? true) }
+            .sorted()
+    }
+
     func saveReceivedItems(loadId: String, items: [ReceiveInventoryDraft]) {
         receivedByLoadId[loadId] = items
         bumpReceivedInventoryRevision()
+    }
+
+    @discardableResult
+    func updateReceivedItemLocation(loadId: String, itemId: String, location: String) -> Bool {
+        guard var items = receivedByLoadId[loadId],
+              let index = items.firstIndex(where: { $0.id == itemId }) else { return false }
+        items[index].location = location.trimmingCharacters(in: .whitespacesAndNewlines)
+        receivedByLoadId[loadId] = items
+        bumpReceivedInventoryRevision()
+        return true
     }
 
     /// Promotes saved receive drafts to the global inventory catalog when a load is finalized.

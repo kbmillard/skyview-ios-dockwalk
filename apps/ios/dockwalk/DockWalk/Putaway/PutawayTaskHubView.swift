@@ -1,13 +1,14 @@
 import SwiftUI
 
-/// Push-navigated work hub for a single putaway task.
-///
-/// Mirrors the receive hub: lock chip, snapshot, route, saved-step bubbles,
-/// scan-driven step entry, swipe-to-complete.
+/// Push-navigated work hub for a single putaway UPC card.
 struct PutawayTaskHubView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppEnvironment.self) private var environment
-    @Environment(ScannerPreferencesStore.self) private var scannerPreferences
+    @Environment(FacilityConfigStore.self) private var facilityConfig
+    @Environment(InboundSessionStore.self) private var inboundSession
+    @Environment(InventoryCatalogStore.self) private var inventoryCatalog
+    @Environment(PutawayCompletionStore.self) private var completionStore
+    @Environment(OfflineSyncStore.self) private var syncStore
     @Environment(PutawaySessionStore.self) private var sessionStore
     @Environment(PutawayScannerCoordinator.self) private var putawayCoordinator
 
@@ -16,6 +17,7 @@ struct PutawayTaskHubView: View {
 
     @State private var detailVM: PutawayTaskDetailViewModel?
     @State private var hubVM: PutawayTaskHubViewModel?
+    @State private var movementError: String?
 
     @State private var showScanner = false
     @State private var pendingStep: PutawayConfirmStep = .toLocation
@@ -25,10 +27,16 @@ struct PutawayTaskHubView: View {
     @State private var blockReasonOption: PutawayBlockReasonOption = .locationBlocked
     @State private var blockReasonText = PutawayBlockReasonOption.locationBlocked.defaultReasonText
 
+    private var isLocalCard: Bool {
+        initialTask.source == .receiveSession || initialTask.source == .catalog
+    }
+
     var body: some View {
         Group {
-            if let detailVM, let hubVM, detailVM.loadPhase == .loaded, let task = detailVM.task {
-                content(detailVM: detailVM, hubVM: hubVM, task: task)
+            if isLocalCard {
+                localContent
+            } else if let detailVM, let hubVM, detailVM.loadPhase == .loaded, let task = detailVM.task {
+                apiContent(detailVM: detailVM, hubVM: hubVM, task: task)
             } else if let detailVM {
                 LoadStateView(phase: detailVM.loadPhase) {
                     Task { await detailVM.load() }
@@ -37,7 +45,7 @@ struct PutawayTaskHubView: View {
                 ProgressView()
             }
         }
-        .navigationTitle("Putaway \(initialTask.sku)")
+        .navigationTitle(isLocalCard ? "Putaway" : "Putaway \(initialTask.sku)")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             ensureViewModels()
@@ -47,8 +55,12 @@ struct PutawayTaskHubView: View {
             putawayCoordinator.setPutawayHubActive(false)
         }
         .task {
-            ensureViewModels()
-            await detailVM?.load()
+            if !isLocalCard {
+                ensureViewModels()
+                await detailVM?.load()
+            } else if hubVM == nil {
+                hubVM = PutawayTaskHubViewModel(cardId: initialTask.id, sessionStore: sessionStore)
+            }
         }
         .onChange(of: putawayCoordinator.openScannerToken) { _, _ in
             guard putawayCoordinator.isPutawayHubActive else { return }
@@ -58,11 +70,16 @@ struct PutawayTaskHubView: View {
         .sheet(isPresented: $showScanner) {
             BarcodeScannerSheet(title: pendingStep.scanTitle) { result in
                 pendingScannedValue = result.value
-                showConfirmView = true
+                if isLocalCard && pendingStep == .toLocation {
+                    showScanner = false
+                    Task { await completeLocalPutaway(scannedBin: result.value) }
+                } else {
+                    showConfirmView = true
+                }
             }
         }
         .sheet(isPresented: $showConfirmView) {
-            if let task = detailVM?.task {
+            if let task = detailVM?.task ?? Optional(initialTask) {
                 PutawayConfirmView(
                     task: task,
                     step: pendingStep,
@@ -75,8 +92,68 @@ struct PutawayTaskHubView: View {
         }
     }
 
+    private var localContent: some View {
+        let card = initialTask
+        let hubVM = hubVM ?? PutawayTaskHubViewModel(cardId: card.id, sessionStore: sessionStore)
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                ScannerLockChip(mode: .putawayTask(taskId: card.id))
+                PutawayHubSnapshot(
+                    card: card,
+                    savedStepCount: hubVM.saved(.toLocation) != nil ? 1 : 0,
+                    totalSteps: 1
+                )
+                Text(card.upc)
+                    .font(.system(.title3, design: .monospaced).weight(.semibold))
+                if let sku = card.secondarySKULabel {
+                    Text(sku)
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                }
+                PrimaryActionButton(title: "Scan storage bin", systemImage: "barcode.viewfinder") {
+                    pendingStep = .toLocation
+                    pendingScannedValue = ""
+                    showScanner = true
+                }
+                if case .syncing = facilityConfig.locationsSyncPhase {
+                    Text("Syncing locations…")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.warning)
+                }
+                if let movementError {
+                    Text(movementError)
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.warning)
+                }
+            }
+            .padding(DockWalkTheme.screenPadding)
+        }
+        .background(DockWalkTheme.background)
+    }
+
+    private func completeLocalPutaway(scannedBin: String) async {
+        movementError = nil
+        let result = await PutawayMovementService.apply(
+            card: initialTask,
+            toLocation: scannedBin,
+            facilityConfig: facilityConfig,
+            inboundSession: inboundSession,
+            catalog: inventoryCatalog,
+            completionStore: completionStore,
+            syncStore: syncStore,
+            environment: environment
+        )
+        switch result {
+        case .success:
+            onTaskUpdated?()
+            dismiss()
+        case .failure(let error):
+            movementError = error.localizedDescription
+        }
+    }
+
     private func ensureViewModels() {
-        if detailVM == nil {
+        if detailVM == nil, !isLocalCard {
             let vm = PutawayTaskDetailViewModel(
                 taskId: initialTask.id,
                 initialTask: initialTask,
@@ -86,12 +163,12 @@ struct PutawayTaskHubView: View {
             detailVM = vm
         }
         if hubVM == nil {
-            hubVM = PutawayTaskHubViewModel(taskId: initialTask.id, sessionStore: sessionStore)
+            hubVM = PutawayTaskHubViewModel(cardId: initialTask.id, sessionStore: sessionStore)
         }
     }
 
     @ViewBuilder
-    private func content(
+    private func apiContent(
         detailVM: PutawayTaskDetailViewModel,
         hubVM: PutawayTaskHubViewModel,
         task: PutawayTaskItem
@@ -100,20 +177,16 @@ struct PutawayTaskHubView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 ScannerLockChip(mode: .putawayTask(taskId: task.id))
-
                 if let message = detailVM.actionBannerMessage {
                     StatusChip(label: message, tone: detailVM.actionBannerTone.statusChipTone)
                 }
-
                 PutawayHubSnapshot(
-                    task: task,
+                    card: task,
                     savedStepCount: hubVM.savedDrafts.count,
                     totalSteps: PutawayConfirmStep.allCases.count
                 )
-
-                stepsSection(task: task, hubVM: hubVM)
-
-                actionsCluster(detailVM: detailVM, task: task, hubVM: hubVM)
+                apiStepsSection(task: task, hubVM: hubVM)
+                apiActionsCluster(detailVM: detailVM, task: task, hubVM: hubVM)
             }
             .padding(DockWalkTheme.screenPadding)
         }
@@ -121,7 +194,7 @@ struct PutawayTaskHubView: View {
     }
 
     @ViewBuilder
-    private func stepsSection(task: PutawayTaskItem, hubVM: PutawayTaskHubViewModel) -> some View {
+    private func apiStepsSection(task: PutawayTaskItem, hubVM: PutawayTaskHubViewModel) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Confirm steps")
                 .font(DockWalkTheme.headlineFont)
@@ -133,13 +206,13 @@ struct PutawayTaskHubView: View {
                         showConfirmView = true
                     }
                 } else {
-                    stepPlaceholder(step)
+                    apiStepPlaceholder(step)
                 }
             }
         }
     }
 
-    private func stepPlaceholder(_ step: PutawayConfirmStep) -> some View {
+    private func apiStepPlaceholder(_ step: PutawayConfirmStep) -> some View {
         Button {
             pendingStep = step
             pendingScannedValue = ""
@@ -176,13 +249,13 @@ struct PutawayTaskHubView: View {
         switch step {
         case .fromLocation: return task.fromLocationCode
         case .toLocation: return task.toLocationCode
-        case .sku: return task.sku
+        case .upc: return task.upc
         case .quantity: return nil
         }
     }
 
     @ViewBuilder
-    private func actionsCluster(
+    private func apiActionsCluster(
         detailVM: PutawayTaskDetailViewModel,
         task: PutawayTaskItem,
         hubVM: PutawayTaskHubViewModel
@@ -199,7 +272,6 @@ struct PutawayTaskHubView: View {
                     }
                 }
             }
-
             HStack(spacing: 12) {
                 if detailVM.availableActions.contains(.assign) {
                     PrimaryActionButton(title: "Assign", systemImage: "person.crop.circle", style: .secondary) {
@@ -219,11 +291,6 @@ struct PutawayTaskHubView: View {
                     }
                 }
             }
-
-            Text("Scan-driven steps: From → SKU → To → Qty. The minimum to complete is verified To-location + confirmed qty.")
-                .font(DockWalkTheme.captionFont)
-                .foregroundStyle(DockWalkTheme.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

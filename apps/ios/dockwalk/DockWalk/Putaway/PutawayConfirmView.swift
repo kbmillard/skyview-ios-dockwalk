@@ -23,7 +23,7 @@ struct PutawayConfirmView: View {
         switch step {
         case .fromLocation: return task.fromLocationCode.isEmpty ? nil : task.fromLocationCode
         case .toLocation: return task.toLocationCode.isEmpty ? nil : task.toLocationCode
-        case .sku: return task.sku.isEmpty ? nil : task.sku
+        case .upc: return task.upc.isEmpty ? nil : task.upc
         case .quantity: return nil
         }
     }
@@ -91,8 +91,13 @@ struct PutawayConfirmView: View {
                 Label("Task \(task.id)", systemImage: "shippingbox")
                     .font(DockWalkTheme.captionFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
-                Text(task.sku)
-                    .font(DockWalkTheme.headlineFont)
+                Text(task.upc)
+                    .font(.system(.headline, design: .monospaced))
+                if let sku = task.secondarySKULabel {
+                    Text(sku)
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                }
                 Text(task.routeLabel)
                     .font(DockWalkTheme.captionFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
@@ -157,7 +162,7 @@ struct PutawayConfirmView: View {
                 validationMessage = "Scan or enter a value."
                 return
             }
-            var draft = PutawayConfirmDraft.fromScan(taskId: task.id, step: step, value: trimmedScan)
+            let draft = PutawayConfirmDraft.fromScan(taskId: task.id, step: step, value: trimmedScan)
             sessionStore.appendDraft(draft)
             _ = sessionStore.saveDraft(draft)
             _ = draft

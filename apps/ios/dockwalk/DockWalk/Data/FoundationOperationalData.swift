@@ -84,60 +84,78 @@ enum FoundationOperationalData {
         }
     }
 
-    // Empty - all putaway data will be created through user actions
-    static let putawayTasks: [PutawayTaskItem] = []
+    static let putawayTasks: [PutawayUPCCard] = []
 
-    static func putawayTasks(
+    static func putawayCards(
         filteredBy inboundShipmentId: String?,
         status: PutawayTaskStatusFilter
-    ) -> [PutawayTaskItem] {
-        let seeds = demoPutawaySeeds(forShipment: inboundShipmentId)
+    ) -> [PutawayUPCCard] {
+        let seeds = demoPutawayUPCCards(forShipment: inboundShipmentId)
         guard let apiStatus = status.apiStatus else { return seeds }
         return seeds.filter { $0.status.rawValue == apiStatus }
     }
 
-    /// Local demo seeds so the putaway micro-workflow is testable on TestFlight
-    /// without the Railway API. Returns shipment-scoped tasks for known demo loads
-    /// and an unscoped sampler otherwise.
-    private static func demoPutawaySeeds(forShipment shipmentId: String?) -> [PutawayTaskItem] {
-        let now = Date()
+    static func putawayTasks(
+        filteredBy inboundShipmentId: String?,
+        status: PutawayTaskStatusFilter
+    ) -> [PutawayUPCCard] {
+        putawayCards(filteredBy: inboundShipmentId, status: status)
+    }
+
+    /// Demo UPC lines aligned with catalog seed barcodes for scan-first putaway on fresh install.
+    private static func demoPutawayUPCCards(forShipment shipmentId: String?) -> [PutawayUPCCard] {
         let baseShipment = shipmentId ?? "T-4401"
         return [
-            PutawayTaskItem(
-                id: "PUT-\(baseShipment)-001",
-                sku: "SKU-100200",
-                description: "Bearing assembly, 6 in.",
-                quantity: 24,
+            PutawayUPCCard(
+                id: "PUT-\(baseShipment)-upc-1",
+                upc: "012345678901",
+                sku: "BR-8821",
+                itemName: "Brake Rotor Assembly",
+                partDescription: "PRT-8821",
+                quantity: 36,
+                quantityDisplay: "36 EA",
                 uom: "EA",
-                status: .pending,
                 fromLocationCode: "RECV-STAGE",
-                toLocationCode: "A-12-03",
+                toLocationCode: "",
                 inboundShipmentId: baseShipment,
-                createdAt: now
+                status: .pending,
+                source: .catalog,
+                createdAt: nil,
+                apiTaskId: nil
             ),
-            PutawayTaskItem(
-                id: "PUT-\(baseShipment)-002",
-                sku: "SKU-100201",
-                description: "Hydraulic seal kit",
-                quantity: 12,
+            PutawayUPCCard(
+                id: "PUT-\(baseShipment)-upc-2",
+                upc: "012345678902",
+                sku: "FL-2200",
+                itemName: "Floor Mat Set",
+                partDescription: "PRT-2200",
+                quantity: 120,
+                quantityDisplay: "120 EA",
                 uom: "EA",
+                fromLocationCode: "RECV-STAGE",
+                toLocationCode: "",
+                inboundShipmentId: baseShipment,
                 status: .assigned,
-                fromLocationCode: "RECV-STAGE",
-                toLocationCode: "B-04-11",
-                inboundShipmentId: baseShipment,
-                createdAt: now
+                source: .catalog,
+                createdAt: nil,
+                apiTaskId: nil
             ),
-            PutawayTaskItem(
-                id: "PUT-\(baseShipment)-003",
-                sku: "SKU-100202",
-                description: "Belt, 72 in.",
-                quantity: 6,
+            PutawayUPCCard(
+                id: "PUT-\(baseShipment)-upc-3",
+                upc: "012345678903",
+                sku: "WP-4410",
+                itemName: "Windshield Panel",
+                partDescription: "PRT-4410",
+                quantity: 18,
+                quantityDisplay: "18 EA",
                 uom: "EA",
-                status: .pending,
                 fromLocationCode: "RECV-STAGE",
-                toLocationCode: "C-08-02",
+                toLocationCode: "",
                 inboundShipmentId: baseShipment,
-                createdAt: now
+                status: .pending,
+                source: .catalog,
+                createdAt: nil,
+                apiTaskId: nil
             )
         ]
     }

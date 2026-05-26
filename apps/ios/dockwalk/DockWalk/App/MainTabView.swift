@@ -67,6 +67,8 @@ struct MainTabView: View {
                 receiveScannerCoordinator.requestOpenScanner()
             } else if putawayScannerCoordinator.isPutawayHubActive {
                 putawayScannerCoordinator.requestOpenScanner()
+            } else if putawayScannerCoordinator.isPutawayTabActive {
+                putawayScannerCoordinator.requestOpenScanner()
             } else {
                 selectedTab = .inventory
                 if scannerPreferences.isScannerActive {

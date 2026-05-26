@@ -26,14 +26,19 @@ final class DemoOperationalDataStore {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        #if DEBUG
+        let defaultEnabled = true
         if !defaults.bool(forKey: Self.hasSetDefaultKey) {
-            defaults.set(true, forKey: Self.userDefaultsKey)
+            defaults.set(defaultEnabled, forKey: Self.userDefaultsKey)
             defaults.set(true, forKey: Self.hasSetDefaultKey)
         }
         if defaults.integer(forKey: Self.defaultPolicyVersionKey) < Self.currentDefaultPolicyVersion {
-            defaults.set(true, forKey: Self.userDefaultsKey)
+            defaults.set(defaultEnabled, forKey: Self.userDefaultsKey)
             defaults.set(Self.currentDefaultPolicyVersion, forKey: Self.defaultPolicyVersionKey)
         }
+        #else
+        defaults.set(false, forKey: Self.userDefaultsKey)
+        #endif
         self.useFoundationInboundDemo = defaults.bool(forKey: Self.userDefaultsKey)
     }
 }

@@ -23,6 +23,13 @@ enum APIEndpoint {
     case syncEvents
     case inventoryItems
     case outboundOrders
+    case facilityConfig(facilityId: String)
+    case facilityLocations(facilityId: String, limit: Int, offset: Int)
+    case facilityLocationLookup(facilityId: String, code: String)
+    case catalogSearch(facilityId: String, query: String, limit: Int)
+    case catalogLookup(facilityId: String, upc: String)
+    case inboundFinalize(loadId: String)
+    case inventoryMovement
 
     var path: String {
         switch self {
@@ -42,6 +49,20 @@ enum APIEndpoint {
         case .syncEvents: return "/api/sync/events"
         case .inventoryItems: return "/api/inventory/items"
         case .outboundOrders: return "/api/outbound/orders"
+        case .facilityConfig(let facilityId):
+            return "/api/facilities/\(facilityId)/config"
+        case .facilityLocations(let facilityId, _, _):
+            return "/api/facilities/\(facilityId)/locations"
+        case .facilityLocationLookup(let facilityId, let code):
+            return "/api/facilities/\(facilityId)/locations/\(code.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? code)"
+        case .catalogSearch(let facilityId, _, _):
+            return "/api/facilities/\(facilityId)/catalog/search"
+        case .catalogLookup(let facilityId, _):
+            return "/api/facilities/\(facilityId)/catalog/lookup"
+        case .inboundFinalize(let loadId):
+            return "/api/inbound/loads/\(loadId)/finalize"
+        case .inventoryMovement:
+            return "/api/inventory/movements"
         }
     }
 
@@ -81,6 +102,18 @@ enum APIEndpoint {
             return items
         case .warehouseTask(_, let orgId):
             return [URLQueryItem(name: "org_id", value: orgId)]
+        case .facilityLocations(_, let limit, let offset):
+            return [
+                URLQueryItem(name: "limit", value: String(limit)),
+                URLQueryItem(name: "offset", value: String(offset)),
+            ]
+        case .catalogSearch(_, let query, let limit):
+            return [
+                URLQueryItem(name: "q", value: query),
+                URLQueryItem(name: "limit", value: String(limit)),
+            ]
+        case .catalogLookup(_, let upc):
+            return [URLQueryItem(name: "upc", value: upc)]
         default:
             return []
         }

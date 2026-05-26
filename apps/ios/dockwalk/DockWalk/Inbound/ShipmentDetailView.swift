@@ -114,6 +114,7 @@ struct ShipmentDetailView: View {
             if let binding = binding(for: item) {
                 InventoryEntryView(
                     item: binding,
+                    loadId: load.id,
                     onSave: {
                         let success = viewModel.saveItem(id: item.id)
                         if success {

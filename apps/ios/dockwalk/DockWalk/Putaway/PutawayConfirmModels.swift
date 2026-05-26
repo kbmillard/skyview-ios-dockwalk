@@ -1,9 +1,9 @@
 import Foundation
 
-/// Single confirmation step on a putaway task hub (mirrors `ReceiveInventoryDraft.isSaved` lifecycle).
+/// Single confirmation step on a putaway card hub.
 enum PutawayConfirmStep: String, CaseIterable, Codable, Identifiable {
+    case upc
     case fromLocation
-    case sku
     case toLocation
     case quantity
 
@@ -11,8 +11,8 @@ enum PutawayConfirmStep: String, CaseIterable, Codable, Identifiable {
 
     var displayName: String {
         switch self {
+        case .upc: return "UPC"
         case .fromLocation: return "From location"
-        case .sku: return "SKU"
         case .toLocation: return "To location"
         case .quantity: return "Quantity"
         }
@@ -20,24 +20,24 @@ enum PutawayConfirmStep: String, CaseIterable, Codable, Identifiable {
 
     var scanTitle: String {
         switch self {
+        case .upc: return "Scan UPC"
         case .fromLocation: return "Scan from location"
-        case .sku: return "Scan SKU"
-        case .toLocation: return "Scan to location"
+        case .toLocation: return "Scan to bin"
         case .quantity: return "Confirm quantity"
         }
     }
 
     var systemImage: String {
         switch self {
+        case .upc: return "barcode.viewfinder"
         case .fromLocation: return "arrow.up.right.square"
-        case .sku: return "shippingbox"
         case .toLocation: return "arrow.down.right.square"
         case .quantity: return "number"
         }
     }
 }
 
-/// Local capture for a single putaway confirmation step on a task.
+/// Local capture for a single putaway confirmation step on a card.
 struct PutawayConfirmDraft: Identifiable, Equatable {
     let id: String
     var taskId: String
@@ -69,14 +69,11 @@ struct PutawayConfirmDraft: Identifiable, Equatable {
     }
 }
 
-/// Aggregate for the putaway-tasks list snapshot.
-struct PutawayQueueGroupAggregate: Identifiable, Equatable {
-    var id: String { sku }
-    let sku: String
-    let description: String
-    let tasks: [PutawayTaskItem]
-
-    var totalQuantity: Double {
-        tasks.reduce(0) { $0 + $1.quantity }
-    }
+/// One UPC line in the putaway queue snapshot breakdown.
+struct PutawayQueueLineAggregate: Identifiable, Equatable {
+    var id: String { upc }
+    let upc: String
+    let skuSubtitle: String?
+    let quantityLabel: String
+    let routeLabel: String
 }

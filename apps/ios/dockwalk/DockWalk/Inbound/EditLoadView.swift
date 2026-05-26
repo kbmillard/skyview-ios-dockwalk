@@ -2,8 +2,12 @@ import SwiftUI
 
 struct EditLoadView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppEnvironment.self) private var environment
     @Environment(InboundSessionStore.self) private var inboundSession
     @Environment(InventoryCatalogStore.self) private var inventoryCatalog
+    @Environment(OfflineSyncStore.self) private var syncStore
+    @Environment(PutawayFinalizedLoadsStore.self) private var finalizedLoads
+    @Environment(FacilityConfigStore.self) private var facilityConfig
     @Binding var load: ReceivingAppointment
     let viewModel: AppointmentsViewModel
 
@@ -176,7 +180,46 @@ struct EditLoadView: View {
     }
     
     private func finalizeLoad() {
+        let saved = inboundSession.receivedItems(for: load.id).filter(\.isSaved)
+        let staging = facilityConfig.defaultReceiveLocation()
+        let lines: [InboundFinalizeLine] = saved.compactMap { draft in
+            let upc = draft.upc.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !upc.isEmpty else { return nil }
+            let sku = draft.sku.trimmingCharacters(in: .whitespacesAndNewlines)
+            let loc = draft.location.trimmingCharacters(in: .whitespacesAndNewlines)
+            let locationCode = loc.isEmpty ? staging : loc
+            return InboundFinalizeLine(
+                clientLineId: draft.id,
+                upc: upc,
+                sku: sku.isEmpty ? nil : sku,
+                isUnregisteredUPC: sku.isEmpty,
+                cases: draft.parsedCases,
+                eachesPerCase: draft.parsedEaches,
+                locationCode: locationCode,
+                status: draft.status.rawValue
+            )
+        }
+        let payload = InboundFinalizeRequest(
+            idempotencyKey: UUID().uuidString,
+            facilityId: environment.facilityId,
+            lines: lines
+        )
+        Task {
+            let client = environment.makeAPIClient()
+            do {
+                try await client.finalizeInboundLoad(loadId: load.id, body: payload)
+            } catch {
+                if APIClientErrorClassifier.shouldQueueOffline(for: error) {
+                    syncStore.enqueueFinalizeLoad(
+                        loadId: load.id,
+                        payload: payload,
+                        summary: "Finalize load \(load.poNumber)"
+                    )
+                }
+            }
+        }
         inboundSession.commitReceivedInventoryToCatalog(loadId: load.id, catalog: inventoryCatalog)
+        finalizedLoads.markFinalized(loadId: load.id)
         selectedStatus = .complete
         saveChanges()
     }

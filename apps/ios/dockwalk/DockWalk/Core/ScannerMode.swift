@@ -5,6 +5,7 @@ enum ScannerMode: Equatable {
     case globalInventory
     case load(loadId: String)
     case putawayTask(taskId: String)
+    case putawayCard(upc: String)
     case shipment(shipmentId: String)
 
     var isGlobal: Bool {
@@ -19,7 +20,7 @@ enum ScannerMode: Equatable {
             return "Scanner mode"
         case .load:
             return "Scanner locked to"
-        case .putawayTask:
+        case .putawayTask, .putawayCard:
             return "Scanner locked to"
         case .shipment:
             return "Scanner locked to"
@@ -41,6 +42,8 @@ enum ScannerMode: Equatable {
             return loadId
         case .putawayTask(let taskId):
             return "Task \(taskId)"
+        case .putawayCard(let upc):
+            return upc
         case .shipment(let shipmentId):
             return "Ship \(shipmentId)"
         }

@@ -14,6 +14,9 @@ struct DockWalkApp: App {
     @State private var receiveScannerCoordinator = ReceiveScannerCoordinator.shared
     @State private var putawayScannerCoordinator = PutawayScannerCoordinator.shared
     @State private var putawaySession = PutawaySessionStore.shared
+    @State private var putawayCompletion = PutawayCompletionStore.shared
+    @State private var putawayFinalizedLoads = PutawayFinalizedLoadsStore.shared
+    @State private var facilityConfig = FacilityConfigStore.shared
     @State private var inventoryCatalog = InventoryCatalogStore.shared
     @State private var replayCoordinator = ReceivingEventReplayCoordinator.shared
 
@@ -31,8 +34,17 @@ struct DockWalkApp: App {
                 .environment(receiveScannerCoordinator)
                 .environment(putawayScannerCoordinator)
                 .environment(putawaySession)
+                .environment(putawayCompletion)
+                .environment(putawayFinalizedLoads)
+                .environment(facilityConfig)
                 .environment(inventoryCatalog)
                 .environment(replayCoordinator)
+                .task {
+                    await facilityConfig.refresh(environment: environment)
+                }
+                .onChange(of: environment.configRevision) { _, _ in
+                    Task { await facilityConfig.refresh(environment: environment) }
+                }
                 .onChange(of: scenePhase) { _, phase in
                     guard phase == .active else { return }
                     Task {

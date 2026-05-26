@@ -1,0 +1,23 @@
+---
+description: DockWalk iOS execution engine — API/UI/local firewall
+globs: apps/ios/dockwalk/**
+alwaysApply: true
+---
+
+# DockWalk iOS — Execution engine only
+
+Multi-tenant SaaS. **Never** hardcode facility catalogs, location lists, or stage names in Release paths.
+
+## API boundary
+- Config, locations, catalog metadata from API only.
+- Catalog: search/lookup only — never full download on login.
+- API down: empty state + offline queue — no `FoundationOperationalData` in Release.
+
+## UI boundary
+Dock flows only. No BOL, invoice, payment, or reporting UI.
+
+## Local boundary
+- Session stores + `OfflineSyncStore` FIFO replay.
+- Putaway/movement must not replay before finalize for same `inbound_load_id` + `client_line_id`.
+- Location sync: block or `GET .../locations/{code}` while paginating.
+- Ad-hoc receive: finalize may use `sku: null`, `is_unregistered_upc: true`.

@@ -112,14 +112,26 @@ final class ReceivingEventReplayCoordinator {
 
         syncStore.removeQueuedActions(withIDs: Set(outcome.removedActionIDs))
 
+        let fifoOutcome = await SyncFIFOReplayEngine.replay(
+            actions: syncStore.queuedActions,
+            apiClient: client
+        )
+        syncStore.removeQueuedActions(withIDs: Set(fifoOutcome.removedActionIDs))
+
+        let combined = ReceivingEventReplayOutcome(
+            succeeded: outcome.succeeded + fifoOutcome.succeeded,
+            failed: outcome.failed + fifoOutcome.failed,
+            removedActionIDs: outcome.removedActionIDs + fifoOutcome.removedActionIDs
+        )
+
         let message: String
-        if outcome.succeeded == 0 && outcome.failed == 0 {
+        if combined.succeeded == 0 && combined.failed == 0 {
             message = "\(label): nothing to replay in queue."
         } else {
             let via = FeatureFlags.syncBatchReplayEnabled ? "batch sync" : "per-event"
             let receiving = syncStore.pendingReceivingEventCount
             let tasks = syncStore.pendingTaskActionCount
-            var detail = "\(label) (\(via)): \(outcome.succeeded) sent, \(outcome.failed) still pending."
+            var detail = "\(label) (\(via)): \(combined.succeeded) sent, \(combined.failed) still pending."
             if receiving > 0 || tasks > 0 {
                 detail += " (\(receiving) receiving, \(tasks) task action(s) left)"
             }
@@ -133,6 +145,6 @@ final class ReceivingEventReplayCoordinator {
             lastAutoReplaySummary = message
         }
 
-        return outcome
+        return combined
     }
 }

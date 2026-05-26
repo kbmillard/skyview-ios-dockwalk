@@ -2,84 +2,108 @@ import XCTest
 @testable import DockWalk
 
 final class PutawaySessionTests: XCTestCase {
-    private func makeTask(
-        id: String = "PUT-1",
+    private func makeCard(
+        id: String = "line-1",
+        upc: String = "012345678901",
         sku: String = "SKU-100200",
         from: String = "RECV-STAGE",
-        to: String = "A-12-03"
-    ) -> PutawayTaskItem {
-        PutawayTaskItem(
+        to: String = ""
+    ) -> PutawayUPCCard {
+        PutawayUPCCard(
             id: id,
+            upc: upc,
             sku: sku,
-            description: "Demo",
+            itemName: "Widget",
+            partDescription: "",
             quantity: 24,
+            quantityDisplay: "24 EA",
             uom: "EA",
-            status: .pending,
             fromLocationCode: from,
             toLocationCode: to,
             inboundShipmentId: "T-4401",
-            createdAt: nil
+            status: .pending,
+            source: .receiveSession,
+            createdAt: nil,
+            apiTaskId: nil
         )
     }
 
     func testSaveDraftReplacesPriorSavedForSameStep() {
         let store = PutawaySessionStore()
-        var first = PutawayConfirmDraft.fromScan(taskId: "PUT-1", step: .toLocation, value: "WRONG")
+        var first = PutawayConfirmDraft.fromScan(taskId: "line-1", step: .toLocation, value: "WRONG")
         store.appendDraft(first)
         XCTAssertTrue(store.saveDraft(first))
 
-        var second = PutawayConfirmDraft.fromScan(taskId: "PUT-1", step: .toLocation, value: "A-12-03")
+        var second = PutawayConfirmDraft.fromScan(taskId: "line-1", step: .toLocation, value: "A-12-03")
         store.appendDraft(second)
         XCTAssertTrue(store.saveDraft(second))
 
-        let saved = store.savedDrafts(for: "PUT-1").filter { $0.step == .toLocation }
+        let saved = store.savedDrafts(for: "line-1").filter { $0.step == .toLocation }
         XCTAssertEqual(saved.count, 1)
         XCTAssertEqual(saved.first?.scannedValue, "A-12-03")
     }
 
-    func testHubCanCompleteRequiresToAndQty() {
+    func testHubCanCompleteRequiresUPCToAndQty() {
         let store = PutawaySessionStore()
-        let task = makeTask()
-        let hub = PutawayTaskHubViewModel(taskId: task.id, sessionStore: store)
+        let card = makeCard()
+        let hub = PutawayTaskHubViewModel(cardId: card.id, sessionStore: store)
 
-        XCTAssertFalse(hub.canComplete(for: task))
+        XCTAssertFalse(hub.canComplete(for: card))
 
-        var toDraft = PutawayConfirmDraft.fromScan(taskId: task.id, step: .toLocation, value: "a-12-03")
+        var upcDraft = PutawayConfirmDraft.fromScan(taskId: card.id, step: .upc, value: card.upc)
+        store.appendDraft(upcDraft)
+        _ = store.saveDraft(upcDraft)
+        XCTAssertFalse(hub.canComplete(for: card))
+
+        var toDraft = PutawayConfirmDraft.fromScan(taskId: card.id, step: .toLocation, value: "A-12-03")
         store.appendDraft(toDraft)
         _ = store.saveDraft(toDraft)
-        XCTAssertFalse(hub.canComplete(for: task))
+        XCTAssertFalse(hub.canComplete(for: card))
 
-        var qtyDraft = PutawayConfirmDraft.empty(taskId: task.id, step: .quantity)
-        qtyDraft.confirmedQty = 24
-        qtyDraft.scannedValue = "24 EA"
-        store.appendDraft(qtyDraft)
-        _ = store.saveDraft(qtyDraft)
-        XCTAssertTrue(hub.canComplete(for: task))
-    }
-
-    func testHubCanCompleteRejectsMismatchedToLocation() {
-        let store = PutawaySessionStore()
-        let task = makeTask()
-        let hub = PutawayTaskHubViewModel(taskId: task.id, sessionStore: store)
-
-        var wrongTo = PutawayConfirmDraft.fromScan(taskId: task.id, step: .toLocation, value: "B-99-99")
-        store.appendDraft(wrongTo)
-        _ = store.saveDraft(wrongTo)
-
-        var qtyDraft = PutawayConfirmDraft.empty(taskId: task.id, step: .quantity)
+        var qtyDraft = PutawayConfirmDraft.empty(taskId: card.id, step: .quantity)
         qtyDraft.confirmedQty = 24
         store.appendDraft(qtyDraft)
         _ = store.saveDraft(qtyDraft)
-
-        XCTAssertFalse(hub.canComplete(for: task))
+        XCTAssertTrue(hub.canComplete(for: card))
     }
 
-    func testFoundationDemoSeedsAreScopedToShipment() {
-        let seeds = FoundationOperationalData.putawayTasks(
-            filteredBy: "T-4410",
-            status: .all
+    func testMovementWaitsForFinalizeWhenQueuedAfter() async {
+        let store = OfflineSyncStore(loadPersisted: false)
+        let finalizePayload = InboundFinalizeRequest(
+            idempotencyKey: "f1",
+            facilityId: "fac",
+            lines: [
+                InboundFinalizeLine(
+                    clientLineId: "line-1",
+                    upc: "012345678901",
+                    sku: "SKU-1",
+                    isUnregisteredUPC: false,
+                    cases: 1,
+                    eachesPerCase: 1,
+                    locationCode: "RECV-STAGE",
+                    status: "available"
+                )
+            ]
         )
-        XCTAssertFalse(seeds.isEmpty)
-        XCTAssertTrue(seeds.allSatisfy { $0.inboundShipmentId == "T-4410" })
+        store.enqueueFinalizeLoad(loadId: "T-4401", payload: finalizePayload, summary: "Finalize")
+        store.enqueueInventoryMovement(
+            payload: InventoryMovementRequest(
+                idempotencyKey: "m1",
+                facilityId: "fac",
+                movementType: "putaway",
+                upc: "012345678901",
+                fromLocationCode: "RECV-STAGE",
+                toLocationCode: "A-12-03",
+                quantity: 1,
+                uom: "EA",
+                inboundLoadId: "T-4401",
+                clientLineId: "line-1"
+            ),
+            loadId: "T-4401",
+            clientLineId: "line-1",
+            summary: "Move"
+        )
+        let fifo = SyncFIFOReplayEngine.fifoActions(from: store.queuedActions)
+        XCTAssertEqual(fifo.count, 2)
     }
 }

@@ -4,46 +4,46 @@ import Observation
 /// Hub-level orchestration: which steps are saved, can the worker complete?
 @Observable
 final class PutawayTaskHubViewModel {
-    let taskId: String
+    let cardId: String
     private let sessionStore: PutawaySessionStore
 
-    init(taskId: String, sessionStore: PutawaySessionStore = .shared) {
-        self.taskId = taskId
+    init(cardId: String, sessionStore: PutawaySessionStore = .shared) {
+        self.cardId = cardId
         self.sessionStore = sessionStore
     }
 
     var savedDrafts: [PutawayConfirmDraft] {
-        sessionStore.savedDrafts(for: taskId)
+        sessionStore.savedDrafts(for: cardId)
     }
 
     func saved(_ step: PutawayConfirmStep) -> PutawayConfirmDraft? {
-        sessionStore.savedStep(for: taskId, step: step)
+        sessionStore.savedStep(for: cardId, step: step)
     }
 
-    /// Minimum: to-location verified + quantity confirmed.
-    func canComplete(for task: PutawayTaskItem) -> Bool {
-        let toOK: Bool = {
-            guard let draft = saved(.toLocation) else { return false }
-            let expected = task.toLocationCode
-            if expected.isEmpty { return !draft.scannedValue.isEmpty }
+    /// Minimum: UPC verified + to bin scanned + quantity confirmed.
+    func canComplete(for card: PutawayUPCCard) -> Bool {
+        let upcOK: Bool = {
+            guard let draft = saved(.upc) else { return false }
             return draft.scannedValue
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-                .compare(expected, options: .caseInsensitive) == .orderedSame
+                .compare(card.upc, options: .caseInsensitive) == .orderedSame
         }()
+        let toOK = !(saved(.toLocation)?.scannedValue
+            .trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
         let qtyOK = (saved(.quantity)?.confirmedQty ?? 0) > 0
-        return toOK && qtyOK
+        return upcOK && toOK && qtyOK
     }
 
-    func confirmedQuantity(for task: PutawayTaskItem) -> Double {
-        saved(.quantity)?.confirmedQty ?? task.quantity
+    func confirmedQuantity(for card: PutawayUPCCard) -> Double {
+        saved(.quantity)?.confirmedQty ?? card.quantity
     }
 
     func clearSession() {
-        sessionStore.clearTask(taskId)
+        sessionStore.clearTask(cardId)
     }
 
     func removeStep(_ step: PutawayConfirmStep) {
         guard let draft = saved(step) else { return }
-        sessionStore.removeDraft(id: draft.id, taskId: taskId)
+        sessionStore.removeDraft(id: draft.id, taskId: cardId)
     }
 }

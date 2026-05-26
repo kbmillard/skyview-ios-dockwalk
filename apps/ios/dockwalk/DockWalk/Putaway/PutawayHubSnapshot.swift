@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// Single-task snapshot for the putaway hub (mirrors `ReceiveHubSnapshot`).
+/// Single-card snapshot for the putaway hub.
 struct PutawayHubSnapshot: View {
-    let task: PutawayTaskItem
+    let card: PutawayUPCCard
     let savedStepCount: Int
     let totalSteps: Int
 
@@ -13,10 +13,20 @@ struct PutawayHubSnapshot: View {
                     .font(DockWalkTheme.headlineFont)
 
                 HStack(spacing: 16) {
-                    snapshotMetric(label: "Task", value: "1")
-                    snapshotMetric(label: task.uom.uppercased(), value: formatQuantity(task.quantity))
-                    snapshotMetric(label: "SKU", value: "1")
+                    snapshotMetric(label: "UPC", value: "1")
+                    snapshotMetric(label: card.uom.uppercased(), value: formatQuantity(card.quantity))
+                    snapshotMetric(label: "From", value: card.fromLocationCode.isEmpty ? "—" : card.fromLocationCode)
                     snapshotMetric(label: "Steps", value: "\(savedStepCount)/\(totalSteps)")
+                }
+
+                Text(card.upc)
+                    .font(.system(.body, design: .monospaced).weight(.semibold))
+                    .foregroundStyle(DockWalkTheme.textPrimary)
+
+                if let sku = card.secondarySKULabel {
+                    Text(sku)
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
                 }
 
                 Divider()
@@ -31,7 +41,7 @@ struct PutawayHubSnapshot: View {
             Label("From", systemImage: "arrow.up.right.square")
                 .font(DockWalkTheme.captionFont)
                 .foregroundStyle(DockWalkTheme.textSecondary)
-            Text(task.fromLocationCode.isEmpty ? "—" : task.fromLocationCode)
+            Text(card.fromLocationCode.isEmpty ? "—" : card.fromLocationCode)
                 .font(DockWalkTheme.bodyFont.weight(.semibold))
             Spacer()
             Image(systemName: "arrow.right")
@@ -41,8 +51,9 @@ struct PutawayHubSnapshot: View {
             Label("To", systemImage: "arrow.down.right.square")
                 .font(DockWalkTheme.captionFont)
                 .foregroundStyle(DockWalkTheme.textSecondary)
-            Text(task.toLocationCode.isEmpty ? "—" : task.toLocationCode)
+            Text(card.toLocationCode.isEmpty ? "scan bin" : card.toLocationCode)
                 .font(DockWalkTheme.bodyFont.weight(.semibold))
+                .foregroundStyle(card.toLocationCode.isEmpty ? DockWalkTheme.textSecondary : DockWalkTheme.textPrimary)
         }
     }
 

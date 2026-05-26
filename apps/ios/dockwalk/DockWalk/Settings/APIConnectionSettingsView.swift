@@ -111,6 +111,7 @@ struct APIConnectionSettingsView: View {
                 }
             }
 
+            #if DEBUG
             Section {
                 Toggle(isOn: Binding(
                     get: { demoOperationalData.useFoundationInboundDemo },
@@ -119,9 +120,10 @@ struct APIConnectionSettingsView: View {
                     Text("Use demo inbound queue (30 loads)")
                 }
             } footer: {
-                Text("Uses local floor data for testing: 30 inbound loads (T-4401…T-4430), empty putaway/inventory lists. Hides live API seeds such as SKU-DEV tasks. Default on in Debug builds.")
+                Text("DEBUG only — local T-4401…T-4430 loads and demo putaway seeds. Release builds always use the live API.")
                     .font(DockWalkTheme.captionFont)
             }
+            #endif
 
             Section("Connection test") {
                 Button {

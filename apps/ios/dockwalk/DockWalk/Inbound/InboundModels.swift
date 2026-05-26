@@ -269,7 +269,7 @@ struct ReceiveInventoryDraft: Identifiable, Equatable {
             itemName: "",
             casesQty: "",
             eachesQty: "",
-            location: "RECV-STAGE",
+            location: "",
             quantity: "",
             status: .available
         )

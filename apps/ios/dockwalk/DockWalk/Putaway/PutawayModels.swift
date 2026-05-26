@@ -60,27 +60,6 @@ extension PutawayTaskStatus: WorkflowStatus {
     }
 }
 
-/// Putaway task item (client model)
-struct PutawayTaskItem: Identifiable, Equatable {
-    let id: String
-    let sku: String
-    let description: String
-    let quantity: Double
-    let uom: String
-    let status: PutawayTaskStatus
-    let fromLocationCode: String
-    let toLocationCode: String
-    let inboundShipmentId: String?
-    let createdAt: Date?
-
-    var routeLabel: String {
-        if fromLocationCode.isEmpty && toLocationCode.isEmpty { return "—" }
-        if fromLocationCode.isEmpty { return toLocationCode }
-        if toLocationCode.isEmpty { return fromLocationCode }
-        return "\(fromLocationCode) → \(toLocationCode)"
-    }
-}
-
 /// Putaway queue grouping by status
 struct PutawayQueueGroup: Identifiable {
     let id = UUID()

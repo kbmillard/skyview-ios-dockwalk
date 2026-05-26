@@ -1,34 +1,29 @@
 import SwiftUI
 
-/// Aggregate snapshot for a list of putaway tasks (shipment-scoped queue or filtered list).
+/// Aggregate snapshot for pending UPC putaway cards.
 struct PutawayQueueSnapshot: View {
-    let tasks: [PutawayTaskItem]
+    let cards: [PutawayUPCCard]
     let shipmentLabel: String?
 
     @State private var isExpanded = false
 
     private var totalQuantity: Double {
-        tasks.reduce(0) { $0 + $1.quantity }
+        cards.reduce(0) { $0 + $1.quantity }
     }
 
-    private var uniqueSKUs: Int {
-        Set(tasks.map(\.sku)).count
+    private var uniqueLoads: Int {
+        Set(cards.compactMap(\.inboundShipmentId)).count
     }
 
-    private var uniqueBins: Int {
-        Set(tasks.map(\.toLocationCode).filter { !$0.isEmpty }).count
-    }
-
-    private var groupedBySKU: [PutawayQueueGroupAggregate] {
-        Dictionary(grouping: tasks, by: \.sku)
-            .map { sku, items in
-                PutawayQueueGroupAggregate(
-                    sku: sku,
-                    description: items.first?.description ?? "",
-                    tasks: items
-                )
-            }
-            .sorted { $0.sku < $1.sku }
+    private var lineAggregates: [PutawayQueueLineAggregate] {
+        cards.map { card in
+            PutawayQueueLineAggregate(
+                upc: card.upc,
+                skuSubtitle: card.secondarySKULabel,
+                quantityLabel: card.quantityDisplay,
+                routeLabel: card.routeLabel
+            )
+        }
     }
 
     var body: some View {
@@ -46,19 +41,19 @@ struct PutawayQueueSnapshot: View {
                 }
 
                 HStack(spacing: 16) {
-                    metric(label: "Tasks", value: "\(tasks.count)")
-                    metric(label: "Units", value: formatQuantity(totalQuantity))
-                    metric(label: "SKU", value: "\(uniqueSKUs)")
-                    metric(label: "Bins", value: "\(uniqueBins)")
+                    metric(label: "UPC", value: "\(cards.count)")
+                    metric(label: "EA", value: formatQuantity(totalQuantity))
+                    metric(label: "Loads", value: "\(max(uniqueLoads, cards.isEmpty ? 0 : 1))")
+                    metric(label: "Cards", value: "\(cards.count)")
                 }
 
-                if !groupedBySKU.isEmpty {
+                if !lineAggregates.isEmpty {
                     Divider()
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) { isExpanded.toggle() }
                     } label: {
                         HStack {
-                            Label("SKU breakdown", systemImage: isExpanded ? "chevron.up" : "chevron.down")
+                            Label("UPC list", systemImage: isExpanded ? "chevron.up" : "chevron.down")
                                 .font(DockWalkTheme.captionFont.weight(.semibold))
                             Spacer()
                         }
@@ -68,8 +63,8 @@ struct PutawayQueueSnapshot: View {
 
                     if isExpanded {
                         VStack(alignment: .leading, spacing: 6) {
-                            ForEach(groupedBySKU) { group in
-                                groupRow(group)
+                            ForEach(lineAggregates) { line in
+                                lineRow(line)
                             }
                         }
                         .padding(.top, 4)
@@ -79,22 +74,24 @@ struct PutawayQueueSnapshot: View {
         }
     }
 
-    private func groupRow(_ group: PutawayQueueGroupAggregate) -> some View {
+    private func lineRow(_ line: PutawayQueueLineAggregate) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(group.sku)
-                    .font(DockWalkTheme.captionFont.weight(.semibold))
+                Text(line.upc)
+                    .font(.system(.caption, design: .monospaced).weight(.semibold))
                 Spacer()
-                Text("\(formatQuantity(group.totalQuantity)) · \(group.tasks.count) task\(group.tasks.count == 1 ? "" : "s")")
+                Text(line.quantityLabel)
                     .font(DockWalkTheme.captionFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
             }
-            if !group.description.isEmpty {
-                Text(group.description)
+            if let sku = line.skuSubtitle {
+                Text(sku)
                     .font(DockWalkTheme.captionFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
-                    .lineLimit(1)
             }
+            Text(line.routeLabel)
+                .font(DockWalkTheme.captionFont)
+                .foregroundStyle(DockWalkTheme.textSecondary)
         }
         .padding(.vertical, 4)
     }

@@ -34,6 +34,7 @@
 		311F0E797DBD81EDDA0259F8 /* PutawayTabRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5B51550017A14A4F40C28C5 /* PutawayTabRootView.swift */; };
 		3235AB23B81BD5B2BB302DDC /* WorkflowStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F3E3B80802C78C9078B89C9 /* WorkflowStatus.swift */; };
 		3549771E1A49D06324D560D4 /* ScanResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = B064FBBBC798F261B1320467 /* ScanResult.swift */; };
+		36A4C0F0A9440472B954C1B4 /* PutawayCardResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 131C4668722E6DCACEA8F941 /* PutawayCardResolver.swift */; };
 		3CB30D28D66CD38D595937BB /* TodayDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB4A38A99FCBB8DEC4A42E2 /* TodayDashboard.swift */; };
 		3F6311892F7ECF63C4EDE4FC /* PutawayTaskHubViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C65B04DA4B79F175C7E3A6E1 /* PutawayTaskHubViewModel.swift */; };
 		4217938684C25BB03286D974 /* PutawayAPIMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA5E4332E7FE12A38347784D /* PutawayAPIMapping.swift */; };
@@ -61,12 +62,14 @@
 		697307A48E8324B72E2795BD /* LoadPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06B44D071E70EE2F7E60C975 /* LoadPhase.swift */; };
 		6E1DD979D90A32F5CD695C7A /* InventoryScannerCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EA793DADAD6843043364007 /* InventoryScannerCoordinator.swift */; };
 		709FEFB4FB6C2EF3883EB2C0 /* OutboundViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6BD6174FDF1330B85CFAE17 /* OutboundViewModel.swift */; };
+		7114952B6242F41B96386CBE /* PutawayFinalizedLoadsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52D85431FA21BA1A1DA2F605 /* PutawayFinalizedLoadsStore.swift */; };
 		71AD215D6FACA5CE53BA48D9 /* PutawayTaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72181A510BDB097237BAC204 /* PutawayTaskDetailView.swift */; };
 		73E9FC37F4155133092E99E3 /* WarehouseTaskActionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7CA1D9E2AFB4B1A5DE83BA7 /* WarehouseTaskActionModels.swift */; };
 		7602DA88FA9BD2F24CA86FAF /* LoadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62BD4C9C6EEEC20820022C3E /* LoadDetailView.swift */; };
 		76EB3F07DB50CCC775517216 /* PickingTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B18048609170E73FB03B5C /* PickingTasksView.swift */; };
 		78CED7C1E16F0EBD98B9FD36 /* StatusChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC6C7CCE993538213FF044D /* StatusChip.swift */; };
 		7996E42A7A33EFE4AD179DF4 /* InboundWorkflowModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E15A8290CDB296BB353719 /* InboundWorkflowModels.swift */; };
+		7D256301BF1DEBEE38B647C5 /* FacilityConfigStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A4E4DC858B1B82FF8F9DD3 /* FacilityConfigStore.swift */; };
 		7E84CBC872675F0D988454F0 /* AppointmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B0D6FC114C221591F6DE4F /* AppointmentsView.swift */; };
 		7F69F3818A8B0E8E2D25417E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 02D72A64EC3A25E41E5A227A /* Assets.xcassets */; };
 		84B1273341B915333BC86CD5 /* PickingTaskDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 072F7F66629459A2F11266E4 /* PickingTaskDetailViewModel.swift */; };
@@ -76,13 +79,16 @@
 		877E615336855977F6C389E5 /* FoundationAreaBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44BFDB14BE3CAA5B45B84404 /* FoundationAreaBanner.swift */; };
 		8A85DB3459F11CF233BD6469 /* DeviceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EC1D45ABBB4B332FCB9EB9 /* DeviceConfiguration.swift */; };
 		8BCA630F6FF1E252058EED6D /* InventoryCatalogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7562F8B8B3E7BD976B779B40 /* InventoryCatalogStore.swift */; };
+		8CB83E2F4BD11BECFB717082 /* SyncFIFOReplayEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D8679B8B82826BD18415349 /* SyncFIFOReplayEngine.swift */; };
 		8E7D59B56667E2237A9291F7 /* LiveNowBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6DBA3CBA3E03261DC7E8387 /* LiveNowBanner.swift */; };
 		8FC5C0896F9092CD3D6B110E /* CursorAtEndTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB1E8EC4AAE815BAE5EAF9BF /* CursorAtEndTextField.swift */; };
 		9141EB51A8C017F49465AFD1 /* InventoryItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6109CF949D64AB8B6946F1C9 /* InventoryItemDetailView.swift */; };
+		91B973C2D1B13DD7B380B8A0 /* PutawayCompletionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89524F6D1FB22D5626E80C9F /* PutawayCompletionStore.swift */; };
 		930923F681F65DFC36AA9E2A /* BarcodeScanDeduplicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FA772116FF8B752A2075FA /* BarcodeScanDeduplicator.swift */; };
 		94C749C228748CAAAE053225 /* PickingTabRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2533F1A02DCF5D55D917DE25 /* PickingTabRootView.swift */; };
 		95B31D3181C512C6B5F6BE53 /* APIEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3C78FB5F7638E84C64F36F /* APIEndpoint.swift */; };
 		96DEFD4DD11F7BE9657E022C /* InboundSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7948BFB5B975BEA85AB926 /* InboundSessionStore.swift */; };
+		978A57CBDB2C961D4B549398 /* PutawayCardQueueBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751109F767CD6852EDEC0BC0 /* PutawayCardQueueBuilder.swift */; };
 		991EEA386E0A466F0F41EF5B /* InventoryHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E08A4D5BF891D9ECAF945C /* InventoryHomeView.swift */; };
 		9A7AFF2C4E42131A04D82700 /* DemoOperationalDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D97F76AD1B779111A2794DB /* DemoOperationalDataStore.swift */; };
 		9CB4D91BE4EC99EF98C979F0 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B484254DAA038107DC998A3E /* RootTabView.swift */; };
@@ -110,9 +116,11 @@
 		C0EC5DDE06E56B9A02683410 /* ShippingTabRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC90F31EA8DA62560C93B957 /* ShippingTabRootView.swift */; };
 		C3113BEA6A2C93F8BCD18796 /* AppTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CFF5D8A3AC0270EF1D616C6 /* AppTab.swift */; };
 		C31E417E8A047DA319AF5D80 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D5C08D0A23B801E54197778 /* FeatureFlags.swift */; };
+		C3D7872868292226116BA873 /* PutawayUPCCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5456BB139DC489070B2D49C /* PutawayUPCCard.swift */; };
 		C5240C780C3018B095E1E10F /* PutawaySessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9277971BD0891CAA829DCBD9 /* PutawaySessionStore.swift */; };
 		C5CCD0539FD94B87C2C9F348 /* APIConnectionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26143E5AAC25ACAFE2804EA3 /* APIConnectionSettingsView.swift */; };
 		C73EB6FDC22D1BE25BEC5777 /* DockWalkModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1033B2B383D9561E19655FFC /* DockWalkModels.swift */; };
+		CADF529B834782D516662E6B /* FacilityConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D55EB6247BC795BEFB6E5B /* FacilityConfig.swift */; };
 		CC726DB516D0846CAE51E47C /* PickingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9860E9245A61E6B4788C263 /* PickingModels.swift */; };
 		CDF0B471D12A93C26BF7EAC2 /* ExceptionsHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39C4B1F3E1EE296F8007931 /* ExceptionsHomeView.swift */; };
 		D051D1C413AB8915E1BAA8BC /* MockWarehouseFloor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0645ECEC43F353EFE4CBEFFA /* MockWarehouseFloor.swift */; };
@@ -133,6 +141,7 @@
 		EFED66CFBE326B8E88B0E101 /* ReceivingEventModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281BEBC8BDB0B78462A285DD /* ReceivingEventModels.swift */; };
 		F10B4730F25A2DBECFBF5D42 /* ShipmentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 708BF8E60C9C166452BCDFA8 /* ShipmentDetailView.swift */; };
 		F19B91C3117CB3390E9977C2 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC3427C53C00D23834F49FC /* ActivityView.swift */; };
+		F33627035FC13D28478FE32C /* PutawayMovementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93982FD7B3C3E0EA2599B944 /* PutawayMovementService.swift */; };
 		F3FE8DD744220755797AFCC3 /* CompletePutawayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B36B0DF4F1671F00257FCC1 /* CompletePutawayButton.swift */; };
 		F42AFB2BE3B91E906EC41DE8 /* DebugPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E8477044F5641368A3205B /* DebugPanelView.swift */; };
 		F53B85A8C0D722F551686BB7 /* InboundWeekScheduleStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19C54F5910D84DFDA3A9B19A /* InboundWeekScheduleStrip.swift */; };
@@ -171,6 +180,7 @@
 		0BAACA53AE5FDD000E2D76E7 /* OfflineSyncStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineSyncStore.swift; sourceTree = "<group>"; };
 		1033B2B383D9561E19655FFC /* DockWalkModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockWalkModels.swift; sourceTree = "<group>"; };
 		106CB13D9A54E191EE509B92 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		131C4668722E6DCACEA8F941 /* PutawayCardResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayCardResolver.swift; sourceTree = "<group>"; };
 		19C54F5910D84DFDA3A9B19A /* InboundWeekScheduleStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundWeekScheduleStrip.swift; sourceTree = "<group>"; };
 		1AB45F357398409F852D0A63 /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
 		1C1522D112D64554E55E59EC /* ActivityViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewModel.swift; sourceTree = "<group>"; };
@@ -181,6 +191,7 @@
 		26143E5AAC25ACAFE2804EA3 /* APIConnectionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConnectionSettingsView.swift; sourceTree = "<group>"; };
 		281BEBC8BDB0B78462A285DD /* ReceivingEventModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingEventModels.swift; sourceTree = "<group>"; };
 		29E4A98159E529A12B5125EA /* PutawayScannerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayScannerCoordinator.swift; sourceTree = "<group>"; };
+		2D8679B8B82826BD18415349 /* SyncFIFOReplayEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncFIFOReplayEngine.swift; sourceTree = "<group>"; };
 		2F3E3B80802C78C9078B89C9 /* WorkflowStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkflowStatus.swift; sourceTree = "<group>"; };
 		324E9789226629BD3F1B30D3 /* PutawayConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayConfirmView.swift; sourceTree = "<group>"; };
 		32AE8B706344E937315DEE42 /* ReceivingEventReplayCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivingEventReplayCoordinator.swift; sourceTree = "<group>"; };
@@ -199,6 +210,7 @@
 		4C2AAF2FD89A645CF6C24E67 /* LocationLookupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationLookupView.swift; sourceTree = "<group>"; };
 		4FC6C7CCE993538213FF044D /* StatusChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusChip.swift; sourceTree = "<group>"; };
 		5061E34D8CBBAB4F10672CBD /* PickingTasksViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickingTasksViewModel.swift; sourceTree = "<group>"; };
+		52D85431FA21BA1A1DA2F605 /* PutawayFinalizedLoadsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayFinalizedLoadsStore.swift; sourceTree = "<group>"; };
 		53BDC1863DD35D9217846240 /* ShippingLoadDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShippingLoadDetailView.swift; sourceTree = "<group>"; };
 		571E6858262FE4F8EB7E434D /* BarcodeScannerPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerPreviewView.swift; sourceTree = "<group>"; };
 		5821E4E58252DC4AC731F83A /* TodayDashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayDashboardViewModel.swift; sourceTree = "<group>"; };
@@ -223,6 +235,7 @@
 		72181A510BDB097237BAC204 /* PutawayTaskDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayTaskDetailView.swift; sourceTree = "<group>"; };
 		73317B27D75F2E7415CE780F /* PutawaySessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawaySessionTests.swift; sourceTree = "<group>"; };
 		737F13D20D5E476F8346EDBF /* FoundationOperationalData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationOperationalData.swift; sourceTree = "<group>"; };
+		751109F767CD6852EDEC0BC0 /* PutawayCardQueueBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayCardQueueBuilder.swift; sourceTree = "<group>"; };
 		7562F8B8B3E7BD976B779B40 /* InventoryCatalogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryCatalogStore.swift; sourceTree = "<group>"; };
 		76CA3D3312E0F0941DD70312 /* CreateLoadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateLoadView.swift; sourceTree = "<group>"; };
 		76E23B57D58AD0E4F88B0A59 /* InboundLineRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundLineRowView.swift; sourceTree = "<group>"; };
@@ -238,11 +251,13 @@
 		847EADB9CAA06A89A29CE8BD /* FloorOverviewGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloorOverviewGrid.swift; sourceTree = "<group>"; };
 		86CDC4C1E70C8852D4C2171E /* ScannerPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerPlaceholderView.swift; sourceTree = "<group>"; };
 		873F49D27EFC9E3A50916A9D /* ReceiveScannerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveScannerCoordinator.swift; sourceTree = "<group>"; };
+		89524F6D1FB22D5626E80C9F /* PutawayCompletionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayCompletionStore.swift; sourceTree = "<group>"; };
 		8D90BE312D849ADACC8B8D1F /* ScannerLabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerLabView.swift; sourceTree = "<group>"; };
 		8E908910669A3F7A8FA57A2D /* PutawayTasksViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayTasksViewModel.swift; sourceTree = "<group>"; };
 		8EA793DADAD6843043364007 /* InventoryScannerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryScannerCoordinator.swift; sourceTree = "<group>"; };
 		8F9825520847293A864FC4C9 /* DockWalkApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockWalkApp.swift; sourceTree = "<group>"; };
 		9277971BD0891CAA829DCBD9 /* PutawaySessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawaySessionStore.swift; sourceTree = "<group>"; };
+		93982FD7B3C3E0EA2599B944 /* PutawayMovementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayMovementService.swift; sourceTree = "<group>"; };
 		9520E67D22744B9649F51ACE /* EditLoadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditLoadView.swift; sourceTree = "<group>"; };
 		954E5D3B5DFA985D13CB5C57 /* SyncStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncStatus.swift; sourceTree = "<group>"; };
 		9664A518441CCB93413E5014 /* FinalizeLoadButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinalizeLoadButton.swift; sourceTree = "<group>"; };
@@ -261,6 +276,7 @@
 		B04A2CB30C4175FB8AE21139 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		B064FBBBC798F261B1320467 /* ScanResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanResult.swift; sourceTree = "<group>"; };
 		B484254DAA038107DC998A3E /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		B5456BB139DC489070B2D49C /* PutawayUPCCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayUPCCard.swift; sourceTree = "<group>"; };
 		B6E8477044F5641368A3205B /* DebugPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugPanelView.swift; sourceTree = "<group>"; };
 		BFCC73E56CB9BCDFAEBF5481 /* ShipmentDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipmentDetailViewModel.swift; sourceTree = "<group>"; };
 		C65B04DA4B79F175C7E3A6E1 /* PutawayTaskHubViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayTaskHubViewModel.swift; sourceTree = "<group>"; };
@@ -277,6 +293,7 @@
 		D1D58A15DC729A16961EEABA /* InventoryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryModels.swift; sourceTree = "<group>"; };
 		D512E2135DA76E6D631C2188 /* InboundModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundModels.swift; sourceTree = "<group>"; };
 		D5B51550017A14A4F40C28C5 /* PutawayTabRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayTabRootView.swift; sourceTree = "<group>"; };
+		D5D55EB6247BC795BEFB6E5B /* FacilityConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FacilityConfig.swift; sourceTree = "<group>"; };
 		D788BFAC440441DC2075CD4E /* BarcodeScannerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerSheet.swift; sourceTree = "<group>"; };
 		DA5E4332E7FE12A38347784D /* PutawayAPIMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayAPIMapping.swift; sourceTree = "<group>"; };
 		E1CC14C43A95FBC4ECF49497 /* ScannerPreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerPreferencesStore.swift; sourceTree = "<group>"; };
@@ -297,6 +314,7 @@
 		F393ED0798453C44EEA304B9 /* InventoryAddOptionsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryAddOptionsSheet.swift; sourceTree = "<group>"; };
 		F39C4B1F3E1EE296F8007931 /* ExceptionsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExceptionsHomeView.swift; sourceTree = "<group>"; };
 		F5935DCBF3225BB3882F375C /* PutawayModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PutawayModels.swift; sourceTree = "<group>"; };
+		F5A4E4DC858B1B82FF8F9DD3 /* FacilityConfigStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FacilityConfigStore.swift; sourceTree = "<group>"; };
 		F74EDB16DA0846024C4930E5 /* SyncQueuePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncQueuePersistence.swift; sourceTree = "<group>"; };
 		F7CA1D9E2AFB4B1A5DE83BA7 /* WarehouseTaskActionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarehouseTaskActionModels.swift; sourceTree = "<group>"; };
 		F880B64A0FC1079D74ED7640 /* PrimaryActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryActionButton.swift; sourceTree = "<group>"; };
@@ -384,10 +402,13 @@
 			children = (
 				6B36B0DF4F1671F00257FCC1 /* CompletePutawayButton.swift */,
 				DA5E4332E7FE12A38347784D /* PutawayAPIMapping.swift */,
+				751109F767CD6852EDEC0BC0 /* PutawayCardQueueBuilder.swift */,
+				131C4668722E6DCACEA8F941 /* PutawayCardResolver.swift */,
 				E7C343CB81FF9C784DC55B62 /* PutawayConfirmModels.swift */,
 				324E9789226629BD3F1B30D3 /* PutawayConfirmView.swift */,
 				B044DE0ADE17F397385A5DD6 /* PutawayHubSnapshot.swift */,
 				F5935DCBF3225BB3882F375C /* PutawayModels.swift */,
+				93982FD7B3C3E0EA2599B944 /* PutawayMovementService.swift */,
 				5B50D401BBCA2E5E8C6CF59E /* PutawayQueueSnapshot.swift */,
 				29E4A98159E529A12B5125EA /* PutawayScannerCoordinator.swift */,
 				5D67D1AE0B7184214E8B0ECD /* PutawayStepBubbleRow.swift */,
@@ -398,6 +419,7 @@
 				C65B04DA4B79F175C7E3A6E1 /* PutawayTaskHubViewModel.swift */,
 				7F574C040783ECE04C37D361 /* PutawayTasksView.swift */,
 				8E908910669A3F7A8FA57A2D /* PutawayTasksViewModel.swift */,
+				B5456BB139DC489070B2D49C /* PutawayUPCCard.swift */,
 			);
 			path = Putaway;
 			sourceTree = "<group>";
@@ -551,11 +573,14 @@
 				CE7948BFB5B975BEA85AB926 /* InboundSessionStore.swift */,
 				7562F8B8B3E7BD976B779B40 /* InventoryCatalogStore.swift */,
 				0BAACA53AE5FDD000E2D76E7 /* OfflineSyncStore.swift */,
+				89524F6D1FB22D5626E80C9F /* PutawayCompletionStore.swift */,
+				52D85431FA21BA1A1DA2F605 /* PutawayFinalizedLoadsStore.swift */,
 				9277971BD0891CAA829DCBD9 /* PutawaySessionStore.swift */,
 				32AE8B706344E937315DEE42 /* ReceivingEventReplayCoordinator.swift */,
 				3AB148742D39441AF123D35B /* ReceivingEventReplayEngine.swift */,
 				E1CC14C43A95FBC4ECF49497 /* ScannerPreferencesStore.swift */,
 				5C01D2FCFF35EA66A25943EA /* SyncBatchReplayEngine.swift */,
+				2D8679B8B82826BD18415349 /* SyncFIFOReplayEngine.swift */,
 				CA75C5EC1E5EF2D4B3045CBC /* SyncPreferencesStore.swift */,
 				F74EDB16DA0846024C4930E5 /* SyncQueuePersistence.swift */,
 				954E5D3B5DFA985D13CB5C57 /* SyncStatus.swift */,
@@ -643,6 +668,8 @@
 				7A978CBA08DF8B85851D865B /* AppEnvironment.swift */,
 				46EC1D45ABBB4B332FCB9EB9 /* DeviceConfiguration.swift */,
 				1033B2B383D9561E19655FFC /* DockWalkModels.swift */,
+				D5D55EB6247BC795BEFB6E5B /* FacilityConfig.swift */,
+				F5A4E4DC858B1B82FF8F9DD3 /* FacilityConfigStore.swift */,
 				7D5C08D0A23B801E54197778 /* FeatureFlags.swift */,
 				06B44D071E70EE2F7E60C975 /* LoadPhase.swift */,
 				0A280250101A83D3367606B4 /* ScannerMode.swift */,
@@ -779,6 +806,8 @@
 				2E7C3112E616383BCF384E64 /* DockWalkTheme.swift in Sources */,
 				026FF77FAA8C7E11CF130A71 /* EditLoadView.swift in Sources */,
 				CDF0B471D12A93C26BF7EAC2 /* ExceptionsHomeView.swift in Sources */,
+				CADF529B834782D516662E6B /* FacilityConfig.swift in Sources */,
+				7D256301BF1DEBEE38B647C5 /* FacilityConfigStore.swift in Sources */,
 				C31E417E8A047DA319AF5D80 /* FeatureFlags.swift in Sources */,
 				27D6C76330E280185A21F7DC /* FinalizeLoadButton.swift in Sources */,
 				DC66E9C9ADBCD34132E0AADC /* FloorOverviewGrid.swift in Sources */,
@@ -830,10 +859,15 @@
 				9F546C71B7A784BD81A5D178 /* PickingTasksViewModel.swift in Sources */,
 				A34B01C7107D6BB29EE18384 /* PrimaryActionButton.swift in Sources */,
 				4217938684C25BB03286D974 /* PutawayAPIMapping.swift in Sources */,
+				978A57CBDB2C961D4B549398 /* PutawayCardQueueBuilder.swift in Sources */,
+				36A4C0F0A9440472B954C1B4 /* PutawayCardResolver.swift in Sources */,
+				91B973C2D1B13DD7B380B8A0 /* PutawayCompletionStore.swift in Sources */,
 				E472FA5F92F34F8A0659EFBC /* PutawayConfirmModels.swift in Sources */,
 				FE697B1E8B90874ED7FAFE71 /* PutawayConfirmView.swift in Sources */,
+				7114952B6242F41B96386CBE /* PutawayFinalizedLoadsStore.swift in Sources */,
 				B7EA85101BE97608B9CC5E5D /* PutawayHubSnapshot.swift in Sources */,
 				30C33F8B8BEC140E2408B2F5 /* PutawayModels.swift in Sources */,
+				F33627035FC13D28478FE32C /* PutawayMovementService.swift in Sources */,
 				686F6E083B5082E71E687FEA /* PutawayQueueSnapshot.swift in Sources */,
 				0862F2039E32F2874592E5E0 /* PutawayScannerCoordinator.swift in Sources */,
 				C5240C780C3018B095E1E10F /* PutawaySessionStore.swift in Sources */,
@@ -845,6 +879,7 @@
 				3F6311892F7ECF63C4EDE4FC /* PutawayTaskHubViewModel.swift in Sources */,
 				B2BDAABAC52045B4D4993D27 /* PutawayTasksView.swift in Sources */,
 				159FDAC5C3D33C67A975FF36 /* PutawayTasksViewModel.swift in Sources */,
+				C3D7872868292226116BA873 /* PutawayUPCCard.swift in Sources */,
 				BB0321EC7B595F3A0FFBF148 /* QuickActionsRow.swift in Sources */,
 				F61E303CC937AD4566EC1908 /* ReceiveHubSnapshot.swift in Sources */,
 				4AD2F912885AE43FDE5EE7FF /* ReceiveInventoryCardView.swift in Sources */,
@@ -875,6 +910,7 @@
 				E0734098FC9FB4F463DD7615 /* StatusRowCard.swift in Sources */,
 				D9789F672ED1C5EFA71A377E /* SyncBatchModels.swift in Sources */,
 				4CE2DE6F69B3AFEED5254021 /* SyncBatchReplayEngine.swift in Sources */,
+				8CB83E2F4BD11BECFB717082 /* SyncFIFOReplayEngine.swift in Sources */,
 				1FC805905D4411F44BE8C4F7 /* SyncPreferencesStore.swift in Sources */,
 				FD555837136CD26F6C70AF81 /* SyncQueuePersistence.swift in Sources */,
 				4E47A863500A2982A263522E /* SyncStatus.swift in Sources */,
@@ -1053,7 +1089,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 20;
 				DEVELOPMENT_TEAM = 5RP4DB2THP;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DockWalk/Resources/Info.plist;
@@ -1091,7 +1127,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 20;
 				DEVELOPMENT_TEAM = 5RP4DB2THP;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DockWalk/Resources/Info.plist;

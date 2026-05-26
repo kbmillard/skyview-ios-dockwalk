@@ -45,7 +45,7 @@ final class AppointmentsViewModel {
         }
 
         if !apiReachable {
-            applyFoundationFallback()
+            applyAPIUnreachableFallback(syncStore: syncStore)
             return
         }
 
@@ -75,7 +75,7 @@ final class AppointmentsViewModel {
             }
         } catch {
             if error.isDockWalkAPIHostUnreachable {
-                applyFoundationFallback()
+                applyAPIUnreachableFallback(syncStore: syncStore)
                 return
             }
             appointments = []
@@ -89,11 +89,15 @@ final class AppointmentsViewModel {
         loadPhase = .loaded
     }
 
-    private func applyFoundationFallback() {
-        appointments = session.seedDemoLoadsIfNeeded()
-        dataMode = "foundation"
+    private func applyAPIUnreachableFallback(syncStore: OfflineSyncStore) {
         apiReachable = false
-        loadPhase = .loaded
+        appointments = []
+        dataMode = "offline"
+        var message = "Can't reach the DockWalk API. Check More → API connection or try again."
+        if syncStore.pendingSyncableCount > 0 {
+            message += " \(syncStore.pendingSyncableCount) item(s) queued for sync."
+        }
+        loadPhase = .error(message: message)
     }
 
     private func emptyMessage(for mode: String) -> String {

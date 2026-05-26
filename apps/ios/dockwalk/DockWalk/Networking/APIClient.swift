@@ -127,6 +127,34 @@ struct APIClient {
         try await post(.syncEvents, body: envelope)
     }
 
+    func fetchFacilityConfig(facilityId: String) async throws -> FacilityConfigResponse {
+        try await get(.facilityConfig(facilityId: facilityId))
+    }
+
+    func fetchFacilityLocations(facilityId: String, limit: Int, offset: Int) async throws -> FacilityLocationsResponse {
+        try await get(.facilityLocations(facilityId: facilityId, limit: limit, offset: offset))
+    }
+
+    func fetchFacilityLocation(facilityId: String, code: String) async throws -> FacilityLocationLookupResponse {
+        try await get(.facilityLocationLookup(facilityId: facilityId, code: code))
+    }
+
+    func searchCatalog(facilityId: String, query: String, limit: Int = 25) async throws -> CatalogSearchResponse {
+        try await get(.catalogSearch(facilityId: facilityId, query: query, limit: limit))
+    }
+
+    func lookupCatalog(facilityId: String, upc: String) async throws -> CatalogLookupResponse {
+        try await get(.catalogLookup(facilityId: facilityId, upc: upc))
+    }
+
+    func finalizeInboundLoad(loadId: String, body: InboundFinalizeRequest) async throws {
+        let _: EmptyAPIResponse = try await post(.inboundFinalize(loadId: loadId), body: body)
+    }
+
+    func postInventoryMovement(_ body: InventoryMovementRequest) async throws {
+        let _: EmptyAPIResponse = try await post(.inventoryMovement, body: body)
+    }
+
     private func request<T: Decodable, Body>(
         _ endpoint: APIEndpoint,
         method: String,
