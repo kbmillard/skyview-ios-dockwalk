@@ -1,6 +1,6 @@
 # DockWalk iOS — 
 
-**Last updated:** 2026-05-19 (TestFlight **0.1.0 (10)** — Cross-repo status restructure + registry abstraction)
+**Last updated:** 2026-05-26 (TestFlight **0.1.0 (20)** — UPC putaway, facility config client, mock quarantine; Railway facilities API live)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -101,7 +101,13 @@ xcodebuild -exportArchive -archivePath build/DockWalk.xcarchive \
   -exportPath build/export -exportOptionsPlist ExportOptions.plist -allowProvisioningUpdates
 ```
 
-Bump `**CURRENT_PROJECT_VERSION**` in `project.yml` before each new TestFlight build (current: **10**, next: **11**).
+Bump `**CURRENT_PROJECT_VERSION**` in `project.yml` before each new TestFlight build (current: **20**, next: **21**).
+
+**Railway (2026-05-26):** `dockwalk-api` deployed with `GET /api/facilities/:id/config` and locations. Smoke passed. **Still on Supabase `egas`** (Railway Postgres cutover = next pass). **Portal-sync worker + Redis** unchanged and online.
+
+**Release builds:** foundation demo loads OFF by default; API unreachable shows error, not T-44xx seeds. DEBUG keeps demo toggle under More → API connection.
+
+**Not live on API yet:** `POST .../finalize`, `POST /api/inventory/movements`, catalog search/lookup (iOS may queue offline).
 
 ---
 
