@@ -14,3 +14,7 @@ xcuserdata/
 
 # Local icon source (committed asset: AppIcon.appiconset + dockwalkios.png)
 dockwalkios.jpeg
+
+# TestFlight asset drop (local reference only; not versioned)
+public/DockWalk_iOS_TestFlight_Ready_Package/
+public/DockWalk_iOS_TestFlight_Ready_Package.zip
