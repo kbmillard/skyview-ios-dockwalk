@@ -1,6 +1,6 @@
 # DockWalk iOS — 
 
-**Last updated:** 2026-05-26 (TestFlight **0.1.0 (20)** — UPC putaway, facility config client, mock quarantine; Railway facilities API live)
+**Last updated:** 2026-05-28 (TestFlight **0.1.0 (21)** — offline sync discipline, Today tab cleared for dailies; Railway Postgres live on API)
 
 **Canonical backend:** [ARCHITECT_RECAP.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/architecture/ARCHITECT_RECAP.md)  
 **API contract:** [api-foundation.md](https://github.com/kbmillard/skyview-dockwalk/blob/main/docs/contracts/api-foundation.md)  
@@ -48,7 +48,7 @@
 **Paste block for a new chat**
 
 ```text
-DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live. Tabs: Today / Receiving / Inventory / Putaway / Shipping (Inventory center). TestFlight 0.1.0 (10) — cross-repo status restructure + registry abstraction. Status enums now match backend 1:1. Scanner Debug-gated. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
+DockWalk iOS agent. Repo: skyview-ios-dockwalk. Read docs/SERVICE_HANDOFF.md + linked backend contracts; do not edit skyview-dockwalk unless asked. Railway prod is live (Postgres DATABASE_URL). Tabs: Today / Inbound / Inventory / Putaway / Picking / Shipping. TestFlight 0.1.0 (21) — offline sync queue upsert, receive draft persistence, Today shell for dailies. Release: manual sync replay only. Scanner Debug-gated. Build only unless tests requested. AI / payments / auth / direct Supabase / task cancel OFF.
 ```
 
 ---
@@ -71,7 +71,9 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 | TestFlight **0.1.0 (7)**                             | Superseded by build **8**                                                                           |
 | TestFlight **0.1.0 (8)**                             | Superseded by build **9**–**10** (see note below)                                                   |
 | TestFlight **0.1.0 (9)**                             | Superseded by build **10**                                                                           |
-| TestFlight **0.1.0 (10)**                            | **Current** — Cross-repo restructure: unified status enums + registry abstraction (`1a247db`)        |
+| TestFlight **0.1.0 (10)**                            | Superseded by builds **11**–**20**                                                                  |
+| TestFlight **0.1.0 (20)**                            | Superseded by build **21** — UPC putaway, facility config, mock quarantine                        |
+| TestFlight **0.1.0 (21)**                            | **Current** — Offline sync discipline + Today cleared for dailies (`7aeaddd` + build bump)         |
 | Export compliance                                    | `**ITSAppUsesNonExemptEncryption = false`** (build **7** archive)                                   |
 | Device QA                                            | Build **3** + **6** smoke **passed** (Receive, Putaway complete/block, Activity, Sync; scanner off) |
 | IA/copy cleanup                                      | In builds **4+** (`c8e53f4`)                                                                        |
@@ -88,7 +90,7 @@ DockWalk iOS is on **internal TestFlight** against **Railway production**. Kyle 
 - **App:** DockWalk · bundle `**io.skyprairie.dockwalk`** (not `.tests`)
 - **SKU:** internal Connect ID only (e.g. `dockwalk`) — not warehouse SKU
 - **Internal group:** DockStockers
-- **API:** `https://dockwalk-api-production.up.railway.app` (default in app) — **as of 2026-05-19 this host returns Railway “Application not found”;** redeploy `dockwalk-api` and regenerate the public domain (`railway login` → `railway domain`). iOS build **11+** shows dev-seed **offline preview** on Receiving/Putaway when health fails.
+- **API:** `https://dockwalk-api-production.up.railway.app` (default in app) — **Postgres** via `DATABASE_URL`; health returns `database: configured`. Dev org seed loaded for QA.
 
 **Repeat upload (CLI)**
 
@@ -101,13 +103,39 @@ xcodebuild -exportArchive -archivePath build/DockWalk.xcarchive \
   -exportPath build/export -exportOptionsPlist ExportOptions.plist -allowProvisioningUpdates
 ```
 
-Bump `**CURRENT_PROJECT_VERSION**` in `project.yml` before each new TestFlight build (current: **20**, next: **21**).
+Bump `**CURRENT_PROJECT_VERSION**` in `project.yml` before each new TestFlight build (current: **21**, next: **22**).
 
-**Railway (2026-05-26):** `dockwalk-api` deployed with `GET /api/facilities/:id/config` and locations. Smoke passed. **Still on Supabase `egas`** (Railway Postgres cutover = next pass). **Portal-sync worker + Redis** unchanged and online.
+**Railway (2026-05-28):** `dockwalk-api` + portal-sync worker on **Railway Postgres** (`DATABASE_URL`). Finalize + movement routes live. Redis/BullMQ unchanged. Smoke script passes against prod.
 
-**Release builds:** foundation demo loads OFF by default; API unreachable shows error, not T-44xx seeds. DEBUG keeps demo toggle under More → API connection.
+**Release builds:** foundation demo loads OFF by default; API unreachable shows error, not T-44xx seeds. DEBUG keeps demo toggle under More → API connection. **Release:** no auto-replay on foreground — use Sync queue → Replay now.
 
-**Not live on API yet:** `POST .../finalize`, `POST /api/inventory/movements`, catalog search/lookup (iOS may queue offline).
+**Live on API (build 21+):** `POST .../finalize`, `POST /api/inventory/movements`, receiving idempotency, task writes, sync batch. Catalog search/lookup still stub on API.
+
+---
+
+## TestFlight 0.1.0 (21) (2026-05-28)
+
+**Scope:** Offline sync discipline, Today tab cleared for future dailies, Inbound/Inventory UI unchanged from prior builds. Backend on Railway Postgres (sibling repo `1202f39`).
+
+| Item                 | Detail                                                                |
+| -------------------- | --------------------------------------------------------------------- |
+| Marketing version    | **0.1.0** (unchanged)                                                 |
+| Build                | **21**                                                                |
+| Bundle ID            | `io.skyprairie.dockwalk`                                              |
+| Archive              | **ARCHIVE SUCCEEDED**                                                 |
+| Export/upload        | **EXPORT SUCCEEDED** — Upload succeeded (processing)                  |
+
+**Includes:**
+- **Sync queue upsert** by `idempotency_key` (no duplicate rows on replay)
+- **Receive draft persistence** across kill/relaunch (`ReceivedInventoryPersistence`)
+- **Release:** manual sync replay only; DEBUG may auto-replay when preference enabled
+- **Sync queue UI** in Settings + Today System row
+- **Today tab:** header + dailies placeholder + Sync/Activity — mock/API dashboard stats removed
+- **Inbound / Inventory tabs:** UI behavior restored to pre-refactor (demo seeds, refresh)
+
+**Still OFF:** AI/Gemini, OCR cloud, image upload, payments, auth, direct Supabase, task cancel.
+
+**Next:** Device smoke on build 21 — Receive → tab switch → Sync queue → Replay now; confirm Today is empty shell.
 
 ---
 
