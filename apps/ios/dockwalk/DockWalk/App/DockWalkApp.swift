@@ -47,6 +47,8 @@ struct DockWalkApp: App {
                 }
                 .onChange(of: scenePhase) { _, phase in
                     guard phase == .active else { return }
+                    #if DEBUG
+                    guard syncPreferences.receivingEventAutoReplayEnabled else { return }
                     Task {
                         await replayCoordinator.attemptAutoReplayIfNeeded(
                             environment: environment,
@@ -54,6 +56,7 @@ struct DockWalkApp: App {
                             trigger: "foreground"
                         )
                     }
+                    #endif
                 }
         }
     }

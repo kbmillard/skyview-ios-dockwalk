@@ -31,6 +31,9 @@ struct AuditEventPayloadDTO: Decodable, Equatable {
     let deviceId: String?
     let lineCount: Int?
     let requestId: String?
+    let rawBarcode: String?
+    let sku: String?
+    let upc: String?
 
     enum CodingKeys: String, CodingKey {
         case eventType = "event_type"
@@ -39,6 +42,9 @@ struct AuditEventPayloadDTO: Decodable, Equatable {
         case deviceId = "device_id"
         case lineCount = "line_count"
         case requestId = "request_id"
+        case rawBarcode = "raw_barcode"
+        case sku
+        case upc
     }
 }
 
@@ -65,6 +71,10 @@ struct AuditEventItem: Identifiable, Equatable {
     let actorUserId: String?
     let payloadSummary: String?
     let detailLines: [String]
+    /// UPC / raw barcode / SKU — best display identifier for floor workers.
+    let primaryIdentifier: String?
+    let payloadSKU: String?
+    let payloadEventType: String?
 }
 
 enum AuditAPIMapping {
@@ -110,6 +120,7 @@ enum AuditAPIMapping {
         }
 
         let summary = payloadSummary(action: dto.action, entityType: dto.entityType, payload: payload)
+        let primary = primaryIdentifier(from: payload)
 
         return AuditEventItem(
             id: dto.id,
@@ -120,8 +131,20 @@ enum AuditAPIMapping {
             facilityId: dto.facilityId,
             actorUserId: dto.actorUserId,
             payloadSummary: summary,
-            detailLines: detailLines
+            detailLines: detailLines,
+            primaryIdentifier: primary,
+            payloadSKU: payload?.sku,
+            payloadEventType: payload?.eventType
         )
+    }
+
+    private static func primaryIdentifier(from payload: AuditEventPayloadDTO?) -> String? {
+        guard let payload else { return nil }
+        for candidate in [payload.upc, payload.rawBarcode, payload.sku] {
+            let trimmed = candidate?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if !trimmed.isEmpty { return trimmed }
+        }
+        return nil
     }
 
     private static func payloadSummary(

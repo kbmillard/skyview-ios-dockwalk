@@ -311,3 +311,39 @@ struct DockDoorSelectorSheet: View {
         .disabled(!door.isAvailable)
     }
 }
+
+// MARK: - Scan confirm payload
+
+struct ScanConfirmPayload: Equatable {
+    let itemName: String
+    let sku: String
+    let upc: String
+    let vendor: String
+    let destination: String
+    let confidence: Int
+    let context: String
+}
+
+extension ScanConfirmPayload {
+    static let placeholder = ScanConfirmPayload(
+        itemName: "Scanned item",
+        sku: "—",
+        upc: "—",
+        vendor: "—",
+        destination: "—",
+        confidence: 0,
+        context: "Confirm scan details"
+    )
+
+    #if DEBUG
+    static let previewSample = ScanConfirmPayload(
+        itemName: "Pharma — Cold-chain Type B",
+        sku: "8412",
+        upc: "00854411",
+        vendor: "Midwest Parts",
+        destination: "C-08",
+        confidence: 96,
+        context: "Match found in 0.12s"
+    )
+    #endif
+}

@@ -176,7 +176,7 @@ struct PickingTasksView: View {
                 .font(.headline)
                 .foregroundStyle(DockWalkTheme.textPrimary)
             
-            Text("Picking tasks will appear here when available")
+            Text("Picking is not connected yet. Tasks will show here when the API is available.")
                 .font(.subheadline)
                 .foregroundStyle(DockWalkTheme.textSecondary)
                 .multilineTextAlignment(.center)

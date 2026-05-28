@@ -7,7 +7,11 @@ final class PickingTasksViewModel {
     var searchQuery = ""
     
     init() {
-        loadStubData()
+        #if DEBUG
+        if FeatureFlags.allowFoundationDemoData {
+            loadStubData()
+        }
+        #endif
     }
     
     var summary: PickTaskSummary {

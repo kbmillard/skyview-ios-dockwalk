@@ -5,7 +5,9 @@ import Observation
 final class ActivityViewModel {
     static let pageSize = 25
 
+    private(set) var timeline: [ActivityTimelineEntry] = []
     private(set) var events: [AuditEventItem] = []
+    private(set) var pendingEntries: [QueuedSyncAction] = []
     private(set) var loadPhase: LoadPhase = .idle
     private(set) var dataMode: String?
     private(set) var isLoadingMore = false
@@ -15,15 +17,23 @@ final class ActivityViewModel {
     private var totalCount = 0
 
     private let environment: AppEnvironment
+    private var syncStore: OfflineSyncStore?
 
-    init(environment: AppEnvironment = .shared) {
+    init(environment: AppEnvironment = .shared, syncStore: OfflineSyncStore? = nil) {
         self.environment = environment
+        self.syncStore = syncStore
+    }
+
+    func bind(syncStore: OfflineSyncStore) {
+        self.syncStore = syncStore
+        rebuildTimeline()
     }
 
     func refresh() async {
         currentOffset = 0
         totalCount = 0
         events = []
+        timeline = []
         canLoadMore = false
         await loadPage(reset: true)
     }
@@ -42,6 +52,7 @@ final class ActivityViewModel {
 
         let apiClient = environment.makeAPIClient()
         let orgId = environment.orgId
+        let pending = syncStore?.queuedActions ?? []
 
         do {
             let response = try await apiClient.fetchAuditEvents(
@@ -50,7 +61,10 @@ final class ActivityViewModel {
                 offset: currentOffset
             )
             dataMode = response.mode
-            let mapped = response.items.map(AuditAPIMapping.mapAuditEvent)
+            let mapped = response.items.map { dto in
+                let item = AuditAPIMapping.mapAuditEvent(dto)
+                return ActivityFeedBuilder.enrichAuditEvent(item, pendingActions: pending)
+            }
 
             if reset {
                 events = mapped
@@ -58,11 +72,14 @@ final class ActivityViewModel {
                 events.append(contentsOf: mapped)
             }
 
+            pendingEntries = pending
+            rebuildTimeline()
+
             currentOffset = response.pagination.offset + mapped.count
             totalCount = response.pagination.total
             canLoadMore = currentOffset < totalCount
 
-            if events.isEmpty {
+            if timeline.isEmpty {
                 loadPhase = .empty(
                     message: response.message ?? emptyMessage(for: response.mode)
                 )
@@ -72,22 +89,34 @@ final class ActivityViewModel {
         } catch {
             if reset {
                 events = []
+                pendingEntries = pending
+                rebuildTimeline()
                 loadPhase = .error(message: userFacingError(error))
             }
         }
     }
 
+    private func rebuildTimeline() {
+        timeline = ActivityFeedBuilder.buildTimeline(
+            auditEvents: events,
+            pendingActions: pendingEntries
+        )
+    }
+
     private func emptyMessage(for mode: String) -> String {
+        if !pendingEntries.isEmpty {
+            return "No server activity yet — see pending sync below."
+        }
         if mode == "stub" {
-            return "No audit events in stub mode — configure Supabase on the API service."
+            return "No activity recorded yet."
         }
         return "No activity recorded for this organization yet."
     }
 
     private func userFacingError(_ error: Error) -> String {
         if let apiError = error as? APIClientError {
-            return apiError.errorDescription ?? "Request failed."
+            return apiError.errorDescription ?? "Could not load activity."
         }
-        return error.localizedDescription
+        return "Can't reach DockWalk. Check connection in More."
     }
 }

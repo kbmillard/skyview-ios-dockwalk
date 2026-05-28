@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct LiveNowBanner: View {
-    let item: MockWarehouseFloor.LiveNowItem
+    let item: TodayModels.LiveNowItem
     var onTap: () -> Void
 
     var body: some View {
@@ -45,9 +45,4 @@ struct LiveNowBanner: View {
         }
         .buttonStyle(.plain)
     }
-}
-
-#Preview {
-    LiveNowBanner(item: MockWarehouseFloor.liveNow) {}
-        .padding()
 }

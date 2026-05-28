@@ -93,21 +93,29 @@ struct SettingsView: View {
                             .font(DockWalkTheme.captionFont)
                             .foregroundStyle(DockWalkTheme.textSecondary)
                     }
+                    NavigationLink("Sync queue") {
+                        SyncQueueView()
+                    }
                 } header: {
                     Text("Sync")
                 } footer: {
+                    #if DEBUG
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Auto-replay is for offline queue sync only — not the barcode scanner.")
                             .font(DockWalkTheme.captionFont)
                         if FeatureFlags.isReceivingEventAutoReplayPermitted {
                             Text(
                                 FeatureFlags.syncBatchReplayEnabled
-                                    ? "Replay uses POST /api/sync/events (batch) for receiving events and putaway task actions. Manual replay is in Debug."
-                                    : "Replays queued receiving events one at a time. Task actions require batch sync. Manual replay is in Debug."
+                                    ? "Replay uses batch sync for receiving events and putaway task actions."
+                                    : "Replays queued receiving events one at a time."
                             )
                             .font(DockWalkTheme.captionFont)
                         }
                     }
+                    #else
+                    Text("Auto-replay sends queued work when the device is back online.")
+                        .font(DockWalkTheme.captionFont)
+                    #endif
                 }
 
                 Section("Activity") {

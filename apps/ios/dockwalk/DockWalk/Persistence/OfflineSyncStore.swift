@@ -24,9 +24,7 @@ final class OfflineSyncStore {
     func enqueue(kind: String, summary: String) {
         guard FeatureFlags.offlineSyncEnabled else { return }
         let action = QueuedSyncAction(kind: kind, summary: summary)
-        queuedActions.append(action)
-        persist()
-        refreshStatus()
+        upsert(action)
     }
 
     func enqueueReceivingEvent(_ request: CreateReceivingEventRequest, summary: String) {
@@ -36,9 +34,7 @@ final class OfflineSyncStore {
             summary: summary,
             receivingEventPayload: request
         )
-        queuedActions.append(action)
-        persist()
-        refreshStatus()
+        upsert(action, idempotencyKey: request.idempotencyKey)
     }
 
     func enqueueTaskAction(_ payload: QueuedTaskActionPayload, summary: String) {
@@ -48,9 +44,7 @@ final class OfflineSyncStore {
             summary: summary,
             taskActionPayload: payload
         )
-        queuedActions.append(action)
-        persist()
-        refreshStatus()
+        upsert(action, idempotencyKey: payload.idempotencyKey)
     }
 
     func enqueueFinalizeLoad(loadId: String, payload: InboundFinalizeRequest, summary: String) {
@@ -61,9 +55,7 @@ final class OfflineSyncStore {
             finalizePayload: payload,
             inboundLoadId: loadId
         )
-        queuedActions.append(action)
-        persist()
-        refreshStatus()
+        upsert(action, idempotencyKey: payload.idempotencyKey)
     }
 
     func enqueueInventoryMovement(
@@ -80,9 +72,50 @@ final class OfflineSyncStore {
             inboundLoadId: loadId,
             clientLineId: clientLineId
         )
-        queuedActions.append(action)
+        upsert(action, idempotencyKey: payload.idempotencyKey)
+    }
+
+    /// Replace an existing row with the same idempotency key instead of piling duplicates.
+    private func upsert(_ action: QueuedSyncAction, idempotencyKey: String? = nil) {
+        if let key = idempotencyKey?.trimmingCharacters(in: .whitespacesAndNewlines), !key.isEmpty,
+           let index = queuedActions.firstIndex(where: { existing in
+               existingIdempotencyKey(existing) == key
+           }) {
+            var merged = action
+            merged.lastError = queuedActions[index].lastError
+            queuedActions[index] = merged
+        } else if let movementKey = movementCoalesceKey(for: action),
+                  let index = queuedActions.firstIndex(where: { movementCoalesceKey(for: $0) == movementKey }) {
+            queuedActions[index] = action
+        } else {
+            queuedActions.append(action)
+        }
         persist()
         refreshStatus()
+        lastReplayMessage = pendingSyncableCount > 0
+            ? "\(pendingSyncableCount) action(s) waiting to sync"
+            : nil
+    }
+
+    private func existingIdempotencyKey(_ action: QueuedSyncAction) -> String? {
+        switch action.kind {
+        case Self.receivingEventKind:
+            return action.receivingEventPayload?.idempotencyKey
+        case Self.taskActionKind:
+            return action.taskActionPayload?.idempotencyKey
+        case Self.finalizeLoadKind:
+            return action.finalizePayload?.idempotencyKey
+        case Self.inventoryMovementKind:
+            return action.movementPayload?.idempotencyKey
+        default:
+            return nil
+        }
+    }
+
+    private func movementCoalesceKey(for action: QueuedSyncAction) -> String? {
+        guard action.kind == Self.inventoryMovementKind,
+              let payload = action.movementPayload else { return nil }
+        return "\(payload.idempotencyKey)|\(action.inboundLoadId ?? "")|\(action.clientLineId ?? "")"
     }
 
     func clearQueue() {

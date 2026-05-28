@@ -15,7 +15,7 @@ struct MainTabView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
-                TodayDashboard(selectedTab: $selectedTab)
+                TodayDashboard()
                     .tabItem {
                         Label("Today", systemImage: "sun.max.fill")
                     }

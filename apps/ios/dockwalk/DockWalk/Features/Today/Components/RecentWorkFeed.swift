@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RecentWorkFeed: View {
-    let items: [MockWarehouseFloor.RecentWorkItem]
+    let items: [TodayModels.RecentActivityItem]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -11,6 +11,11 @@ struct RecentWorkFeed: View {
                         .frame(width: 32, height: 32)
 
                     VStack(alignment: .leading, spacing: 2) {
+                        if let barcode = item.barcode {
+                            Text(barcode)
+                                .font(.system(size: 13, design: .monospaced).weight(.medium))
+                                .foregroundStyle(Tokens.Color.Ink.primary)
+                        }
                         Text(item.title)
                             .font(Tokens.Font.titleCard)
                             .foregroundStyle(Tokens.Color.Ink.primary)
@@ -46,13 +51,14 @@ struct RecentWorkFeed: View {
     }
 
     @ViewBuilder
-    private func icon(for tone: MockWarehouseFloor.RecentWorkItem.FeedTone) -> some View {
+    private func icon(for tone: TodayModels.RecentActivityItem.FeedTone) -> some View {
         let (name, fg, bg): (String, Color, Color) = {
             switch tone {
             case .ok: return ("checkmark", Tokens.Color.Signal.success, Tokens.Color.Signal.success.opacity(0.12))
             case .info: return ("truck.box", Tokens.Color.Accent.horizon, Tokens.Color.Accent.horizonSoft)
             case .warn: return ("exclamationmark.triangle", Tokens.Color.Signal.warning, Tokens.Color.Signal.warning.opacity(0.14))
             case .muted: return ("arrow.left.arrow.right", Tokens.Color.Ink.tertiary, Tokens.Color.Surface.elevated)
+            case .pending: return ("arrow.triangle.2.circlepath", Tokens.Color.Signal.warning, Tokens.Color.Signal.warning.opacity(0.14))
             }
         }()
 
@@ -63,9 +69,4 @@ struct RecentWorkFeed: View {
             .background(bg)
             .clipShape(RoundedRectangle(cornerRadius: 10))
     }
-}
-
-#Preview {
-    RecentWorkFeed(items: MockWarehouseFloor.recentWork)
-        .padding()
 }

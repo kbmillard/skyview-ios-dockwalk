@@ -330,6 +330,40 @@ final class DockWalkFoundationTests: XCTestCase {
         XCTAssertEqual(loaded.first?.summary, "Persist me")
     }
 
+    func testOfflineSyncUpsertsByIdempotencyKey() {
+        let store = OfflineSyncStore(loadPersisted: false)
+        store.clearQueue()
+        defer { store.clearQueue() }
+
+        let first = sampleReceivingPayload(idempotencyKey: "ios-upsert-same-key")
+        store.enqueueReceivingEvent(first, summary: "Receive v1")
+        XCTAssertEqual(store.queuedActions.count, 1)
+
+        var second = first
+        second.notes = "updated"
+        store.enqueueReceivingEvent(second, summary: "Receive v2")
+        XCTAssertEqual(store.queuedActions.count, 1)
+        XCTAssertEqual(store.queuedActions.first?.summary, "Receive v2")
+    }
+
+    func testReceivedInventoryPersistenceRoundTrip() {
+        let prior = ReceivedInventoryPersistence.load()
+        defer { _ = ReceivedInventoryPersistence.save(prior) }
+
+        var draft = ReceiveInventoryDraft.empty()
+        draft.upc = "012345678905"
+        draft.sku = "SKU-1"
+        draft.itemName = "Widget"
+        draft.location = "A-01"
+        draft.quantity = "3"
+        draft.isSaved = true
+
+        XCTAssertTrue(ReceivedInventoryPersistence.save(["load-1": [draft]]))
+        let loaded = ReceivedInventoryPersistence.load()
+        XCTAssertEqual(loaded["load-1"]?.count, 1)
+        XCTAssertEqual(loaded["load-1"]?.first?.upc, "012345678905")
+    }
+
     func testOfflineSyncEnqueuePersists() {
         let store = OfflineSyncStore(loadPersisted: false)
         store.clearQueue()

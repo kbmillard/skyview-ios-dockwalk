@@ -17,8 +17,11 @@ final class InboundSessionStore {
 
     private let defaults: UserDefaults
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, loadPersistedReceived: Bool = true) {
         self.defaults = defaults
+        if loadPersistedReceived {
+            receivedByLoadId = ReceivedInventoryPersistence.load()
+        }
     }
 
     // MARK: - Demo loads
@@ -35,6 +38,7 @@ final class InboundSessionStore {
         demoLoads = nil
         if clearReceivedInventory {
             receivedByLoadId = [:]
+            persistReceivedInventory()
             bumpReceivedInventoryRevision()
         }
         bumpRevision()
@@ -74,6 +78,7 @@ final class InboundSessionStore {
 
     func saveReceivedItems(loadId: String, items: [ReceiveInventoryDraft]) {
         receivedByLoadId[loadId] = items
+        persistReceivedInventory()
         bumpReceivedInventoryRevision()
     }
 
@@ -83,6 +88,7 @@ final class InboundSessionStore {
               let index = items.firstIndex(where: { $0.id == itemId }) else { return false }
         items[index].location = location.trimmingCharacters(in: .whitespacesAndNewlines)
         receivedByLoadId[loadId] = items
+        persistReceivedInventory()
         bumpReceivedInventoryRevision()
         return true
     }
@@ -105,9 +111,14 @@ final class InboundSessionStore {
         }
         if committed > 0 {
             receivedByLoadId[loadId] = updated
+            persistReceivedInventory()
             bumpReceivedInventoryRevision()
         }
         return committed
+    }
+
+    private func persistReceivedInventory() {
+        _ = ReceivedInventoryPersistence.save(receivedByLoadId)
     }
 
     // MARK: - Inbound list UI prefs

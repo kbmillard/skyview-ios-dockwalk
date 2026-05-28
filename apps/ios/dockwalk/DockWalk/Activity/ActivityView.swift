@@ -2,12 +2,15 @@ import SwiftUI
 
 struct ActivityView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(OfflineSyncStore.self) private var syncStore
     @State private var viewModel: ActivityViewModel?
     @State private var selectedEvent: AuditEventItem?
 
     var body: some View {
         Group {
             if let viewModel, viewModel.loadPhase == .loaded {
+                activityList(viewModel)
+            } else if let viewModel, !viewModel.pendingEntries.isEmpty, viewModel.loadPhase.isFailure {
                 activityList(viewModel)
             } else if let viewModel {
                 LoadStateView(phase: viewModel.loadPhase) {
@@ -26,15 +29,24 @@ struct ActivityView: View {
             AuditEventDetailSheet(event: event)
         }
         .onAppear {
-            if viewModel == nil {
-                viewModel = ActivityViewModel(environment: environment)
-            }
+            ensureViewModel()
         }
         .task(id: environment.configRevision) {
-            if viewModel == nil {
-                viewModel = ActivityViewModel(environment: environment)
-            }
+            ensureViewModel()
             await viewModel?.refresh()
+        }
+        .onChange(of: syncStore.queuedActions) { _, _ in
+            viewModel?.bind(syncStore: syncStore)
+        }
+    }
+
+    private func ensureViewModel() {
+        if viewModel == nil {
+            let vm = ActivityViewModel(environment: environment, syncStore: syncStore)
+            vm.bind(syncStore: syncStore)
+            viewModel = vm
+        } else {
+            viewModel?.bind(syncStore: syncStore)
         }
     }
 
@@ -44,18 +56,26 @@ struct ActivityView: View {
             if let mode = viewModel.dataMode {
                 Section {
                     StatusChip(
-                        label: mode == "live" ? "Live audit trail" : "Stub API",
+                        label: mode == "live" ? "Live trail" : "Offline preview",
                         tone: mode == "live" ? .success : .neutral
                     )
                 }
             }
 
-            Section {
+            if !viewModel.pendingEntries.isEmpty {
+                Section("Pending sync") {
+                    ForEach(viewModel.pendingEntries) { action in
+                        pendingRow(action)
+                    }
+                }
+            }
+
+            Section("Server activity") {
                 ForEach(viewModel.events) { event in
                     Button {
                         selectedEvent = event
                     } label: {
-                        activityRow(event)
+                        auditRow(event)
                     }
                     .buttonStyle(.plain)
                 }
@@ -76,12 +96,17 @@ struct ActivityView: View {
                     }
                     .disabled(viewModel.isLoadingMore)
                 }
+
+                if viewModel.events.isEmpty {
+                    Text("No server events yet.")
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                }
             }
         }
         .listStyle(.insetGrouped)
     }
 
-    private func activityRow(_ event: AuditEventItem) -> some View {
+    private func auditRow(_ event: AuditEventItem) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(event.action.capitalized)
@@ -93,19 +118,45 @@ struct ActivityView: View {
                         .foregroundStyle(DockWalkTheme.textSecondary)
                 }
             }
+
+            if let barcode = event.primaryIdentifier {
+                Text(barcode)
+                    .font(.system(.body, design: .monospaced).weight(.medium))
+            }
+
             Text(event.entityType.replacingOccurrences(of: "_", with: " "))
                 .font(DockWalkTheme.captionFont)
                 .foregroundStyle(DockWalkTheme.textSecondary)
+
             if let summary = event.payloadSummary {
                 Text(summary)
                     .font(DockWalkTheme.captionFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
             }
-            if let entityId = event.entityId {
-                Text(entityId)
-                    .font(.system(.caption2, design: .monospaced))
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func pendingRow(_ action: QueuedSyncAction) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(action.kindDisplayName)
+                    .font(.caption.weight(.semibold))
+                Spacer()
+                Text(action.createdAt.formatted(date: .omitted, time: .shortened))
+                    .font(DockWalkTheme.captionFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
-                    .lineLimit(1)
+            }
+            if let barcode = action.primaryBarcode {
+                Text(barcode)
+                    .font(.system(.body, design: .monospaced).weight(.medium))
+            }
+            Text(action.summary)
+                .font(DockWalkTheme.captionFont)
+            if let error = action.lastError {
+                Text(error)
+                    .font(DockWalkTheme.captionFont)
+                    .foregroundStyle(DockWalkTheme.danger)
             }
         }
         .padding(.vertical, 4)
@@ -122,6 +173,10 @@ private struct AuditEventDetailSheet: View {
                 Section("Event") {
                     LabeledContent("Action", value: event.action)
                     LabeledContent("Entity", value: event.entityType)
+                    if let barcode = event.primaryIdentifier {
+                        LabeledContent("Identifier", value: barcode)
+                            .font(.system(.body, design: .monospaced))
+                    }
                     if let entityId = event.entityId {
                         LabeledContent("Entity ID", value: entityId)
                             .font(.system(.body, design: .monospaced))
@@ -139,7 +194,7 @@ private struct AuditEventDetailSheet: View {
                     }
                 }
             }
-            .navigationTitle("Audit event")
+            .navigationTitle("Activity")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -150,9 +205,17 @@ private struct AuditEventDetailSheet: View {
     }
 }
 
+private extension LoadPhase {
+    var isFailure: Bool {
+        if case .error = self { return true }
+        return false
+    }
+}
+
 #Preview {
     NavigationStack {
         ActivityView()
             .environment(AppEnvironment.shared)
+            .environment(OfflineSyncStore.shared)
     }
 }

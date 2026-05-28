@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct FloorOverviewGrid: View {
-    let stats: [MockWarehouseFloor.OverviewStat]
+    let stats: [TodayModels.OverviewStat]
 
     private let columns = [
         GridItem(.flexible(), spacing: 8),
@@ -16,7 +16,7 @@ struct FloorOverviewGrid: View {
         }
     }
 
-    private func statCard(_ stat: MockWarehouseFloor.OverviewStat) -> some View {
+    private func statCard(_ stat: TodayModels.OverviewStat) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(stat.label)
@@ -56,7 +56,7 @@ struct FloorOverviewGrid: View {
         )
     }
 
-    private func color(for tone: MockWarehouseFloor.OverviewStat.StatTone) -> Color {
+    private func color(for tone: TodayModels.OverviewStat.StatTone) -> Color {
         switch tone {
         case .ok: return Tokens.Color.Signal.success
         case .info: return Tokens.Color.Accent.horizon
@@ -65,7 +65,7 @@ struct FloorOverviewGrid: View {
         }
     }
 
-    private func icon(for tone: MockWarehouseFloor.OverviewStat.StatTone) -> String {
+    private func icon(for tone: TodayModels.OverviewStat.StatTone) -> String {
         switch tone {
         case .ok: return "checkmark"
         case .info: return "arrow.down"
@@ -73,9 +73,4 @@ struct FloorOverviewGrid: View {
         case .crit: return "exclamationmark.triangle.fill"
         }
     }
-}
-
-#Preview {
-    FloorOverviewGrid(stats: MockWarehouseFloor.overviewStats)
-        .padding()
 }

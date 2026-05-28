@@ -46,7 +46,7 @@ struct ShippingLoadDetailView: View {
         .navigationTitle(shipmentId)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showScanConfirm) {
-            ScanConfirmSheet(payload: MockWarehouseFloor.scanConfirmSample)
+            ScanConfirmSheet(payload: ScanConfirmPayload.placeholder)
         }
         .sheet(isPresented: $showException) {
             ExceptionMarkingSheet()

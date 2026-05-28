@@ -24,7 +24,7 @@ struct RootTabView: View {
     private var tabContent: some View {
         switch selectedTab {
         case .today:
-            TodayDashboard(selectedTab: .constant(.today))
+            TodayDashboard()
         case .move:
             moveStubView
         case .me:

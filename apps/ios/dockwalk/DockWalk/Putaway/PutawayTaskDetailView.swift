@@ -66,7 +66,7 @@ struct PutawayTaskDetailView: View {
                 }
             }
             .sheet(isPresented: $showScanConfirm) {
-                ScanConfirmSheet(payload: MockWarehouseFloor.scanConfirmSample)
+                ScanConfirmSheet(payload: scanConfirmPayload)
             }
             .sheet(isPresented: $showException) {
                 ExceptionMarkingSheet()
@@ -337,5 +337,18 @@ struct PutawayTaskDetailView: View {
 
     private func formatQuantity(_ value: Double) -> String {
         value == floor(value) ? String(Int(value)) : String(value)
+    }
+
+    private var scanConfirmPayload: ScanConfirmPayload {
+        let task = viewModel?.task ?? initialTask
+        return ScanConfirmPayload(
+            itemName: task.description,
+            sku: task.sku,
+            upc: task.upc,
+            vendor: "—",
+            destination: task.toLocationCode.isEmpty ? task.fromLocationCode : task.toLocationCode,
+            confidence: 100,
+            context: scannedLabelContext ?? task.routeLabel
+        )
     }
 }

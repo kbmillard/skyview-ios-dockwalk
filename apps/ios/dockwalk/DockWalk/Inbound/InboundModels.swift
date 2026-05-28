@@ -147,7 +147,7 @@ struct DockDoorPickerOption: Identifiable, Equatable {
 }
 
 /// In-progress inventory captured during receive work mode (local until synced).
-struct ReceiveInventoryDraft: Identifiable, Equatable {
+struct ReceiveInventoryDraft: Identifiable, Equatable, Codable {
     let id: String
     var upc: String
     var sku: String

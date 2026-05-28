@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct QuickActionsRow: View {
-    let actions: [MockWarehouseFloor.QuickAction]
+    let actions: [TodayModels.QuickAction]
     var onSelect: (AppTab) -> Void
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
@@ -43,9 +43,4 @@ struct QuickActionsRow: View {
             }
         }
     }
-}
-
-#Preview {
-    QuickActionsRow(actions: MockWarehouseFloor.quickActions) { _ in }
-        .padding()
 }

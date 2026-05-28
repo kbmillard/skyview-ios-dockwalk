@@ -7,7 +7,11 @@ final class OutboundViewModel {
     private(set) var workflowGroups: [OutboundWorkflowGroup] = []
 
     init() {
-        loadStubData()
+        #if DEBUG
+        if FeatureFlags.allowFoundationDemoData {
+            loadStubData()
+        }
+        #endif
         buildWorkflowGroups()
     }
     

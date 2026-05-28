@@ -34,13 +34,15 @@ final class AppointmentsViewModel {
 
         if FeatureFlags.foundationInboundDemoEnabled {
             applyFoundationDemoData()
-            if apiReachable {
+            #if DEBUG
+            if apiReachable, SyncPreferencesStore.shared.receivingEventAutoReplayEnabled {
                 await ReceivingEventReplayCoordinator.shared.attemptAutoReplayIfNeeded(
                     environment: environment,
                     syncStore: syncStore,
                     trigger: "receive_loaded"
                 )
             }
+            #endif
             return
         }
 
@@ -66,13 +68,15 @@ final class AppointmentsViewModel {
                 loadPhase = .loaded
             }
 
-            if apiReachable {
+            #if DEBUG
+            if apiReachable, SyncPreferencesStore.shared.receivingEventAutoReplayEnabled {
                 await ReceivingEventReplayCoordinator.shared.attemptAutoReplayIfNeeded(
                     environment: environment,
                     syncStore: syncStore,
                     trigger: "receive_loaded"
                 )
             }
+            #endif
         } catch {
             if error.isDockWalkAPIHostUnreachable {
                 applyAPIUnreachableFallback(syncStore: syncStore)

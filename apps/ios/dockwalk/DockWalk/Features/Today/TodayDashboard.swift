@@ -1,53 +1,34 @@
 import SwiftUI
 
-/// Today dashboard: WMS command center with editorial typography
-/// Uses ONLY design tokens - zero raw hex, system fonts, or magic numbers
+/// Today tab shell — dailies content will land here later.
 struct TodayDashboard: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(OfflineSyncStore.self) private var syncStore
-    @Binding var selectedTab: AppTab
-    
-    @State private var dashboard = TodayDashboardViewModel()
-    @State private var hasInitiallyLoaded = false
-    @State private var showSettings = false
+
+    @State private var showSyncQueue = false
     @State private var showActivity = false
-    
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Tokens.Space.xl) {
-                headerZone
-                
-                if case .loading = dashboard.loadPhase, !hasInitiallyLoaded {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(Tokens.Space.xxxl)
-                } else {
-                    liveNowSection
-                    overviewSection
-                    quickActionsSection
-                    recentWorkSection
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: Tokens.Space.xl) {
+                    headerZone
+                    dailiesPlaceholderSection
                     systemSection
                 }
+                .padding(.horizontal, Tokens.Space.base)
+                .padding(.bottom, Tokens.Space.xxxl)
             }
-            .padding(.horizontal, Tokens.Space.base)
-            .padding(.bottom, Tokens.Space.xxxl)
+            .background(Tokens.Color.Surface.canvas)
+            .navigationTitle("Today")
+            .navigationBarTitleDisplayMode(.large)
         }
-        .background(Tokens.Color.Surface.canvas)
-        .refreshable {
-            await dashboard.refresh()
-        }
-        .task {
-            if !hasInitiallyLoaded {
-                await dashboard.refresh()
-                hasInitiallyLoaded = true
-            }
-        }
-        .sheet(isPresented: $showSettings) {
+        .sheet(isPresented: $showSyncQueue) {
             NavigationStack {
-                SettingsView()
+                SyncQueueView()
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { showSettings = false }
+                            Button("Done") { showSyncQueue = false }
                         }
                     }
             }
@@ -63,12 +44,12 @@ struct TodayDashboard: View {
             }
         }
     }
-    
-    // MARK: - Header Zone
-    
+
+    // MARK: - Header
+
     private var headerZone: some View {
         VStack(alignment: .leading, spacing: Tokens.Space.sm) {
-            Text(greeting + ", Marcus")
+            Text(greeting + ", \(operatorName)")
                 .font(Tokens.Font.titleSection)
                 .foregroundStyle(Tokens.Color.Ink.primary)
 
@@ -85,64 +66,48 @@ struct TodayDashboard: View {
         .padding(.bottom, Tokens.Space.base)
     }
 
+    private var operatorName: String {
+        environment.userRole.displayName
+    }
+
     private var formattedToday: String {
         Date.now.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
     }
 
-    // MARK: - Live Now
+    // MARK: - Dailies placeholder
 
-    private var liveNowSection: some View {
-        LiveNowBanner(item: MockWarehouseFloor.liveNow) {
-            selectedTab = .inbound
+    private var dailiesPlaceholderSection: some View {
+        VStack(alignment: .leading, spacing: Tokens.Space.sm) {
+            Text("Daily summary")
+                .font(Tokens.Font.titleSection)
+                .foregroundStyle(Tokens.Color.Ink.primary)
+
+            Text("Dailies will appear here when that workflow is ready.")
+                .font(Tokens.Font.bodySecondary)
+                .foregroundStyle(Tokens.Color.Ink.tertiary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(Tokens.Space.base)
+                .background(cardBackground)
         }
     }
 
-    // MARK: - Overview
-
-    private var overviewSection: some View {
-        VStack(alignment: .leading, spacing: Tokens.Space.base) {
-            sectionTitle("Overview")
-            FloorOverviewGrid(stats: MockWarehouseFloor.overviewStats)
-        }
-    }
-
-    // MARK: - Quick actions
-
-    private var quickActionsSection: some View {
-        VStack(alignment: .leading, spacing: Tokens.Space.base) {
-            sectionTitle("Quick actions")
-            QuickActionsRow(actions: MockWarehouseFloor.quickActions) { tab in
-                selectedTab = tab
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: Tokens.Radius.card, style: .continuous)
+            .fill(Tokens.Color.Surface.card)
+            .overlay {
+                RoundedRectangle(cornerRadius: Tokens.Radius.card, style: .continuous)
+                    .strokeBorder(Tokens.Color.Divider.hairline, lineWidth: 0.5)
             }
-        }
     }
 
-    // MARK: - Recent work
+    // MARK: - System
 
-    private var recentWorkSection: some View {
-        VStack(alignment: .leading, spacing: Tokens.Space.base) {
-            sectionTitle("Recent work")
-            RecentWorkFeed(items: MockWarehouseFloor.recentWork)
-        }
-    }
-
-    private func sectionTitle(_ title: String) -> some View {
-        Text(title.uppercased())
-            .font(Tokens.Font.bodyMeta)
-            .tracking(Tokens.Tracking.bodyMeta)
-            .foregroundStyle(Tokens.Color.Ink.tertiary)
-            .padding(.horizontal, 4)
-    }
-    
-    // MARK: - System Section
-    
     private var systemSection: some View {
         VStack(alignment: .leading, spacing: Tokens.Space.base) {
             Text("System")
                 .font(Tokens.Font.titleSection)
                 .foregroundStyle(Tokens.Color.Ink.primary)
-            
-            // Sync row — opens settings sheet (sync controls live there).
+
             SystemRow(
                 icon: "arrow.triangle.2.circlepath",
                 title: "Sync",
@@ -150,41 +115,36 @@ struct TodayDashboard: View {
                 statusLabel: syncStatusLabel,
                 statusColor: syncStatusColor
             ) {
-                showSettings = true
+                showSyncQueue = true
             }
-            
-            // Activity row — audit trail, presented as a sheet.
+
             SystemRow(
                 icon: "list.bullet.rectangle",
                 title: "Activity",
-                subtitle: "Audit trail"
+                subtitle: "Trail & pending work"
             ) {
                 showActivity = true
             }
         }
     }
-    
+
     private var syncSubtitle: String {
         if syncStore.pendingSyncableCount > 0 {
             return "\(syncStore.pendingSyncableCount) action(s) queued"
-        } else {
-            return "No queued actions"
         }
+        return "No queued actions"
     }
-    
+
     private var syncStatusLabel: String? {
         if syncStore.pendingSyncableCount > 0 {
             return "Pending \(syncStore.pendingSyncableCount)"
-        } else {
-            return "Up to date"
         }
+        return "Up to date"
     }
-    
+
     private var syncStatusColor: Color? {
         syncStore.pendingSyncableCount > 0 ? Tokens.Color.Signal.warning : nil
     }
-    
-    // MARK: - Helpers
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())

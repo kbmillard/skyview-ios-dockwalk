@@ -201,7 +201,7 @@ struct PutawayTasksView: View {
         case "live": return "Live tasks"
         case "foundation-demo": return "Demo (no tasks)"
         case "foundation": return "Offline preview"
-        default: return "Stub API"
+        default: return "Offline preview"
         }
     }
 }

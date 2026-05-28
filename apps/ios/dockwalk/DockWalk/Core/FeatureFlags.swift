@@ -6,8 +6,12 @@ enum FeatureFlags {
     /// Compile-time scanner gate. Default **off** for TestFlight; per-device QA uses `ScannerPreferencesStore.internalScannerEnabled` (Debug).
     static let liveScannerEnabled = false
     static let offlineSyncEnabled = true
-    /// Product gate — runtime toggle in More → Sync controls on-device behavior (no rebuild).
+    /// Product gate — runtime toggle in More → Sync (DEBUG only; Release uses manual Replay now).
+    #if DEBUG
     static let receivingEventAutoReplayAvailable = true
+    #else
+    static let receivingEventAutoReplayAvailable = false
+    #endif
     /// Use `POST /api/sync/events` for offline replay (receiving events + task_action).
     static let syncBatchReplayEnabled = true
     static let debugPanelEnabled = true
