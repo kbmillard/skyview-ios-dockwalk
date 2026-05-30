@@ -27,13 +27,17 @@ struct PrimaryActionButton: View {
             .foregroundStyle(foreground)
             .background(background)
             .clipShape(RoundedRectangle(cornerRadius: DockWalkTheme.cornerRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: DockWalkTheme.cornerRadius, style: .continuous)
+                    .stroke(style == .secondary ? DockWalkTheme.cardBorder : Color.clear, lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(.isButton)
     }
 
     private var foreground: Color {
-        style == .primary ? .white : DockWalkTheme.accent
+        style == .primary ? .white : DockWalkTheme.textPrimary
     }
 
     private var background: some ShapeStyle {
@@ -41,7 +45,7 @@ struct PrimaryActionButton: View {
         case .primary:
             return AnyShapeStyle(DockWalkTheme.accent)
         case .secondary:
-            return AnyShapeStyle(DockWalkTheme.accentMuted)
+            return AnyShapeStyle(DockWalkTheme.cardBackground)
         }
     }
 }

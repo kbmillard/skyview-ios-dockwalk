@@ -92,6 +92,9 @@ enum ActivityFeedBuilder {
       if action.receivingEventPayload?.inboundShipmentId == entityId {
         return action.primaryBarcode
       }
+      if action.outboundOrderId == entityId {
+        return action.primaryBarcode
+      }
     }
     return nil
   }

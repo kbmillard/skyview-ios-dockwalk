@@ -59,6 +59,10 @@ final class ShipmentDetailViewModel {
         persistItems()
     }
 
+    func item(id: String) -> ReceiveInventoryDraft? {
+        receivedItems.first(where: { $0.id == id })
+    }
+
     func saveItem(id: String) -> Bool {
         guard let index = receivedItems.firstIndex(where: { $0.id == id }) else { return false }
         var item = receivedItems[index]

@@ -28,9 +28,13 @@ extension QueuedSyncAction {
                 }
             }
             return nil
+        case OfflineSyncStore.appointmentUpdateKind:
+            return appointmentUpdatePayload?.referenceNumber
 
         case OfflineSyncStore.taskActionKind:
             return taskActionSKUFromSummary
+        case OfflineSyncStore.outboundTransitionKind:
+            return outboundTransitionPayload?.lineTransitions.first?.upc
 
         default:
             return nil
@@ -40,9 +44,11 @@ extension QueuedSyncAction {
     var kindDisplayName: String {
         switch kind {
         case OfflineSyncStore.receivingEventKind: return "Receiving"
+        case OfflineSyncStore.appointmentUpdateKind: return "Inbound"
         case OfflineSyncStore.finalizeLoadKind: return "Finalize"
         case OfflineSyncStore.inventoryMovementKind: return "Putaway"
         case OfflineSyncStore.taskActionKind: return "Task"
+        case OfflineSyncStore.outboundTransitionKind: return "Shipping"
         default: return kind
         }
     }

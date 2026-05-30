@@ -8,8 +8,10 @@ enum SyncFIFOReplayEngine {
 
     static func fifoActions(from actions: [QueuedSyncAction]) -> [QueuedSyncAction] {
         actions.filter {
-            ($0.kind == OfflineSyncStore.finalizeLoadKind && $0.finalizePayload != nil)
+            ($0.kind == OfflineSyncStore.appointmentUpdateKind && $0.appointmentUpdatePayload != nil)
+                || ($0.kind == OfflineSyncStore.finalizeLoadKind && $0.finalizePayload != nil)
                 || ($0.kind == OfflineSyncStore.inventoryMovementKind && $0.movementPayload != nil)
+                || ($0.kind == OfflineSyncStore.outboundTransitionKind && $0.outboundTransitionPayload != nil)
         }
     }
 
@@ -24,6 +26,22 @@ enum SyncFIFOReplayEngine {
 
         for action in actions {
             switch action.kind {
+            case OfflineSyncStore.appointmentUpdateKind:
+                guard let payload = action.appointmentUpdatePayload,
+                      let appointmentId = action.appointmentId,
+                      let orgId = action.orgId else { continue }
+                do {
+                    _ = try await apiClient.updateAppointment(
+                        id: appointmentId,
+                        orgId: orgId,
+                        body: payload
+                    )
+                    removed.append(action.id)
+                    succeeded += 1
+                } catch {
+                    failed += 1
+                }
+
             case OfflineSyncStore.finalizeLoadKind:
                 guard let payload = action.finalizePayload,
                       let loadId = action.inboundLoadId else { continue }
@@ -45,6 +63,18 @@ enum SyncFIFOReplayEngine {
                 }
                 do {
                     try await apiClient.postInventoryMovement(payload)
+                    removed.append(action.id)
+                    succeeded += 1
+                } catch {
+                    failed += 1
+                }
+
+            case OfflineSyncStore.outboundTransitionKind:
+                guard let payload = action.outboundTransitionPayload,
+                      let orderId = action.outboundOrderId else { continue }
+                guard outboundTransitionIsReady(action, in: actions) else { continue }
+                do {
+                    _ = try await apiClient.transitionOutboundOrder(orderId: orderId, body: payload)
                     removed.append(action.id)
                     succeeded += 1
                 } catch {
@@ -79,5 +109,21 @@ enum SyncFIFOReplayEngine {
                 && candidate.finalizePayload?.lines.contains(where: { $0.clientLineId == clientLineId }) == true
         }
         return !hasFinalizeForLine
+    }
+
+    private static func outboundTransitionIsReady(
+        _ action: QueuedSyncAction,
+        in actions: [QueuedSyncAction]
+    ) -> Bool {
+        guard let dependencyLoadId = action.dependencyLoadId,
+              !dependencyLoadId.isEmpty else {
+            return true
+        }
+        let hasPendingFinalize = actions.contains { candidate in
+            candidate.kind == OfflineSyncStore.finalizeLoadKind
+                && candidate.inboundLoadId == dependencyLoadId
+                && candidate.finalizePayload != nil
+        }
+        return !hasPendingFinalize
     }
 }

@@ -71,6 +71,21 @@ struct OutboundOrder: Identifiable, Equatable {
     let assignedTo: String?
 }
 
+struct OutboundLine: Identifiable, Equatable {
+    let id: String
+    let sku: String
+    let upc: String
+    let orderedQty: Double
+    let loadedQty: Double
+    let uom: String
+    let status: String
+    let location: String?
+
+    var remainingQty: Double {
+        max(orderedQty - loadedQty, 0)
+    }
+}
+
 enum OrderPriority: String, Equatable {
     case standard, urgent
     

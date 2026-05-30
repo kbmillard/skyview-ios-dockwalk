@@ -9,6 +9,10 @@ struct SectionCard<Content: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(DockWalkTheme.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: DockWalkTheme.cornerRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: DockWalkTheme.cornerRadius, style: .continuous)
+                    .stroke(DockWalkTheme.cardBorder, lineWidth: 1)
+            )
     }
 }
 

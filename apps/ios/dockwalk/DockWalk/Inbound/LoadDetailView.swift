@@ -8,6 +8,7 @@ struct LoadDetailView: View {
 
     @State private var showEditSheet = false
     @State private var showDoorSelector = false
+    @State private var syncNotice: String?
     private var canEditLoad: Bool {
         switch load.status {
         case .scheduled, .checkedIn, .staged, .receiving:
@@ -26,6 +27,9 @@ struct LoadDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
                 loadSummaryCard
+                if let syncNotice {
+                    StatusChip(label: syncNotice, tone: .warning)
+                }
                 actionButtons
                 receivedSummarySection
             }
@@ -67,10 +71,12 @@ struct LoadDetailView: View {
     }
 
     private func assignDoor(_ doorId: String) {
-        applyDoor(doorId, status: .staged)
+        Task {
+            await applyDoor(doorId, status: .staged)
+        }
     }
 
-    private func applyDoor(_ doorId: String?, status: InboundLoadStatus) {
+    private func applyDoor(_ doorId: String?, status: InboundLoadStatus) async {
         let updated = ReceivingAppointment(
             id: load.id,
             carrier: load.carrier,
@@ -86,17 +92,33 @@ struct LoadDetailView: View {
         )
         load = updated
         viewModel.updateLoad(updated)
+        let synced = await viewModel.syncLoadToAPI(updated)
+        if !synced {
+            syncNotice = "Saved locally. Will sync when API is reachable."
+        } else {
+            syncNotice = nil
+        }
     }
 
     private func checkIn() {
-        applyDoor(load.assignedDoorNumber, status: .checkedIn)
+        Task {
+            await applyDoor(load.assignedDoorNumber, status: .checkedIn)
+        }
     }
 
     private func ensureReceivingStatus() {
         guard load.status != .receiving else { return }
-        let updated = copyLoad(status: .receiving)
-        load = updated
-        viewModel.updateLoad(updated)
+        Task {
+            let updated = copyLoad(status: .receiving)
+            load = updated
+            viewModel.updateLoad(updated)
+            let synced = await viewModel.syncLoadToAPI(updated)
+            if !synced {
+                syncNotice = "Receiving started locally. Sync queued for reconnect."
+            } else {
+                syncNotice = nil
+            }
+        }
     }
 
     private func copyLoad(status: InboundLoadStatus, receivedLineCount: Int? = nil) -> ReceivingAppointment {
@@ -208,7 +230,7 @@ struct LoadDetailView: View {
 
             case .complete:
                 NavigationLink {
-                    PutawayTasksView(inboundShipmentId: load.id)
+                    InventoryLoadStagingView(loadId: load.id, loadTitle: load.poNumber)
                 } label: {
                     actionLinkLabel(title: "Putaway for this load", systemImage: "arrow.down.to.line.compact", isPrimary: true)
                 }

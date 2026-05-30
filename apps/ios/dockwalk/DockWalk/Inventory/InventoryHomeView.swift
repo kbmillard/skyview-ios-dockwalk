@@ -1,14 +1,25 @@
 import SwiftUI
 
 struct InventoryHomeView: View {
+    @Environment(AppEnvironment.self) private var environment
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @Environment(InventoryScannerCoordinator.self) private var inventoryScannerCoordinator
     @Environment(InventoryCatalogStore.self) private var inventoryCatalog
+    @Environment(InboundSessionStore.self) private var inboundSession
+    @Environment(PutawayCompletionStore.self) private var completionStore
+    @Environment(FacilityConfigStore.self) private var facilityConfig
+    @Environment(OfflineSyncStore.self) private var syncStore
+
     @State private var viewModel = InventoryViewModel()
     @State private var showScanner = false
     @State private var showAddInventory = false
     @State private var selectedItem: InventoryItem?
     @State private var lastHandledScanToken = 0
+    @State private var pendingPutawayCard: PutawayUPCCard?
+    @State private var showPutawaySheet = false
+    @State private var showBinScanner = false
+    @State private var putawayError: String?
+    @State private var putawaySuccessMessage: String?
 
     var body: some View {
         NavigationStack {
@@ -19,14 +30,18 @@ struct InventoryHomeView: View {
                 if !viewModel.searchQuery.isEmpty {
                     itemsSection
                 } else {
-                    emptySearchState
+                    stagingSnapshotSection
                 }
             }
             .background(DockWalkTheme.background)
             .navigationTitle("Inventory")
             .sheet(isPresented: $showScanner) {
-                BarcodeScannerSheet(title: "Scan inventory", applyStyle: .direct) { result in
-                    applyScannedCode(result.value)
+                BarcodeScannerSheet(
+                    title: "Scan UPC",
+                    applyStyle: .direct,
+                    manualEntryPlaceholder: "UPC"
+                ) { result in
+                    handleScannedCode(result.value)
                 }
             }
             .sheet(isPresented: $showAddInventory) {
@@ -37,7 +52,31 @@ struct InventoryHomeView: View {
             .sheet(item: $selectedItem) { item in
                 InventoryItemDetailView(item: item)
             }
+            .sheet(isPresented: $showPutawaySheet) {
+                if let pendingPutawayCard {
+                    InventoryPutawaySheet(
+                        card: pendingPutawayCard,
+                        errorMessage: putawayError,
+                        onPutAway: {
+                            putawayError = nil
+                            showPutawaySheet = false
+                            showBinScanner = true
+                        },
+                        onDismiss: {
+                            self.pendingPutawayCard = nil
+                            putawayError = nil
+                        }
+                    )
+                }
+            }
+            .sheet(isPresented: $showBinScanner) {
+                BarcodeScannerSheet(title: "Scan storage bin") { result in
+                    showBinScanner = false
+                    Task { await applyPutaway(to: result.value) }
+                }
+            }
             .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showScanner)
+            .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showBinScanner)
             .onAppear {
                 viewModel.refreshFromCatalog()
                 handleFloatingScanRequestIfNeeded()
@@ -48,12 +87,61 @@ struct InventoryHomeView: View {
             .onChange(of: inventoryCatalog.revision) { _, _ in
                 viewModel.refreshFromCatalog()
             }
+            .onChange(of: inboundSession.receivedInventoryRevision) { _, _ in
+                putawaySuccessMessage = nil
+            }
+            .onChange(of: completionStore.revision) { _, _ in
+                putawaySuccessMessage = nil
+            }
         }
     }
 
-    private func applyScannedCode(_ value: String) {
-        viewModel.searchQuery = value
+    private var stagingSections: [PutawayCardQueueBuilder.StagingLocationSection] {
+        PutawayCardQueueBuilder.groupedPendingCards(
+            inboundSession: inboundSession,
+            completionStore: completionStore,
+            facilityConfig: facilityConfig
+        )
+    }
+
+    private var stagingSnapshotSection: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
+                if let putawaySuccessMessage {
+                    StatusChip(label: putawaySuccessMessage, tone: .success)
+                }
+
+                InventoryStagingSnapshotView(
+                    sections: stagingSections,
+                    onSelectCard: { card in
+                        pendingPutawayCard = card
+                        putawayError = nil
+                        showPutawaySheet = true
+                    }
+                )
+            }
+            .padding(DockWalkTheme.screenPadding)
+        }
+    }
+
+    private func handleScannedCode(_ value: String) {
         showScanner = false
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        if let card = PutawayCardResolver.resolve(
+            upc: trimmed,
+            inboundSession: inboundSession,
+            catalog: inventoryCatalog,
+            completionStore: completionStore
+        ) {
+            pendingPutawayCard = card
+            putawayError = nil
+            showPutawaySheet = true
+            return
+        }
+
+        viewModel.searchQuery = trimmed
         viewModel.refreshFromCatalog()
     }
 
@@ -65,24 +153,27 @@ struct InventoryHomeView: View {
         showScanner = true
     }
 
-    private var emptySearchState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 48))
-                .foregroundStyle(DockWalkTheme.textSecondary.opacity(0.5))
-            Text("Search SKU, part, bin, or item")
-                .font(DockWalkTheme.bodyFont)
-                .foregroundStyle(DockWalkTheme.textSecondary)
-                .multilineTextAlignment(.center)
-            if scannerPreferences.isScannerActive {
-                Text("Use the scan button below to scan a barcode")
-                    .font(DockWalkTheme.captionFont)
-                    .foregroundStyle(DockWalkTheme.textSecondary)
-                    .multilineTextAlignment(.center)
-            }
+    private func applyPutaway(to bin: String) async {
+        guard let card = pendingPutawayCard else { return }
+        let result = await PutawayMovementService.apply(
+            card: card,
+            toLocation: bin,
+            facilityConfig: facilityConfig,
+            inboundSession: inboundSession,
+            catalog: inventoryCatalog,
+            completionStore: completionStore,
+            syncStore: syncStore,
+            environment: environment
+        )
+        switch result {
+        case .success:
+            pendingPutawayCard = nil
+            putawayError = nil
+            putawaySuccessMessage = "Put away to \(bin.trimmingCharacters(in: .whitespacesAndNewlines))"
+        case .failure(let error):
+            putawayError = error.localizedDescription
+            showPutawaySheet = true
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(DockWalkTheme.screenPadding)
     }
 
     private var searchField: some View {
@@ -188,9 +279,256 @@ struct InventoryHomeView: View {
     }
 }
 
+/// Staging snapshot grouped by location — default Inventory home when search is empty.
+struct InventoryStagingSnapshotView: View {
+    let sections: [PutawayCardQueueBuilder.StagingLocationSection]
+    let onSelectCard: (PutawayUPCCard) -> Void
+
+    var body: some View {
+        if sections.isEmpty {
+            VStack(spacing: 16) {
+                Image(systemName: "shippingbox")
+                    .font(.system(size: 48))
+                    .foregroundStyle(DockWalkTheme.textSecondary.opacity(0.5))
+                Text("Nothing at staging")
+                    .font(DockWalkTheme.headlineFont)
+                Text("Receive on a load first, then put away from here.")
+                    .font(DockWalkTheme.captionFont)
+                    .foregroundStyle(DockWalkTheme.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 32)
+        } else {
+            VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
+                Text("At staging")
+                    .font(DockWalkTheme.headlineFont)
+
+                ForEach(sections) { section in
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(section.locationCode)
+                            .font(DockWalkTheme.captionFont.weight(.semibold))
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+
+                        SectionCard {
+                            VStack(spacing: 8) {
+                                ForEach(section.cards) { card in
+                                    PutawayStagingBubbleRow(card: card) {
+                                        onSelectCard(card)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Load-scoped staging view linked from inbound load detail.
+struct InventoryLoadStagingView: View {
+    @Environment(AppEnvironment.self) private var environment
+    @Environment(InboundSessionStore.self) private var inboundSession
+    @Environment(PutawayCompletionStore.self) private var completionStore
+    @Environment(FacilityConfigStore.self) private var facilityConfig
+    @Environment(InventoryCatalogStore.self) private var inventoryCatalog
+    @Environment(OfflineSyncStore.self) private var syncStore
+    @Environment(ScannerPreferencesStore.self) private var scannerPreferences
+
+    let loadId: String
+    let loadTitle: String
+
+    @State private var pendingPutawayCard: PutawayUPCCard?
+    @State private var showPutawaySheet = false
+    @State private var showBinScanner = false
+    @State private var putawayError: String?
+    @State private var putawaySuccessMessage: String?
+
+    private var stagingSections: [PutawayCardQueueBuilder.StagingLocationSection] {
+        PutawayCardQueueBuilder.groupedPendingCards(
+            inboundShipmentId: loadId,
+            inboundSession: inboundSession,
+            completionStore: completionStore,
+            facilityConfig: facilityConfig
+        )
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
+                if let putawaySuccessMessage {
+                    StatusChip(label: putawaySuccessMessage, tone: .success)
+                }
+
+                InventoryStagingSnapshotView(
+                    sections: stagingSections,
+                    onSelectCard: { card in
+                        pendingPutawayCard = card
+                        putawayError = nil
+                        showPutawaySheet = true
+                    }
+                )
+            }
+            .padding(DockWalkTheme.screenPadding)
+        }
+        .background(DockWalkTheme.background)
+        .navigationTitle(loadTitle)
+        .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showPutawaySheet) {
+            if let pendingPutawayCard {
+                InventoryPutawaySheet(
+                    card: pendingPutawayCard,
+                    errorMessage: putawayError,
+                    onPutAway: {
+                        putawayError = nil
+                        showPutawaySheet = false
+                        showBinScanner = true
+                    },
+                    onDismiss: {
+                        self.pendingPutawayCard = nil
+                        putawayError = nil
+                    }
+                )
+            }
+        }
+        .sheet(isPresented: $showBinScanner) {
+            BarcodeScannerSheet(title: "Scan storage bin") { result in
+                showBinScanner = false
+                Task { await applyPutaway(to: result.value) }
+            }
+        }
+        .dismissScannerSheetWhenInactive(scannerPreferences, isPresented: $showBinScanner)
+    }
+
+    private func applyPutaway(to bin: String) async {
+        guard let card = pendingPutawayCard else { return }
+        let result = await PutawayMovementService.apply(
+            card: card,
+            toLocation: bin,
+            facilityConfig: facilityConfig,
+            inboundSession: inboundSession,
+            catalog: inventoryCatalog,
+            completionStore: completionStore,
+            syncStore: syncStore,
+            environment: environment
+        )
+        switch result {
+        case .success:
+            pendingPutawayCard = nil
+            putawayError = nil
+            putawaySuccessMessage = "Put away to \(bin.trimmingCharacters(in: .whitespacesAndNewlines))"
+        case .failure(let error):
+            putawayError = error.localizedDescription
+            showPutawaySheet = true
+        }
+    }
+}
+
+struct PutawayStagingBubbleRow: View {
+    let card: PutawayUPCCard
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(card.upc)
+                        .font(.system(.body, design: .monospaced).weight(.semibold))
+                        .foregroundStyle(DockWalkTheme.textPrimary)
+                        .lineLimit(1)
+
+                    Text(card.description)
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                        .lineLimit(1)
+
+                    if let sku = card.secondarySKULabel {
+                        Text(sku)
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                    }
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 6) {
+                    Text(card.quantityDisplay)
+                        .font(DockWalkTheme.captionFont.weight(.medium))
+                        .foregroundStyle(DockWalkTheme.textSecondary)
+                    StatusChip(label: "At staging", tone: .neutral)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(DockWalkTheme.textSecondary)
+            }
+            .padding(.vertical, 8)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct InventoryPutawaySheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let card: PutawayUPCCard
+    let errorMessage: String?
+    let onPutAway: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: DockWalkTheme.sectionSpacing) {
+                SectionCard {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("At \(card.fromLocationCode.isEmpty ? "staging" : card.fromLocationCode)")
+                            .font(DockWalkTheme.bodyFont.weight(.semibold))
+                        Text(card.upc)
+                            .font(.system(.body, design: .monospaced))
+                        Text(card.quantityDisplay)
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                        Text("Scan a storage bin to put this line away.")
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.textSecondary)
+                    }
+                }
+
+                PrimaryActionButton(title: "Put away", systemImage: "barcode.viewfinder", action: onPutAway)
+
+                if let errorMessage {
+                    Text(errorMessage)
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.warning)
+                }
+
+                Spacer()
+            }
+            .padding(DockWalkTheme.screenPadding)
+            .background(DockWalkTheme.background)
+            .navigationTitle("Put away")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") {
+                        onDismiss()
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
 #Preview {
     InventoryHomeView()
+        .environment(AppEnvironment.shared)
         .environment(ScannerPreferencesStore.shared)
         .environment(InventoryScannerCoordinator.shared)
         .environment(InventoryCatalogStore.shared)
+        .environment(InboundSessionStore.shared)
+        .environment(PutawayCompletionStore.shared)
+        .environment(FacilityConfigStore.shared)
+        .environment(OfflineSyncStore.shared)
 }

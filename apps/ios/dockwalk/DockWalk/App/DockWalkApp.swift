@@ -4,6 +4,7 @@ import SwiftUI
 struct DockWalkApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @State private var environment = AppEnvironment.shared
+    @State private var themeStore = ThemeStore.shared
     @State private var syncStore = OfflineSyncStore.shared
     @State private var syncPreferences = SyncPreferencesStore.shared
     @State private var scannerPreferences = ScannerPreferencesStore.shared
@@ -23,7 +24,9 @@ struct DockWalkApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .id(themeStore.revision)
                 .environment(environment)
+                .environment(themeStore)
                 .environment(syncStore)
                 .environment(syncPreferences)
                 .environment(scannerPreferences)

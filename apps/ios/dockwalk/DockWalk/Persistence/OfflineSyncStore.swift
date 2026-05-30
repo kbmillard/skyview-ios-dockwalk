@@ -6,9 +6,11 @@ final class OfflineSyncStore {
     static let shared = OfflineSyncStore()
 
     static let receivingEventKind = "inbound.receiving_event"
+    static let appointmentUpdateKind = "appointment.update"
     static let taskActionKind = "task_action"
     static let finalizeLoadKind = "inbound.finalize_load"
     static let inventoryMovementKind = "inventory.movement"
+    static let outboundTransitionKind = "outbound.transition"
 
     private(set) var queuedActions: [QueuedSyncAction] = []
     var status: SyncStatus = .online
@@ -35,6 +37,23 @@ final class OfflineSyncStore {
             receivingEventPayload: request
         )
         upsert(action, idempotencyKey: request.idempotencyKey)
+    }
+
+    func enqueueAppointmentUpdate(
+        appointmentId: String,
+        orgId: String,
+        payload: AppointmentUpdateRequest,
+        summary: String
+    ) {
+        guard FeatureFlags.offlineSyncEnabled else { return }
+        let action = QueuedSyncAction(
+            kind: Self.appointmentUpdateKind,
+            summary: summary,
+            appointmentUpdatePayload: payload,
+            orgId: orgId,
+            appointmentId: appointmentId
+        )
+        upsert(action)
     }
 
     func enqueueTaskAction(_ payload: QueuedTaskActionPayload, summary: String) {
@@ -75,6 +94,23 @@ final class OfflineSyncStore {
         upsert(action, idempotencyKey: payload.idempotencyKey)
     }
 
+    func enqueueOutboundTransition(
+        orderId: String,
+        payload: OutboundOrderTransitionRequest,
+        dependencyLoadId: String? = nil,
+        summary: String
+    ) {
+        guard FeatureFlags.offlineSyncEnabled else { return }
+        let action = QueuedSyncAction(
+            kind: Self.outboundTransitionKind,
+            summary: summary,
+            outboundTransitionPayload: payload,
+            outboundOrderId: orderId,
+            dependencyLoadId: dependencyLoadId
+        )
+        upsert(action, idempotencyKey: payload.idempotencyKey)
+    }
+
     /// Replace an existing row with the same idempotency key instead of piling duplicates.
     private func upsert(_ action: QueuedSyncAction, idempotencyKey: String? = nil) {
         if let key = idempotencyKey?.trimmingCharacters(in: .whitespacesAndNewlines), !key.isEmpty,
@@ -86,6 +122,9 @@ final class OfflineSyncStore {
             queuedActions[index] = merged
         } else if let movementKey = movementCoalesceKey(for: action),
                   let index = queuedActions.firstIndex(where: { movementCoalesceKey(for: $0) == movementKey }) {
+            queuedActions[index] = action
+        } else if let appointmentKey = appointmentUpdateCoalesceKey(for: action),
+                  let index = queuedActions.firstIndex(where: { appointmentUpdateCoalesceKey(for: $0) == appointmentKey }) {
             queuedActions[index] = action
         } else {
             queuedActions.append(action)
@@ -107,6 +146,8 @@ final class OfflineSyncStore {
             return action.finalizePayload?.idempotencyKey
         case Self.inventoryMovementKind:
             return action.movementPayload?.idempotencyKey
+        case Self.outboundTransitionKind:
+            return action.outboundTransitionPayload?.idempotencyKey
         default:
             return nil
         }
@@ -116,6 +157,13 @@ final class OfflineSyncStore {
         guard action.kind == Self.inventoryMovementKind,
               let payload = action.movementPayload else { return nil }
         return "\(payload.idempotencyKey)|\(action.inboundLoadId ?? "")|\(action.clientLineId ?? "")"
+    }
+
+    private func appointmentUpdateCoalesceKey(for action: QueuedSyncAction) -> String? {
+        guard action.kind == Self.appointmentUpdateKind,
+              let appointmentId = action.appointmentId,
+              !appointmentId.isEmpty else { return nil }
+        return appointmentId
     }
 
     func clearQueue() {
@@ -175,6 +223,7 @@ final class OfflineSyncStore {
 
     var pendingSyncableCount: Int {
         SyncBatchReplayEngine.pendingSyncableActions(from: queuedActions).count
+            + SyncFIFOReplayEngine.fifoActions(from: queuedActions).count
     }
 
     /// Manual replay from Debug — delegates to coordinator.

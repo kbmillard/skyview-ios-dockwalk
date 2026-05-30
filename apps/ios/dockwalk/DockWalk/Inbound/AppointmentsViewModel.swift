@@ -142,6 +142,58 @@ final class AppointmentsViewModel {
         }
     }
 
+    @discardableResult
+    func syncLoadToAPI(
+        _ load: ReceivingAppointment,
+        syncStore: OfflineSyncStore = .shared
+    ) async -> Bool {
+        guard !FeatureFlags.foundationInboundDemoEnabled else { return true }
+        let apiClient = environment.makeAPIClient()
+
+        let payload = AppointmentUpdateRequest(
+            referenceNumber: load.poNumber,
+            scheduledAt: ISO8601DateFormatter().string(from: load.scheduledAt),
+            status: load.status.rawValue,
+            notes: nil,
+            metadata: [
+                "carrier_name": load.carrier,
+                "door_number": load.assignedDoorNumber ?? "",
+                "pallet_count": String(load.palletCount),
+                "vendor_name": load.vendor ?? "",
+                "expected_line_count": String(load.expectedLineCount),
+                "received_line_count": String(load.receivedLineCount),
+            ]
+        )
+
+        func queueUpdate() {
+            syncStore.enqueueAppointmentUpdate(
+                appointmentId: load.id,
+                orgId: environment.orgId,
+                payload: payload,
+                summary: "Update inbound load \(load.poNumber)"
+            )
+        }
+
+        guard await apiClient.healthCheck() else {
+            queueUpdate()
+            return false
+        }
+
+        do {
+            _ = try await apiClient.updateAppointment(
+                id: load.id,
+                orgId: environment.orgId,
+                body: payload
+            )
+            return true
+        } catch {
+            if APIClientErrorClassifier.shouldQueueOffline(for: error) {
+                queueUpdate()
+            }
+            return false
+        }
+    }
+
     func occupiedDoorIds(excludingLoadId: String? = nil) -> Set<String> {
         Set(
             appointments

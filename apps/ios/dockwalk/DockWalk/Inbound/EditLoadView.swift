@@ -19,6 +19,8 @@ struct EditLoadView: View {
     @State private var selectedStatus: InboundLoadStatus = .scheduled
     @State private var selectedDoorNumber: String?
     @State private var showDoorPicker = false
+    @State private var saveErrorMessage: String?
+    @State private var isFinalizing = false
 
     private var editableStatuses: [InboundLoadStatus] {
         [.scheduled, .checkedIn, .staged, .receiving, .complete, .cancelled]
@@ -90,6 +92,7 @@ struct EditLoadView: View {
                             FinalizeLoadButton {
                                 finalizeLoad()
                             }
+                            .disabled(isFinalizing)
                         }
                         .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
                     } header: {
@@ -111,6 +114,14 @@ struct EditLoadView: View {
                         Text("Load Actions")
                     }
                 }
+
+                if let saveErrorMessage, !saveErrorMessage.isEmpty {
+                    Section {
+                        Text(saveErrorMessage)
+                            .font(DockWalkTheme.captionFont)
+                            .foregroundStyle(DockWalkTheme.danger)
+                    }
+                }
             }
             .navigationTitle("Edit Load")
             .navigationBarTitleDisplayMode(.inline)
@@ -119,7 +130,9 @@ struct EditLoadView: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { saveChanges() }
+                    Button("Save") {
+                        Task { await saveChanges() }
+                    }
                         .disabled(!canSave)
                 }
             }
@@ -148,7 +161,7 @@ struct EditLoadView: View {
         }
     }
 
-    private func saveChanges() {
+    private func saveChanges() async {
         let updated = ReceivingAppointment(
             id: load.id,
             carrier: carrier.trimmingCharacters(in: .whitespaces),
@@ -166,6 +179,7 @@ struct EditLoadView: View {
         )
         load = updated
         viewModel.updateLoad(updated)
+        _ = await viewModel.syncLoadToAPI(updated)
         dismiss()
     }
 
@@ -204,10 +218,14 @@ struct EditLoadView: View {
             facilityId: environment.facilityId,
             lines: lines
         )
+        isFinalizing = true
+        saveErrorMessage = nil
         Task {
+            var canComplete = false
             let client = environment.makeAPIClient()
             do {
                 try await client.finalizeInboundLoad(loadId: load.id, body: payload)
+                canComplete = true
             } catch {
                 if APIClientErrorClassifier.shouldQueueOffline(for: error) {
                     syncStore.enqueueFinalizeLoad(
@@ -215,17 +233,23 @@ struct EditLoadView: View {
                         payload: payload,
                         summary: "Finalize load \(load.poNumber)"
                     )
+                    canComplete = true
+                } else {
+                    saveErrorMessage = "Finalize failed. Resolve and retry."
                 }
             }
+            if canComplete {
+                inboundSession.commitReceivedInventoryToCatalog(loadId: load.id, catalog: inventoryCatalog)
+                finalizedLoads.markFinalized(loadId: load.id)
+                selectedStatus = .complete
+                await saveChanges()
+            }
+            isFinalizing = false
         }
-        inboundSession.commitReceivedInventoryToCatalog(loadId: load.id, catalog: inventoryCatalog)
-        finalizedLoads.markFinalized(loadId: load.id)
-        selectedStatus = .complete
-        saveChanges()
     }
     
     private func reopenLoad() {
         selectedStatus = .receiving
-        saveChanges()
+        Task { await saveChanges() }
     }
 }

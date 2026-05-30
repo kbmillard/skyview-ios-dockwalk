@@ -7,12 +7,20 @@ struct QueuedSyncAction: Identifiable, Equatable, Codable {
     let createdAt: Date
     /// JSON-encoded `CreateReceivingEventRequest` when `kind == inbound.receiving_event`.
     var receivingEventPayload: CreateReceivingEventRequest?
+    var appointmentUpdatePayload: AppointmentUpdateRequest?
+    var orgId: String?
     /// Persisted putaway task action when `kind == task_action`.
     var taskActionPayload: QueuedTaskActionPayload?
     var finalizePayload: InboundFinalizeRequest?
     var movementPayload: InventoryMovementRequest?
+    var outboundTransitionPayload: OutboundOrderTransitionRequest?
     /// Load id for FIFO dependency (movement waits for finalize).
     var inboundLoadId: String?
+    var appointmentId: String?
+    /// Outbound order id for shipping transition replay.
+    var outboundOrderId: String?
+    /// Optional dependency chain marker (for staged replays requiring inbound finalize first).
+    var dependencyLoadId: String?
     var clientLineId: String?
     /// Last batch replay rejection or transport summary for display.
     var lastError: String?
@@ -23,10 +31,16 @@ struct QueuedSyncAction: Identifiable, Equatable, Codable {
         summary: String,
         createdAt: Date = .now,
         receivingEventPayload: CreateReceivingEventRequest? = nil,
+        appointmentUpdatePayload: AppointmentUpdateRequest? = nil,
+        orgId: String? = nil,
         taskActionPayload: QueuedTaskActionPayload? = nil,
         finalizePayload: InboundFinalizeRequest? = nil,
         movementPayload: InventoryMovementRequest? = nil,
+        outboundTransitionPayload: OutboundOrderTransitionRequest? = nil,
         inboundLoadId: String? = nil,
+        appointmentId: String? = nil,
+        outboundOrderId: String? = nil,
+        dependencyLoadId: String? = nil,
         clientLineId: String? = nil,
         lastError: String? = nil
     ) {
@@ -35,10 +49,16 @@ struct QueuedSyncAction: Identifiable, Equatable, Codable {
         self.summary = summary
         self.createdAt = createdAt
         self.receivingEventPayload = receivingEventPayload
+        self.appointmentUpdatePayload = appointmentUpdatePayload
+        self.orgId = orgId
         self.taskActionPayload = taskActionPayload
         self.finalizePayload = finalizePayload
         self.movementPayload = movementPayload
+        self.outboundTransitionPayload = outboundTransitionPayload
         self.inboundLoadId = inboundLoadId
+        self.appointmentId = appointmentId
+        self.outboundOrderId = outboundOrderId
+        self.dependencyLoadId = dependencyLoadId
         self.clientLineId = clientLineId
         self.lastError = lastError
     }

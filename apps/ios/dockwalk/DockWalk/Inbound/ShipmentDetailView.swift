@@ -3,6 +3,7 @@ import SwiftUI
 /// Receive work mode — scan and capture inventory onto the load (no legacy shipment-lines API).
 struct ShipmentDetailView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(OfflineSyncStore.self) private var syncStore
     @Environment(ReceiveScannerCoordinator.self) private var receiveScannerCoordinator
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @Binding var load: ReceivingAppointment
@@ -114,11 +115,11 @@ struct ShipmentDetailView: View {
             if let binding = binding(for: item) {
                 InventoryEntryView(
                     item: binding,
-                    loadId: load.id,
                     onSave: {
                         let success = viewModel.saveItem(id: item.id)
                         if success {
                             syncReceivedLineCount()
+                            Task { await submitReceivingEvent(forItemId: item.id) }
                         }
                         return success
                     },
@@ -227,6 +228,52 @@ struct ShipmentDetailView: View {
         )
         load = updated
         appointmentsViewModel.updateLoad(updated)
+    }
+
+    private func submitReceivingEvent(forItemId itemId: String) async {
+        guard let item = viewModel.item(id: itemId), item.isSaved else { return }
+        let qty = Double(item.committedQuantity)
+        guard qty > 0 else { return }
+
+        let event = CreateReceivingEventRequest(
+            orgId: environment.orgId,
+            facilityId: environment.facilityId,
+            appointmentId: load.id,
+            inboundShipmentId: nil,
+            eventType: "manual_receive",
+            source: "device",
+            deviceId: ReceivingEventBuilder.deviceId,
+            performedBy: "dockwalk-ios",
+            idempotencyKey: "ios-receive-\(load.id)-\(item.id)",
+            notes: "Receive save for \(item.sku.isEmpty ? item.upc : item.sku)",
+            lines: [
+                ReceivingEventLineRequest(
+                    inboundLineId: nil,
+                    inventoryItemId: nil,
+                    sku: item.sku.isEmpty ? nil : item.sku,
+                    quantityExpected: nil,
+                    quantityReceived: qty,
+                    quantityDamaged: 0,
+                    quantityShort: 0,
+                    conditionStatus: "good",
+                    rawBarcode: item.upc.isEmpty ? item.sku : item.upc,
+                    metadata: [
+                        "load_id": load.id,
+                        "location": item.location,
+                    ]
+                ),
+            ]
+        )
+
+        let client = environment.makeAPIClient()
+        do {
+            _ = try await client.post(.receivingEvents, body: event, as: ReceivingEventResponse.self)
+        } catch {
+            if APIClientErrorClassifier.shouldQueueOffline(for: error) {
+                let summaryKey = item.sku.isEmpty ? item.upc : item.sku
+                syncStore.enqueueReceivingEvent(event, summary: "Receive \(summaryKey)")
+            }
+        }
     }
 }
 

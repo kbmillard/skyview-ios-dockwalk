@@ -1,8 +1,9 @@
 import SwiftUI
 
 struct ShippingHomeView: View {
+    @Environment(AppEnvironment.self) private var environment
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
-    @State private var viewModel = OutboundViewModel()
+    @State private var viewModel = OutboundViewModel(environment: .shared)
     @State private var showScanner = false
 
     var body: some View {
@@ -19,6 +20,9 @@ struct ShippingHomeView: View {
             .padding(DockWalkTheme.screenPadding)
         }
         .background(DockWalkTheme.background)
+        .task(id: environment.configRevision) {
+            await viewModel.load()
+        }
         .navigationTitle("Shipping")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
@@ -302,10 +306,12 @@ struct ShippingHomeView: View {
                 HStack {
                     Image(systemName: "info.circle.fill")
                         .foregroundStyle(DockWalkTheme.accent)
-                    Text("Outbound foundation — stable local data")
+                    Text("Shipping data source")
                         .font(DockWalkTheme.bodyFont.weight(.semibold))
                 }
-                Text("Pick, stage, load workflow structure ready. Full outbound write operations, inventory decrement, and label/BOL generation will expand in a later release.")
+                Text(viewModel.dataMode == "stub"
+                     ? "API is in stub mode. Shipping transitions still validate and replay idempotently."
+                     : "Live shipping orders are loaded from API. Offline transitions are queued and replayed.")
                     .font(DockWalkTheme.captionFont)
                     .foregroundStyle(DockWalkTheme.textSecondary)
             }

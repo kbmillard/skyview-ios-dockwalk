@@ -3,6 +3,7 @@ import Foundation
 enum APIEndpoint {
     case health
     case appointments(orgId: String)
+    case appointment(id: String, orgId: String)
     case inboundShipments(orgId: String, appointmentId: String?)
     case inboundShipmentLines(shipmentId: String, orgId: String)
     case receivingEvents
@@ -22,7 +23,10 @@ enum APIEndpoint {
     case warehouseTaskComplete(taskId: String)
     case syncEvents
     case inventoryItems
-    case outboundOrders
+    case outboundOrders(orgId: String)
+    case outboundOrder(id: String, orgId: String)
+    case outboundOrderLines(id: String, orgId: String)
+    case outboundOrderTransition(id: String)
     case facilityConfig(facilityId: String)
     case facilityLocations(facilityId: String, limit: Int, offset: Int)
     case facilityLocationLookup(facilityId: String, code: String)
@@ -35,6 +39,7 @@ enum APIEndpoint {
         switch self {
         case .health: return "/health"
         case .appointments: return "/api/appointments"
+        case .appointment(let id, _): return "/api/appointments/\(id)"
         case .inboundShipments: return "/api/inbound/shipments"
         case .inboundShipmentLines(let shipmentId, _):
             return "/api/inbound/shipments/\(shipmentId)/lines"
@@ -49,6 +54,9 @@ enum APIEndpoint {
         case .syncEvents: return "/api/sync/events"
         case .inventoryItems: return "/api/inventory/items"
         case .outboundOrders: return "/api/outbound/orders"
+        case .outboundOrder(let id, _): return "/api/outbound/orders/\(id)"
+        case .outboundOrderLines(let id, _): return "/api/outbound/orders/\(id)/lines"
+        case .outboundOrderTransition(let id): return "/api/outbound/orders/\(id)/transition"
         case .facilityConfig(let facilityId):
             return "/api/facilities/\(facilityId)/config"
         case .facilityLocations(let facilityId, _, _):
@@ -69,6 +77,8 @@ enum APIEndpoint {
     var queryItems: [URLQueryItem] {
         switch self {
         case .appointments(let orgId):
+            return [URLQueryItem(name: "org_id", value: orgId)]
+        case .appointment(_, let orgId):
             return [URLQueryItem(name: "org_id", value: orgId)]
         case .inboundShipments(let orgId, let appointmentId):
             var items = [URLQueryItem(name: "org_id", value: orgId)]
@@ -114,6 +124,12 @@ enum APIEndpoint {
             ]
         case .catalogLookup(_, let upc):
             return [URLQueryItem(name: "upc", value: upc)]
+        case .outboundOrders(let orgId):
+            return [URLQueryItem(name: "org_id", value: orgId)]
+        case .outboundOrder(_, let orgId):
+            return [URLQueryItem(name: "org_id", value: orgId)]
+        case .outboundOrderLines(_, let orgId):
+            return [URLQueryItem(name: "org_id", value: orgId)]
         default:
             return []
         }

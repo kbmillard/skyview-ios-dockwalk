@@ -5,8 +5,13 @@ import Observation
 final class OutboundViewModel {
     private(set) var allOrders: [OutboundOrder] = []
     private(set) var workflowGroups: [OutboundWorkflowGroup] = []
+    private(set) var loadPhase: LoadPhase = .idle
+    private(set) var dataMode: String?
 
-    init() {
+    private let environment: AppEnvironment
+
+    init(environment: AppEnvironment = .shared) {
+        self.environment = environment
         #if DEBUG
         if FeatureFlags.allowFoundationDemoData {
             loadStubData()
@@ -70,6 +75,38 @@ final class OutboundViewModel {
                 count: orders.count,
                 orders: orders
             )
+        }
+    }
+
+    func load() async {
+        loadPhase = .loading
+        let apiClient = environment.makeAPIClient()
+
+        do {
+            let response = try await apiClient.fetchOutboundOrders(orgId: environment.orgId)
+            dataMode = response.mode
+            allOrders = response.items.map(OutboundAPIMapping.mapOrder)
+            if allOrders.isEmpty {
+                #if DEBUG
+                if FeatureFlags.allowFoundationDemoData {
+                    loadStubData()
+                    dataMode = "foundation-demo"
+                }
+                #endif
+            }
+            buildWorkflowGroups()
+            loadPhase = .loaded
+        } catch {
+            #if DEBUG
+            if FeatureFlags.allowFoundationDemoData {
+                loadStubData()
+                dataMode = "foundation-demo"
+                buildWorkflowGroups()
+                loadPhase = .loaded
+                return
+            }
+            #endif
+            loadPhase = .error(message: "Can't load shipping orders right now.")
         }
     }
 
@@ -151,5 +188,71 @@ final class OutboundViewModel {
                 assignedTo: nil
             ),
         ]
+    }
+}
+
+enum OutboundAPIMapping {
+    private static let dateParser = ISO8601DateFormatter()
+
+    static func mapOrder(_ dto: OutboundOrderDTO) -> OutboundOrder {
+        let metadata = dto.metadata ?? [:]
+        let customer = metadata["customer"]?.stringValue ?? "Customer"
+        let door = metadata["door"]?.stringValue ?? ""
+        let priorityRaw = metadata["priority"]?.stringValue?.lowercased() ?? "standard"
+        let priority: OrderPriority = priorityRaw == "urgent" ? .urgent : .standard
+
+        return OutboundOrder(
+            id: dto.id,
+            orderNumber: dto.orderNumber ?? dto.id,
+            customer: customer,
+            door: door,
+            status: mapStatus(dto.status),
+            lineCount: dto.lineCount ?? 0,
+            cartonCount: dto.cartonCount ?? 0,
+            priority: priority,
+            shipDate: parseDate(dto.requestedShipAt),
+            assignedTo: metadata["assigned_to"]?.stringValue
+        )
+    }
+
+    static func mapLine(_ dto: OutboundLineDTO) -> OutboundLine {
+        let metadata = dto.metadata ?? [:]
+        let upc = dto.upc ?? metadata["upc"]?.stringValue ?? ""
+        let location = metadata["location"]?.stringValue
+        return OutboundLine(
+            id: dto.id,
+            sku: dto.sku ?? "",
+            upc: upc,
+            orderedQty: dto.orderedQty ?? 0,
+            loadedQty: dto.loadedQty ?? 0,
+            uom: dto.uom ?? "ea",
+            status: dto.status ?? "open",
+            location: location
+        )
+    }
+
+    static func mapStatus(_ raw: String?) -> OutboundOrderStatus {
+        guard let raw = raw?.lowercased() else { return .readyToPick }
+        switch raw {
+        case "ready_to_pick", "released", "draft":
+            return .readyToPick
+        case "picking":
+            return .picking
+        case "picked":
+            return .picked
+        case "staged":
+            return .staged
+        case "loading":
+            return .loading
+        case "shipped":
+            return .shipped
+        default:
+            return .readyToPick
+        }
+    }
+
+    static func parseDate(_ raw: String?) -> Date? {
+        guard let raw else { return nil }
+        return dateParser.date(from: raw)
     }
 }

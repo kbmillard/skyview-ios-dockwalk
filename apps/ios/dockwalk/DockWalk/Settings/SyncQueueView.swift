@@ -112,6 +112,12 @@ struct SyncQueueView: View {
                     .foregroundStyle(DockWalkTheme.textSecondary)
             }
 
+            if let orderId = action.outboundOrderId, !orderId.isEmpty {
+                Text("Order \(shortId(orderId))")
+                    .font(DockWalkTheme.captionFont)
+                    .foregroundStyle(DockWalkTheme.textSecondary)
+            }
+
             if let error = action.lastError {
                 Text(error)
                     .font(DockWalkTheme.captionFont)

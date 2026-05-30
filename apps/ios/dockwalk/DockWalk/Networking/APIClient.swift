@@ -62,6 +62,15 @@ struct APIClient {
         return try await request(endpoint, method: "POST", body: encoded, as: type)
     }
 
+    func patch<T: Decodable, Body: Encodable>(
+        _ endpoint: APIEndpoint,
+        body: Body,
+        as type: T.Type = T.self
+    ) async throws -> T {
+        let encoded = try JSONEncoder().encode(body)
+        return try await request(endpoint, method: "PATCH", body: encoded, as: type)
+    }
+
     func fetchHealth() async throws -> HealthResponse {
         try await get(.health)
     }
@@ -153,6 +162,26 @@ struct APIClient {
 
     func postInventoryMovement(_ body: InventoryMovementRequest) async throws {
         let _: EmptyAPIResponse = try await post(.inventoryMovement, body: body)
+    }
+
+    func updateAppointment(id: String, orgId: String, body: AppointmentUpdateRequest) async throws -> AppointmentItemResponse {
+        try await patch(.appointment(id: id, orgId: orgId), body: body)
+    }
+
+    func transitionOutboundOrder(orderId: String, body: OutboundOrderTransitionRequest) async throws -> OutboundOrderTransitionResponse {
+        try await post(.outboundOrderTransition(id: orderId), body: body)
+    }
+
+    func fetchOutboundOrders(orgId: String) async throws -> OutboundOrdersResponse {
+        try await get(.outboundOrders(orgId: orgId))
+    }
+
+    func fetchOutboundOrder(orderId: String, orgId: String) async throws -> OutboundOrderDetailResponse {
+        try await get(.outboundOrder(id: orderId, orgId: orgId))
+    }
+
+    func fetchOutboundOrderLines(orderId: String, orgId: String) async throws -> OutboundOrderLinesResponse {
+        try await get(.outboundOrderLines(id: orderId, orgId: orgId))
     }
 
     private func request<T: Decodable, Body>(

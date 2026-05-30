@@ -47,7 +47,7 @@ enum TodayModels {
     static let quickActions: [QuickAction] = [
         QuickAction(id: "receive", title: "Receive Load", systemImage: "arrow.down.to.line", tab: .inbound),
         QuickAction(id: "scan", title: "Scan Inventory", systemImage: "barcode.viewfinder", tab: .inventory),
-        QuickAction(id: "putaway", title: "Start Putaway", systemImage: "arrow.down.to.line.compact", tab: .putaway),
+        QuickAction(id: "putaway", title: "Put Away", systemImage: "arrow.down.to.line.compact", tab: .inventory),
         QuickAction(id: "ship", title: "Ship Order", systemImage: "arrow.up.to.line", tab: .shipping),
     ]
 }

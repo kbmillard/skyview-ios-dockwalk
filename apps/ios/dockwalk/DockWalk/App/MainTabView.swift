@@ -2,14 +2,11 @@ import SwiftUI
 
 /// DockWalk by SkyView — root tab bar.
 ///
-/// Tab order: Today · Inbound · Inventory · Putaway · Picking · Shipping
-///
-/// Putaway and Picking have the most users (40+ floor workers vs 5 receivers).
+/// Tab order: Today · Inbound · Inventory · Picking · Shipping
 struct MainTabView: View {
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
     @Environment(InventoryScannerCoordinator.self) private var inventoryScannerCoordinator
     @Environment(ReceiveScannerCoordinator.self) private var receiveScannerCoordinator
-    @Environment(PutawayScannerCoordinator.self) private var putawayScannerCoordinator
     @State private var selectedTab: AppTab = .today
 
     var body: some View {
@@ -33,12 +30,6 @@ struct MainTabView: View {
                     }
                     .tag(AppTab.inventory)
 
-                PutawayTabRootView()
-                    .tabItem {
-                        Label("Putaway", systemImage: "arrow.down.to.line.compact")
-                    }
-                    .tag(AppTab.putaway)
-
                 PickingTabRootView()
                     .tabItem {
                         Label("Picking", systemImage: "cart")
@@ -54,7 +45,7 @@ struct MainTabView: View {
             .tint(Tokens.Color.Accent.horizon)
             .id(scannerPreferences.revision)
 
-            // Floating scan disc: receive hub → Scan UPC on load; otherwise → Inventory lookup.
+            // Floating scan disc: receive hub → scan on load; otherwise → Inventory (putaway-capable lookup).
             floatingScanDisc
                 .offset(y: -58)
         }
@@ -65,10 +56,6 @@ struct MainTabView: View {
             Haptics.scanSuccess()
             if receiveScannerCoordinator.isReceiveHubActive {
                 receiveScannerCoordinator.requestOpenScanner()
-            } else if putawayScannerCoordinator.isPutawayHubActive {
-                putawayScannerCoordinator.requestOpenScanner()
-            } else if putawayScannerCoordinator.isPutawayTabActive {
-                putawayScannerCoordinator.requestOpenScanner()
             } else {
                 selectedTab = .inventory
                 if scannerPreferences.isScannerActive {
@@ -105,8 +92,8 @@ struct MainTabView: View {
         .environment(AppointmentsViewModel())
         .environment(InventoryScannerCoordinator.shared)
         .environment(ReceiveScannerCoordinator.shared)
-        .environment(PutawayScannerCoordinator.shared)
-        .environment(PutawaySessionStore.shared)
+        .environment(PutawayCompletionStore.shared)
         .environment(InventoryCatalogStore.shared)
+        .environment(FacilityConfigStore.shared)
         .environment(ReceivingEventReplayCoordinator.shared)
 }

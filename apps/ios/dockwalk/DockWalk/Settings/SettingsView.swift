@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(ThemeStore.self) private var themeStore
     @Environment(OfflineSyncStore.self) private var syncStore
     @Environment(SyncPreferencesStore.self) private var syncPreferences
     @Environment(ScannerPreferencesStore.self) private var scannerPreferences
@@ -24,6 +25,17 @@ struct SettingsView: View {
                     LabeledContent("Organization", value: environment.orgId)
                         .font(.system(.body, design: .monospaced))
                     LabeledContent("Role", value: environment.userRole.displayName)
+                }
+
+                Section("Theme") {
+                    Picker("Profile", selection: themeProfileBinding) {
+                        ForEach(ThemeProfile.allCases) { profile in
+                            Text(profile.displayName).tag(profile)
+                        }
+                    }
+                    Text("Facility default: DockWalk Classic. This device can override locally.")
+                        .font(DockWalkTheme.captionFont)
+                        .foregroundStyle(DockWalkTheme.textSecondary)
                 }
 
                 Section("API") {
@@ -199,12 +211,20 @@ struct SettingsView: View {
             StatusChip(label: enabled ? "On" : "Off", tone: enabled ? .success : .neutral)
         }
     }
+
+    private var themeProfileBinding: Binding<ThemeProfile> {
+        Binding(
+            get: { themeStore.profile },
+            set: { themeStore.setProfile($0) }
+        )
+    }
 }
 
 #Preview {
     SettingsView()
         .environment(AppEnvironment.shared)
         .environment(OfflineSyncStore.shared)
+        .environment(ThemeStore.shared)
         .environment(SyncPreferencesStore.shared)
         .environment(ScannerPreferencesStore.shared)
         .environment(ReceivingEventReplayCoordinator.shared)

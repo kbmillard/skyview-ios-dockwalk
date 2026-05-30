@@ -54,4 +54,38 @@ enum PutawayCardQueueBuilder {
     static func dedupeKey(upc: String, shipmentId: String?) -> String {
         "\(shipmentId ?? "global")|\(upc.lowercased())"
     }
+
+    struct StagingLocationSection: Identifiable, Equatable {
+        let id: String
+        let locationCode: String
+        let cards: [PutawayUPCCard]
+    }
+
+    static func groupedPendingCards(
+        inboundShipmentId: String? = nil,
+        inboundSession: InboundSessionStore,
+        completionStore: PutawayCompletionStore,
+        facilityConfig: FacilityConfigStore
+    ) -> [StagingLocationSection] {
+        let cards = pendingCards(
+            inboundShipmentId: inboundShipmentId,
+            inboundSession: inboundSession,
+            completionStore: completionStore
+        )
+        let defaultStaging = facilityConfig.defaultReceiveLocation().trimmingCharacters(in: .whitespacesAndNewlines)
+
+        var grouped: [String: [PutawayUPCCard]] = [:]
+        for card in cards {
+            var location = card.fromLocationCode.trimmingCharacters(in: .whitespacesAndNewlines)
+            if location.isEmpty { location = defaultStaging.isEmpty ? "STAGING" : defaultStaging }
+            grouped[location, default: []].append(card)
+        }
+
+        return grouped.keys.sorted { $0.localizedStandardCompare($1) == .orderedAscending }.map { location in
+            let sectionCards = (grouped[location] ?? []).sorted {
+                $0.upc.localizedStandardCompare($1.upc) == .orderedAscending
+            }
+            return StagingLocationSection(id: location, locationCode: location, cards: sectionCards)
+        }
+    }
 }
