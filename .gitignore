@@ -16,5 +16,5 @@ xcuserdata/
 dockwalkios.jpeg
 
 # TestFlight asset drop (local reference only; not versioned)
-public/DockWalk_iOS_TestFlight_Ready_Package/
-public/DockWalk_iOS_TestFlight_Ready_Package.zip
+apps/ios/dockwalk/docs/brand/DockWalk_iOS_TestFlight_Ready_Package/
+apps/ios/dockwalk/docs/brand/DockWalk_iOS_TestFlight_Ready_Package.zip
